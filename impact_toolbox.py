@@ -235,7 +235,6 @@ def gen_gdp_baseline(nightlights, gdp_baseline_file, ssp, econ_model, base_year=
 
     #merge the two files to map hierids to gdp_ratios and gdp vals
     new = pd.merge(base, nlts, how='inner', on='hierid')
-    print(new.groupby('iso')['gdppc_ratio'].min())
     
     #find the min ratio for a given iso that is greater than 0.0. 
     #We are setting all 0.0 vals to this val
@@ -247,14 +246,26 @@ def gen_gdp_baseline(nightlights, gdp_baseline_file, ssp, econ_model, base_year=
     # #if there are 0.0 vals for a hierid, set the gdppc_ratio to the min val for that iso
     new.loc[new['gdppc_ratio'] == 0.0, 'gdppc_ratio'] = new_zeros['gdppc_ratio']
 
+    test = new.apply(lambda x: x['value']*x['gdppc_ratio'], 1)
 
-    # #calculate a baseline
-    new['baseline'] = new.apply(lambda x: x['value']*x['gdppc_ratio'], 1)
+    annual_baseline = xr.Dataset({'gdppc': (['hierid'], 
+                                    test.values)},
+                                    coords={'hierid': new['hierid'], 'iso': new['iso']}
+                                  )
+    annual_baseline.attrs.update(dict(year=base_year, ssp=ssp, econ_model=econ_model))
     
-    return new
+
+    path ='/Users/justinsimcock/data/socio_covariates/gdppc/{}_{}_{}.nc'.format(econ_model, ssp,base_year)
+    
+    if not os.path.isdir(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    
+        annual_baseline.to_netcdf(path)
+    
+    return annual_baseline
 
 
-def gen_gdp_annual(merged_df, gdp_growth_path, ssp, econ_model):
+def gen_gdp_annual(gdp_growth_path, ssp, econ_model, year=None):
     '''
     1. Load in merged_df
     2. load in growth_df
@@ -262,6 +273,24 @@ def gen_gdp_annual(merged_df, gdp_growth_path, ssp, econ_model):
     4. else compute value of current year based on value from last year and last years growth rate
 
     '''
+    gdf = pd.read_csv(gdp_growth_path, skiprows=9)
+    gdf = gdf.loc[(gdf['model'] == econ_model) & (gdf['scenario'] == ssp) & (gdf['year'] == year)]    
+    gdf_series = pd.Series(data=gdf.growth.values, index=gdf.iso)
+    return gdf_series
+
+
+    # baseline['estimated_gdp'] = baseline.apply(lambda x: x['baseline']*annual_growth[annual_growth['iso'
+    # ...: ] ==x['iso']]['growth'])
+      
+
+def annual_gdp_to_netcdf(baseline_df, ):
+
+
+
+  annual_ds = xr.Dataset
+  mdata = zip(baseline.columns[:3], (baseline.year[0], baseline.model[0], baseline.scenario[0]))
+
+
 
 
 def replace_zeros(row):
