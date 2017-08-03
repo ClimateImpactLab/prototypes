@@ -246,26 +246,21 @@ def gen_gdp_baseline(nightlights, gdp_baseline_file, ssp, econ_model, base_year=
     # #if there are 0.0 vals for a hierid, set the gdppc_ratio to the min val for that iso
     new.loc[new['gdppc_ratio'] == 0.0, 'gdppc_ratio'] = new_zeros['gdppc_ratio']
 
-    test = new.apply(lambda x: x['value']*x['gdppc_ratio'], 1)
+    annual_baseline = xr.Dataset.from_dataframe(new)
+    annual_baseline['gdppc'] = annual_baseline['value'] * annual_baseline['gdppc_ratio']
 
-    annual_baseline = xr.Dataset({'gdppc': (['hierid'], 
-                                    test.values)},
-                                    coords={'hierid': new['hierid'], 'iso': new['iso']}
-                                  )
-    annual_baseline.attrs.update(dict(year=base_year, ssp=ssp, econ_model=econ_model))
-    
 
-    path ='/Users/justinsimcock/data/socio_covariates/gdppc/{}_{}_{}.nc'.format(econ_model, ssp,base_year)
+    # path ='/Users/justinsimcock/data/socio_covariates/gdppc/{}/{}/{}.nc'.format(econ_model, ssp,base_year)
     
-    if not os.path.isdir(os.path.dirname(path)):
-        os.makedirs(os.path.dirname(path))
+    # if not os.path.isdir(os.path.dirname(path)):
+    #     os.makedirs(os.path.dirname(path))
     
-        annual_baseline.to_netcdf(path)
+    # annual_baseline.to_netcdf(path)
     
     return annual_baseline
 
 
-def gen_gdp_annual(gdp_growth_path, ssp, econ_model, year=None):
+def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
     '''
     1. Load in merged_df
     2. load in growth_df
@@ -273,40 +268,16 @@ def gen_gdp_annual(gdp_growth_path, ssp, econ_model, year=None):
     4. else compute value of current year based on value from last year and last years growth rate
 
     '''
-    gdf = pd.read_csv(gdp_growth_path, skiprows=9)
-    gdf = gdf.loc[(gdf['model'] == econ_model) & (gdf['scenario'] == ssp) & (gdf['year'] == year)]    
-    gdf_series = pd.Series(data=gdf.growth.values, index=gdf.iso)
-    return gdf_series
-
-
-    # baseline['estimated_gdp'] = baseline.apply(lambda x: x['baseline']*annual_growth[annual_growth['iso'
-    # ...: ] ==x['iso']]['growth'])
-      
-
-def annual_gdp_to_netcdf(baseline_df, ):
-
-
-
-  annual_ds = xr.Dataset
-  mdata = zip(baseline.columns[:3], (baseline.year[0], baseline.model[0], baseline.scenario[0]))
-
-
-
-
-def replace_zeros(row):
-    '''
-    replaces all 0.0 values in a pd Dataframe with the lowest non zero-value 
-    for the ISO
-    '''
-    min_ratios = get_mins()
-
-    if row['gdppc_ratio'] == 0.0:
-        row['gdppc_ratio'] = min_ratios[row['iso']]
-
-
-
+    # gdf = pd.read_csv(gdp_growth_path, skiprows=9)
+    # gdf = gdf.loc[(gdf['model'] == econ_model) & (gdf['scenario'] == ssp) & (gdf['year'] == year)] 
     
 
+    gdf = pd.read_csv(gdp_growth_path, skiprows=9, index_col=range(4))
+    return gdf.xs(year, level='year').xs(econ_model, level='model').xs(ssp, level='scenario')['growth']
+      
+
+# def annual_gdp_to_netcdf(baseline_ds_path, growth_file_path, ssp, econ_model, base_year):
+  
 
 def read_csvv(path):
     '''
