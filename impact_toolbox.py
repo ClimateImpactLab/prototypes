@@ -194,18 +194,18 @@ def gen_gdp_covariates_file(inpath, rolling_window):
     pass
 
 
-def gen_gdp_baseline(nightlights, gdp_baseline_file, ssp, econ_model, base_year=2010):
+def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, write_path, metadata, base_year=2010):
     '''
     Function to generate the baseline gdp values
 
-    1. load nightlights file (228)
-    2. Load baseline gdppc file (230)
-    3. Select an ssp, model and base_year (233)
-    4. merge the two dataframes on hierid (236)
-    5. create a list of gdppc_ratio weight min values based on iso grouping (241)
-    6. create a mask and replace 0.0 gdppc_ratio values with min for that iso (244)
-    7. replace 0.0 values in merged dataframe with masked values (247)
-    8. multiply ratios by gdppc_values to get baselines by hierid (252)
+    1. load nightlights netcdf file 
+    2. Load baseline gdppc csv file as xr Dataset
+    3. Construct data structure for the baseline 
+    4. Update Metadata
+    5. Do Math
+    6. Select model, ssp and base_year
+    6. Update NaN's with global mean from dataset
+    7. Write to disk
 
     Parameters:
     nightlights: str
@@ -221,43 +221,85 @@ def gen_gdp_baseline(nightlights, gdp_baseline_file, ssp, econ_model, base_year=
         `high` or `low`
     
     base_year: int
+      baseline year to start gdp calculations
 
+    write_path: str
+      path to write outputs
 
+    metadata: dict
+      details for file generation process
     '''
 
     #load nightlights
-    nlts = pd.read_csv(nightlights)
+    ntlt = xr.open_dataset(nightlights_path)
+
     #load baseline gdp file
-    base = pd.read_csv(gdp_baseline_file, skiprows=10)
+    base = xr.Dataset.from_dataframe(pd.read_csv(gdp_baseline_file, skiprows=10, index_col=range(4))).sel(year=base_year).drop('year')
 
-    #load baseline year, ssp, and model
-    base= base.loc[(base['model']==econ_model) & (base['scenario'] == ssp) & (base['year'] == base_year)]
+    #create the data structure for the product of ntlt and base
+    product = xr.Dataset(coords={'hierid': ntlt.hierid, 'model': base.model, 'scenario': base.scenario, 'iso':ntlt.iso})
 
-    #merge the two files to map hierids to gdp_ratios and gdp vals
-    new = pd.merge(base, nlts, how='inner', on='hierid')
+    #do math: generates baseline numbers for all scenarios and models
+    product['baseline'] = base['value'] * ntlt['gdppc_ratio']
+
+    #slice to select a specific model and scenario
+    product = product.sel(scenario=ssp, model=model)
+
+    #fillna's for this model
+    product['baseline'] = product.baseline.fillna(product.baseline.mean())
+
+    #update metadata
+    product = product.attrs.update(metadata)
+
+    #write to disk
+
+    if not os.path.isdir(os.path.dirname(write_path)):
+        os.makedirs(os.path.dirname(write_path))
+
+    product.to_netcdf(write_path)
     
-    #find the min ratio for a given iso that is greater than 0.0. 
-    #We are setting all 0.0 vals to this val
-    min_ratios = new[new['gdppc_ratio'] > 0.0].groupby('iso')['gdppc_ratio'].min()
+    return product
 
-    #create a df mask df that sets 
-    new_zeros = new[new['gdppc_ratio'] ==0.0].apply(lambda x: x.replace(x['gdppc_ratio'], min_ratios[x['iso']]), 1)
+def gen_nightlights_netcdf(nightlights_path, metadata, write_path):
+      '''
+      Helper function to convert nightlight csv file to netcdf. 
+      Does some data cleaning and filling in values where necessary
 
-    # #if there are 0.0 vals for a hierid, set the gdppc_ratio to the min val for that iso
-    new.loc[new['gdppc_ratio'] == 0.0, 'gdppc_ratio'] = new_zeros['gdppc_ratio']
+      1. Find iso-level min 
+      2. Assign all 0.0 values to that iso's min value
+      3. Fillna's with 1.0
+      4. write metadata
+      4. convert to netcdf
+      '''
 
-    annual_baseline = xr.Dataset.from_dataframe(new)
-    annual_baseline['gdppc'] = annual_baseline['value'] * annual_baseline['gdppc_ratio']
 
+      ntlt =  pd.read_csv(nightlights_path, index_col=0)
 
-    # path ='/Users/justinsimcock/data/socio_covariates/gdppc/{}/{}/{}.nc'.format(econ_model, ssp,base_year)
-    
-    # if not os.path.isdir(os.path.dirname(path)):
-    #     os.makedirs(os.path.dirname(path))
-    
-    # annual_baseline.to_netcdf(path)
-    
-    return annual_baseline
+      min_ratios = ntlt[ntlt['gdppc_ratio'] > 0.0].groupby('iso')['gdppc_ratio'].min()
+
+      fill_zeros = ntlt[ntlt['gdppc_ratio'] == 0.0].apply(lambda x: x.replace(x['gdppc_ratio'], min_ratios[x['iso']]), 1)
+
+      ntlt.loc[ntlt['gdppc_ratio'] == 0.0, 'gdppc_ratio'] = fill_zeros['gdppc_ratio']
+
+      ntlt = ntlt.fillna(1.0)
+      ntlt = xr.Dataset.from_dataframe(ntlt).set_coords('iso')
+
+      if not os.path.isdir(os.path.dirname(write_path)):
+          os.makedirs(os.path.dirname(write_path))
+      
+
+      ntlt.attrs.update(metadata)
+      ntlt.to_netcdf(write_path)
+
+      return ntlt
+
+      
+# growth_shuffled = growth.sel_points(dim=product.hierid, iso_short=product.iso)
+
+# gdp_by_hierid_and_year = growth_shuffled.growth * product.baseline
+
+# product = xr.Dataset(coords={'hierid': ntlt.hierid, 'model': base.model, 'scenario': base.scenario, 'iso':base.iso})
+# product['baseline'] = base['value'] * ntlt['gdppc_ratio']
 
 
 def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
@@ -278,6 +320,7 @@ def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
 
 # def annual_gdp_to_netcdf(baseline_ds_path, growth_file_path, ssp, econ_model, base_year):
   
+
 
 def read_csvv(path):
     '''
