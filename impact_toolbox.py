@@ -194,7 +194,7 @@ def gen_gdp_covariates_file(inpath, rolling_window):
     pass
 
 
-def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, write_path, metadata, base_year=2010):
+def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=2010, metadata=None, write_path=None):
     '''
     Function to generate the baseline gdp values
 
@@ -249,14 +249,15 @@ def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, write_path
     product['baseline'] = product.baseline.fillna(product.baseline.mean())
 
     #update metadata
-    product = product.attrs.update(metadata)
+    if metadata:
+      product = product.attrs.update(metadata)
 
     #write to disk
+    if write_path:
+      if not os.path.isdir(os.path.dirname(write_path)):
+          os.makedirs(os.path.dirname(write_path))
 
-    if not os.path.isdir(os.path.dirname(write_path)):
-        os.makedirs(os.path.dirname(write_path))
-
-    product.to_netcdf(write_path)
+      product.to_netcdf(write_path)
     
     return product
 
@@ -293,29 +294,47 @@ def gen_nightlights_netcdf(nightlights_path, metadata, write_path):
 
       return ntlt
 
-      
-# growth_shuffled = growth.sel_points(dim=product.hierid, iso_short=product.iso)
+def compute_annual(previous_year):
 
-# gdp_by_hierid_and_year = growth_shuffled.growth * product.baseline
 
-# product = xr.Dataset(coords={'hierid': ntlt.hierid, 'model': base.model, 'scenario': base.scenario, 'iso':base.iso})
-# product['baseline'] = base['value'] * ntlt['gdppc_ratio']
+  # growth_df = pd.read_csv(growth_path, skiprows=9).drop_duplicates()
+  # growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
+  # ntlt = xr.Dataset.from_dataframe(pd.read_csv(nightlights_path, index_col=0)).set_coords('iso')
+  # base = xr.Dataset.from_dataframe(pd.read_csv(gdp_baseline_path, skiprows=10, index_col=range(4))).sel(year=2010).drop('year')
+  # product = xr.Dataset({'baseline': base['value'] * ntlt['gdppc_ratio']})
+  # growth_shuffled = growth.sel_points(dim=product.hierid, iso_short=product.iso)
 
+  # gdp_by_hierid_and_year = growth_shuffled.growth * product.baseline
+
+  growth = gen_growth_rates(*args)
+  baseline = gen_gdp_baseline(*args)
+  growth = growth.sel_points(dim=baseline.hierid)
+
+  annual = xr.Dataset()
+  annual['gdppc'] = growth['growth']*baseline['baseline']
+ 
+  return annual
 
 def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
-    '''
-    1. Load in merged_df
-    2. load in growth_df
-    3. If year is % 5 multiply val in year  times growth rate and reset growth rate 
-    4. else compute value of current year based on value from last year and last years growth rate
+  '''
+  1. Load in merged_df
+  2. load in growth_df
+  3. If year is % 5 multiply val in year  times growth rate and reset growth rate 
+  4. else compute value of current year based on value from last year and last years growth rate
 
-    '''
-    # gdf = pd.read_csv(gdp_growth_path, skiprows=9)
-    # gdf = gdf.loc[(gdf['model'] == econ_model) & (gdf['scenario'] == ssp) & (gdf['year'] == year)] 
+  '''
+  # gdf = pd.read_csv(gdp_growth_path, skiprows=9)
+  # gdf = gdf.loc[(gdf['model'] == econ_model) & (gdf['scenario'] == ssp) & (gdf['year'] == year)] 
     
 
-    gdf = pd.read_csv(gdp_growth_path, skiprows=9, index_col=range(4))
-    return gdf.xs(year, level='year').xs(econ_model, level='model').xs(ssp, level='scenario')['growth']
+  growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
+  growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
+  growth = growth.sel(year=year, model=model, scenario=ssp)
+  growth['growth'] = growth.growth.fillna(growth.growth.sel(iso='mean'))
+
+
+
+  return growth
       
 
 # def annual_gdp_to_netcdf(baseline_ds_path, growth_file_path, ssp, econ_model, base_year):
