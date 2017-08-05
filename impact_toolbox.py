@@ -334,11 +334,7 @@ def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
 
 
 
-  return growth
-      
-
-# def annual_gdp_to_netcdf(baseline_ds_path, growth_file_path, ssp, econ_model, base_year):
-  
+  return growth  
 
 
 def read_csvv(path):
@@ -498,60 +494,6 @@ def get_annual_climate(model_paths, year, polymomial):
     t2 = time.time()
     print('get_climate_paths: {}'.format(t2 -t1))
     return dataset
-
-# def mortality_annual(gammas_path, baseline_climate_path, gdp_data_path, annual_climate_paths, write_path, year=None):
-#     '''
-#     Calculates the IR level daily/annual effect of temperature on Mortality Rates
-
-#     Paramaters
-#     ----------
-#     gammas_path: str
-#         path to csvv
-
-#     climate_data: str
-#         path to baseline year climate dataset
-
-#     gdp_data: str
-#         path to gdp_dataset
-
-#     annual_climate_paths: list
-#         list of paths for climate data sets
-
-#     mortality_flags: dit
-#         set of methods optionally applied to adjust final impact 
-
-
-#     Returns
-#     -------
-
-#     Xarray Dataset 
-
-
-#     '''
-#     metadata = dict(
-#             dependencies = [gammas_path, baseline_climate_path, gdp_data_path],
-#             description ='median mortality run on ACCESS1-0 model',
-#             year=year
-#             )
-
-#     betas = compute_betas(baseline_climate_path,gdp_data_path, gammas_path)
-#     climate = get_annual_climate(annual_climate_paths,year, 4)
-#     write_path = write_path.format(year=year)
-
-#     impact = xr.Dataset()
-    
-#     impact['mortality_impact'] = (betas['tas']*climate['tas'] + betas['tas-poly-2']*climate['tas-poly-2'] + 
-#             betas['tas-poly-3']*climate['tas-poly-3'] + betas['tas-poly-3']*climate['tas-poly-3'])
-
-#     impact.attrs.update(metadata)
-#     if not os.path.isdir(os.path.dirname(write_path)):
-#         os.makedirs(os.path.dirname(write_path))
-
-#     impact.to_netcdf(write_path)
-    
-#     print('Writing {}'.format(year))
-
-
 
 
 def pval_thing():
