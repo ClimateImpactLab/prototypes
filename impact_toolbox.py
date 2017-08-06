@@ -196,7 +196,8 @@ def gen_gdp_covariates_file(inpath, rolling_window):
 
 def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=2010, metadata=None, write_path=None):
     '''
-    Function to generate the baseline gdp values
+    Function to generate the baseline gdp values. Generates baseline by ssp and model for baseline year 2010. 
+    If write_path is given will write to disk. 
 
     1. load nightlights netcdf file 
     2. Load baseline gdppc csv file as xr Dataset
@@ -232,29 +233,22 @@ def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=
 
     #load nightlights
     ntlt = xr.open_dataset(nightlights_path)
-    print(ntlt)
 
     #load baseline gdp file
     base = xr.Dataset.from_dataframe(pd.read_csv(gdp_baseline_file, skiprows=10, index_col=range(4))).sel(year=base_year).drop('year')
 
-    print(base)
     #create the data structure for the product of ntlt and base
     product = xr.Dataset(coords={'hierid': ntlt.hierid, 'model': base.model, 'scenario': base.scenario, 'iso':ntlt.iso})
 
-    print(product)
     #do math: generates baseline numbers for all scenarios and models
     product['baseline'] = base['value'] * ntlt['gdppc_ratio']
 
-    print(product)
 
     #slice to select a specific model and scenario
     product = product.sel(scenario=ssp, model=model)
-    print(product)
 
     #fillna's for this model
     product['baseline'] = product.baseline.fillna(product.baseline.mean())
-
-    print(product)
 
     #update metadata
     if metadata:
