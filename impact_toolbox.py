@@ -241,14 +241,14 @@ def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=
     product = xr.Dataset(coords={'hierid': ntlt.hierid, 'model': base.model, 'scenario': base.scenario, 'iso':ntlt.iso})
 
     #do math: generates baseline numbers for all scenarios and models
-    product['baseline'] = base['value'] * ntlt['gdppc_ratio']
+    product['gdppc'] = base['value'] * ntlt['gdppc_ratio']
 
 
     #slice to select a specific model and scenario
     product = product.sel(scenario=ssp, model=model)
 
     #fillna's for this model
-    product['baseline'] = product.baseline.fillna(product.baseline.mean())
+    product['gdppc'] = product.gdppc.fillna(product.gdppc.mean())
 
     #update metadata
     if metadata:
