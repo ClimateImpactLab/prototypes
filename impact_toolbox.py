@@ -232,67 +232,86 @@ def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=
 
     #load nightlights
     ntlt = xr.open_dataset(nightlights_path)
+    print(ntlt)
 
     #load baseline gdp file
     base = xr.Dataset.from_dataframe(pd.read_csv(gdp_baseline_file, skiprows=10, index_col=range(4))).sel(year=base_year).drop('year')
 
+    print(base)
     #create the data structure for the product of ntlt and base
     product = xr.Dataset(coords={'hierid': ntlt.hierid, 'model': base.model, 'scenario': base.scenario, 'iso':ntlt.iso})
 
+    print(product)
     #do math: generates baseline numbers for all scenarios and models
     product['baseline'] = base['value'] * ntlt['gdppc_ratio']
 
+    print(product)
+
     #slice to select a specific model and scenario
     product = product.sel(scenario=ssp, model=model)
+    print(product)
 
     #fillna's for this model
     product['baseline'] = product.baseline.fillna(product.baseline.mean())
 
+    print(product)
+
     #update metadata
     if metadata:
-      product = product.attrs.update(metadata)
+      product.attrs.update(metadata)
 
     #write to disk
     if write_path:
       if not os.path.isdir(os.path.dirname(write_path)):
           os.makedirs(os.path.dirname(write_path))
 
-      product.to_netcdf(write_path)
+    product.to_netcdf(write_path)
     
     return product
 
 def gen_nightlights_netcdf(nightlights_path, metadata, write_path):
-      '''
-      Helper function to convert nightlight csv file to netcdf. 
-      Does some data cleaning and filling in values where necessary
-
-      1. Find iso-level min 
-      2. Assign all 0.0 values to that iso's min value
-      3. Fillna's with 1.0
-      4. write metadata
-      4. convert to netcdf
-      '''
+    '''
+    Helper function to convert nightlight csv file to netcdf. 
+    Does some data cleaning and filling in values where necessary
 
 
-      ntlt =  pd.read_csv(nightlights_path, index_col=0)
+    Parameters
+    ----------
+    nightlights_path: str
+        path to nightlights csv
 
-      min_ratios = ntlt[ntlt['gdppc_ratio'] > 0.0].groupby('iso')['gdppc_ratio'].min()
+    metadata: dict
 
-      fill_zeros = ntlt[ntlt['gdppc_ratio'] == 0.0].apply(lambda x: x.replace(x['gdppc_ratio'], min_ratios[x['iso']]), 1)
+    write_path: str
+        file to save to 
 
-      ntlt.loc[ntlt['gdppc_ratio'] == 0.0, 'gdppc_ratio'] = fill_zeros['gdppc_ratio']
+    1. Find iso-level min 
+    2. Assign all 0.0 values to that iso's min value
+    3. Fillna's with 1.0
+    4. write metadata
+    4. convert to netcdf
+    '''
 
-      ntlt = ntlt.fillna(1.0)
-      ntlt = xr.Dataset.from_dataframe(ntlt).set_coords('iso')
 
-      if not os.path.isdir(os.path.dirname(write_path)):
-          os.makedirs(os.path.dirname(write_path))
-      
+    ntlt =  pd.read_csv(nightlights_path, index_col=0)
 
-      ntlt.attrs.update(metadata)
-      ntlt.to_netcdf(write_path)
+    min_ratios = ntlt[ntlt['gdppc_ratio'] > 0.0].groupby('iso')['gdppc_ratio'].min()
 
-      return ntlt
+    fill_zeros = ntlt[ntlt['gdppc_ratio'] == 0.0].apply(lambda x: x.replace(x['gdppc_ratio'], min_ratios[x['iso']]), 1)
+
+    ntlt.loc[ntlt['gdppc_ratio'] == 0.0, 'gdppc_ratio'] = fill_zeros['gdppc_ratio']
+
+    ntlt = ntlt.fillna(1.0)
+    ntlt = xr.Dataset.from_dataframe(ntlt).set_coords('iso')
+
+    if not os.path.isdir(os.path.dirname(write_path)):
+        os.makedirs(os.path.dirname(write_path))
+
+
+    ntlt.attrs.update(metadata)
+    ntlt.to_netcdf(write_path)
+
+    return ntlt
 
 def compute_annual(previous_year):
 
