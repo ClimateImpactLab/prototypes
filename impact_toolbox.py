@@ -150,48 +150,9 @@ def compute_gdp_covariates(path, ssp, econ_model,base_year=2010):
 
 
 def gen_gdp_covariates_file(inpath, rolling_window):
-    # new_df = pd.DataFrame()
-    # df = pd.read_csv(inpath, skiprows=10)
-    # df = df.loc[(df['model']=='low') & (df['scenario'] == 'SSP1')]
-    # for year in range(2010, 2100):
-    #     #get a baseline
-    #     # if (year >= 2010) & (year < 2015):
-    #     #     #print(year)
-    #     #     df = df.loc[(df['year'] >= 2010) & (df['year'] <= 2015)]
-    #     #     value = df.groupby('hierid').mean()['value']
-    #     #     value= pd.DataFrame(value).reset_index()
-    #     #     df1 = pd.DataFrame(value, columns=['hierid', 'value'])
-    #     #     df1['year'] = year
-    #     #     new_df = new_df.append(df1)
-    #     #     #print(new_df.head())
-
-    #     # # # for years in rolling window
-    #     # # #For years after 2014 
-    #     # if ((year - 2015) >= 0) & ((year - 2015) <= rolling_window):
-    #     #     #print(year)
-    #     #     df = df.loc[(df['year'] >= 2015) & (df['year'] <= year)]
-    #     #     value = df.groupby('hierid').mean()['value']
-    #     #     value= pd.DataFrame(value).reset_index()
-    #     #     df1 = pd.DataFrame(value, columns=['hierid', 'value'])
-    #     #     df1['year'] = year
-    #     #     new_df = new_df.append(df1)
-    #     #     #print(len(new_df))
-    #     #     #print(new_df.head())
-
-    #     if year > 2030:
-    #         gap = year-rolling_window
-    #         print(year, gap)
-
-    #         df = df.loc[(df['year'] >= gap) & (df['year'] <= year)]
-    #         print(df['year'].min(), df['year'].max())
-    #         value = df.groupby('hierid').mean()['value']
-    #         value= pd.DataFrame(value).reset_index()
-    #         df1 = pd.DataFrame(value, columns=['hierid', 'value'])
-    #         df1['year'] = year
-    #         new_df = new_df.append(df1)
-    #             #print(new_df.head())
-    #         print(len(new_df))
     pass
+
+
 
 
 def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=2010, metadata=None, write_path=None):
@@ -259,7 +220,7 @@ def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=
       if not os.path.isdir(os.path.dirname(write_path)):
           os.makedirs(os.path.dirname(write_path))
 
-    product.to_netcdf(write_path)
+      product.to_netcdf(write_path)
     
     return product
 
@@ -307,26 +268,48 @@ def gen_nightlights_netcdf(nightlights_path, metadata, write_path):
 
     return ntlt
 
-def compute_annual(previous_year):
+def compute_annual(previous_year_ds, growth_ds, write_path=None, metadata=None):
+    '''
+    Computes annual gdp based on last years gdp and the growth rate
+    Simple multiplication
+
+    Parameters
+    ----------
+    previous_year_ds: xarray Dataset
 
 
-  # growth_df = pd.read_csv(growth_path, skiprows=9).drop_duplicates()
-  # growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
-  # ntlt = xr.Dataset.from_dataframe(pd.read_csv(nightlights_path, index_col=0)).set_coords('iso')
-  # base = xr.Dataset.from_dataframe(pd.read_csv(gdp_baseline_path, skiprows=10, index_col=range(4))).sel(year=2010).drop('year')
-  # product = xr.Dataset({'baseline': base['value'] * ntlt['gdppc_ratio']})
-  # growth_shuffled = growth.sel_points(dim=product.hierid, iso_short=product.iso)
+    Examples
+    --------
 
-  # gdp_by_hierid_and_year = growth_shuffled.growth * product.baseline
+    In [1]: annual = compute_annual(annual_2013, growth, write_path='annual_2014_gdp.nc', metadata=metadata)
+    Out[1]:
+    <xarray.Dataset>
+    Dimensions:   (hierid: 24378, iso: 185)
+    Coordinates:
+        year      int64 2014
+        model     |S3 'low'
+        scenario  |S4 'SSP1'
+        * iso       (iso) object 'ABW' 'AFG' 'AGO' 'ALB' 'ARE' 'ARG' 'ARM' 'AUS' ...
+        * hierid    (hierid) object 'ABW' 'AFG.11.R888b226f710b3709' 'AFG.15.167' ...
+    Data variables:
+        gdppc     (iso, hierid) float64 1.745e+04 1.745e+04 1.745e+04 1.745e+04 ...
+    '''
 
-  growth = gen_growth_rates(*args)
-  baseline = gen_gdp_baseline(*args)
-  growth = growth.sel_points(dim=baseline.hierid)
 
-  annual = xr.Dataset()
-  annual['gdppc'] = growth['growth']*baseline['baseline']
- 
-  return annual
+    annual = xr.Dataset()
+    annual['gdppc'] = growth_ds['growth']*previous_year_ds['gdppc']
+
+    if metadata:
+        annual.attrs.update(metadata)
+
+    if write_path:
+      if not os.path.isdir(os.path.dirname(write_path)):
+          os.makedirs(os.path.dirname(write_path))
+
+      annual.to_netcdf(write_path)
+
+
+    return annual
 
 def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
   '''
@@ -342,8 +325,9 @@ def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
 
   growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
   growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
-  growth = growth.sel(year=year, model=model, scenario=ssp)
+  growth = growth.sel(year=year, model=econ_model, scenario=ssp)
   growth['growth'] = growth.growth.fillna(growth.growth.sel(iso='mean'))
+  growth = growth.drop('year')
 
 
 
@@ -507,6 +491,31 @@ def get_annual_climate(model_paths, year, polymomial):
     t2 = time.time()
     print('get_climate_paths: {}'.format(t2 -t1))
     return dataset
+
+
+def gen_all_gdp_annuals(ssp, model, nightlights_path, baseline_gdp_path, growth_path, metadata, write_path):
+
+
+    base_write_path = write_path.format(ssp=ssp, model=model, year=2010)
+    base = gen_gdp_baseline(nightlights_path, baseline_gdp_path, ssp, model, base_year=2010, write_path=base_write_path)
+    growth = gen_growth_rates(growth_path, ssp, model, 2010)
+    annual= xr.Dataset()
+    annual['gdppc'] = base['gdppc']*growth['growth']
+    metadata['year'] = 2010
+    annual.attrs.update(metadata)
+    for year in range(2011, 2016):
+        if year %5 == 0:
+             growth = gen_growth_rates(growth_path, ssp, model, year)
+        annual['gdppc'] = annual['gdppc']*growth['growth']
+        metadata['year'] = year
+        annual.attrs.update(metadata)
+        if write_path:
+            annual_write_path = write_path.format(ssp=ssp, model=model,year=year)
+            if not os.path.isdir(os.path.dirname(annual_write_path)):
+              os.makedirs(os.path.dirname(annual_write_path))
+
+            annual.to_netcdf(annual_write_path)
+
 
 
 def pval_thing():
