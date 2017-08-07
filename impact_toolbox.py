@@ -58,8 +58,6 @@ import csv
 import os
 
 
-
-
 def compute_climate_covariates(path,base_year=None, rolling_window=None):
     ''' 
     Method to calculate climate covariate
@@ -75,7 +73,6 @@ def compute_climate_covariates(path,base_year=None, rolling_window=None):
     rolling_window: int
         num years to calculate the rolling covariate average
 
-
     .. note: Rolling window only used for full adaptation, otherwise None
 
     Returns
@@ -83,7 +80,6 @@ def compute_climate_covariates(path,base_year=None, rolling_window=None):
     Xarray Dataset
         daily/annual climate values 
     '''
-
 
     #compute baseline
     #load datasets up through baseline year
@@ -98,8 +94,6 @@ def compute_climate_covariates(path,base_year=None, rolling_window=None):
 
     #baseyear_path = path.format(year=base_year)
 
-
-
     t1 = time.time()
     ds = xr.open_dataset(path)
     #print(ds)
@@ -107,9 +101,6 @@ def compute_climate_covariates(path,base_year=None, rolling_window=None):
     t2 = time.time()
     print('Finishing compute_climate_covariates: {}'.format(t2-t1))
     return ds
-
-
-
 
 def compute_gdp_covariates(path, ssp, econ_model,base_year=2010):
     '''
@@ -147,12 +138,6 @@ def compute_gdp_covariates(path, ssp, econ_model,base_year=2010):
     print('Completing compute_gdp_covariates: {}'.format(t2 - t1))
 
     return df
-
-
-def gen_gdp_covariates_file(inpath, rolling_window):
-    pass
-
-
 
 
 def gen_gdp_baseline(nightlights_path, gdp_baseline_file, ssp, model, base_year=2010, metadata=None, write_path=None):
@@ -229,7 +214,6 @@ def gen_nightlights_netcdf(nightlights_path, metadata, write_path):
     Helper function to convert nightlight csv file to netcdf. 
     Does some data cleaning and filling in values where necessary
 
-
     Parameters
     ----------
     nightlights_path: str
@@ -246,7 +230,6 @@ def gen_nightlights_netcdf(nightlights_path, metadata, write_path):
     4. write metadata
     4. convert to netcdf
     '''
-
 
     ntlt =  pd.read_csv(nightlights_path, index_col=0)
 
@@ -276,7 +259,16 @@ def compute_annual(previous_year_ds, growth_ds, write_path=None, metadata=None):
     Parameters
     ----------
     previous_year_ds: xarray Dataset
+        last years gdp growth for each hierid
 
+    growth_ds: Xarray Dataset
+        dataset of ISO by growth_rate
+
+    write_path: str
+        file path to write to
+
+    metadata: dict
+        file specific metadata
 
     Examples
     --------
@@ -295,7 +287,6 @@ def compute_annual(previous_year_ds, growth_ds, write_path=None, metadata=None):
         gdppc     (iso, hierid) float64 1.745e+04 1.745e+04 1.745e+04 1.745e+04 ...
     '''
 
-
     annual = xr.Dataset()
     annual['gdppc'] = growth_ds['growth']*previous_year_ds['gdppc']
 
@@ -312,35 +303,50 @@ def compute_annual(previous_year_ds, growth_ds, write_path=None, metadata=None):
     return annual
 
 def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
-  '''
-  1. Load in merged_df
-  2. load in growth_df
-  3. If year is % 5 multiply val in year  times growth rate and reset growth rate 
-  4. else compute value of current year based on value from last year and last years growth rate
+    '''
 
-  '''
-  # gdf = pd.read_csv(gdp_growth_path, skiprows=9)
-  # gdf = gdf.loc[(gdf['model'] == econ_model) & (gdf['scenario'] == ssp) & (gdf['year'] == year)] 
-    
+    Parameters
+    ----------
+    gdp_growth_path:str
 
-  growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
-  growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
-  growth = growth.sel(year=year, model=econ_model, scenario=ssp)
-  growth['growth'] = growth.growth.fillna(growth.growth.sel(iso='mean'))
-  growth = growth.drop('year')
+    ssp: str
+    one of the following: 'SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
 
+    econ_model: str
+    one of the following: 'high', 'low'
 
+    year: int
+    year to get gdp for growth rate
 
-  return growth  
+    Returns
+    -------
+    Xarray Dataset of iso x gdppc for a given year
+
+    '''
+
+    growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
+    growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
+    growth = growth.sel(year=year, model=econ_model, scenario=ssp)
+
+    #for locations that do not have a growth rate, supply the global mean value
+    growth['growth'] = growth.growth.fillna(growth.growth.sel(iso='mean'))
+    growth = growth.drop('year')
+
+    return growth  
 
 
 def read_csvv(path):
     '''
     Returns the gammas and covariance matrix 
+    
+    Parameters
+    ----------
+    path: str
+        path to csvv file
 
     Returns
     -------
-    dict 
+    dict with keys of gamma, gammavcv, and residvcv
     '''
 
     t1 = time.time()
@@ -399,7 +405,34 @@ def prep_gammas(path):
     return gammas
     
 
+
+##################
+#Will deprecate or refactor
 def prep_covars(gdp_path, clim_path, ssp, econ_model, base_year=None):
+    '''
+    Loads and aligns covar data sets
+
+    Parameters
+    ----------
+    gdp_path: str
+        path to a given year of gdp covariate data
+
+    clim_path: str
+        path to a given year of climate covariate data
+
+    ssp: str
+        one of the following: 'SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
+
+    econ_model: str
+        one of the following: 'high', 'low'
+
+    base_year: int
+        base year to use as baseline for calcualtions
+
+    Returns
+    -------
+    Xarray dataset with gdp and tavg covariate variables
+    '''
 
     t1 = time.time()
     covars = xr.Dataset()
@@ -412,7 +445,7 @@ def prep_covars(gdp_path, clim_path, ssp, econ_model, base_year=None):
     print('completing prep_covars:{}'.format(t2- t1))
     return covars
 
-
+####################
 
 def compute_betas(clim_path, gdp_path, gammas_path, ssp, econ_model):
     '''
@@ -425,13 +458,21 @@ def compute_betas(clim_path, gdp_path, gammas_path, ssp, econ_model):
 
     Parameters
     ----------
+    clim_path: str
+        path to climate covariate
 
+    gdp_path: str
+        path to gdp covariate
 
+    ssp: str
+        one of the following: 'SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
+
+    econ_model: str
+        one of the following: 'high', 'low'
+ 
     Returns
     -------
-
-    3 arrays representing 
-
+    Xarray Dataset with values for each of the Betas
 
     '''
 
@@ -458,12 +499,25 @@ def compute_betas(clim_path, gdp_path, gammas_path, ssp, econ_model):
     print('Completing compute_betas: {}'.format(t2 - t1))
     return betas
 
-def get_annual_climate(model_paths, year, polymomial):
+def get_annual_climate(model_paths, year, polymomial=4):
     '''
+    Parameters
+    ----------
     models_paths: list
         list of strings to temperature variables for that year
 
     year: str 
+        specific year to calculate climate for
+
+    polynomial: int
+        order of polynomial to read
+        used for path handling
+
+
+    Returns
+    -------
+    Xarray Dataset with each climate polynomial as a variable 
+
 
     '''
     t1 =time.time()
@@ -493,9 +547,41 @@ def get_annual_climate(model_paths, year, polymomial):
     return dataset
 
 
-def gen_all_gdp_annuals(ssp, model, nightlights_path, baseline_gdp_path, growth_path, metadata, write_path):
+def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, model, metadata, write_path):
+    '''
+    Helper function to cycle through range of years and generate gdp files. Writes gdp file to disk.
 
+    Gnarly but necessary
 
+    Parameters
+    ----------
+
+    nightlights_path: str
+        path to nightlights gpd_ratio file
+
+    baseline_gdp_path: str
+        path to file with gdp baseline values
+
+    growth_path: str
+        path to file with gdp growth rates 
+
+    ssp: str
+        one of the following: 'SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
+
+    econ_model: str
+        one of the following: 'high', 'low'
+
+    metadata: dict
+        file specific metadata
+
+    write_path: str
+        file to write to
+
+    Returns
+    -------
+    None 
+
+    '''
     base_write_path = write_path.format(ssp=ssp, model=model, year=2010)
     base = gen_gdp_baseline(nightlights_path, baseline_gdp_path, ssp, model, base_year=2010, write_path=base_write_path)
     growth = gen_growth_rates(growth_path, ssp, model, 2010)
