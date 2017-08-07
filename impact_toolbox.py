@@ -604,27 +604,48 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
 
 
-def pval_thing():
-    '''
-    Generate a list of pvals
+def gen_kernel_covars(covariate_paths, kernel=30):
+    ''' 
+    Computes the Bartlett kernel average for covariates
+    Kernel length is set
+
+    
+
+    #do some stuff to align the dimensions along time/year
+    #load datasets
+
+    Input
+    -----
+    <xarray.Dataset>
+    Dimensions:   (hierid: 24378, iso: 185, year: 6)
+    Coordinates:
+        * hierid    (hierid) |S35 'ABW' 'AFG.11.R888b226f710b3709' 'AFG.15.167' ...
+        model     |S4 'high'
+        scenario  |S4 'SSP1'
+        * year      (year) object 2010 2011 2012 2013 2014 2015
+    Dimensions without coordinates: iso
+    Data variables:
+        gdppc     (year, hierid, iso) float64 1.411e+03 1.411e+03 1.411e+03 ...
+
     '''
 
-
-def goodmoney(ds):
-    '''
-    Some method to transform data according to goodmoney
-    '''
-
-
-def combine(ds):
-    '''
-    If we are doing age cohorts, sums the damages for each IR across age cohorts
-    '''
-    pass
+    covariate_paths = glob.glob(covariate_paths)
+    years = []
+    for p in covariate_paths:
+        match = re.split('(\d{4})', p)
+        years.append(match[1])
 
 
-def costs(ds, *args):
-    '''
-    Some methods to account for costs
-    '''
-    pass
+
+
+
+
+
+def bartlet_kernel_avg(ds, dim='year'):
+    kernel = np.bartlett(6)
+    if ds.dims[dim] < kernel:
+        kernel = kernel[ds.dims[dim]]
+        kernel = kernel/kernel.sum()
+    return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim) 
+
+    xr.DataArray(kernel, dims=('year',), coords={'year': ds.coords['year']})
