@@ -56,6 +56,10 @@ import time
 import datafs
 import csv
 import os
+import re
+import glob
+import datetime
+
 
 
 def compute_climate_covariates(path,base_year=None, rolling_window=None):
@@ -631,9 +635,36 @@ def gen_kernel_covars(covariate_paths, kernel=30):
 
     covariate_paths = glob.glob(covariate_paths)
     years = []
+    datasets = []
+    print(covariate_paths)
     for p in covariate_paths:
+
         match = re.split('(\d{4})', p)
         years.append(match[1])
+        with xr.open_dataset(p) as ds:
+            ds.load()
+            ds.drop('iso')
+        datasets.append(ds)
+
+    print(years)
+    #ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
+    #xr.DataArray(kernel, dims=('year',), coords={'year': ds.coords['year']})
+
+    return datasets, years
+
+
+def bartlet_kernel_avg(ds, kernel=None, dim='year'):                                                    
+    
+    kernel = np.bartlett(kernel+1)
+
+    if ds.dims[dim] < kernel:
+
+        kernel = ds.dims[dim]  
+        kernel = kernel/kernel.sum()
+    
+    return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).mean(dim=dim)
+
+
 
 
 
