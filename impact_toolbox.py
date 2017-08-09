@@ -643,8 +643,8 @@ def gen_kernel_covars(covariate_paths, kernel=30):
         years.append(match[1])
         with xr.open_dataset(p) as ds:
             ds.load()
-            ds.drop('iso')
-        datasets.append(ds)
+        ds.drop('iso')
+            datasets.append(ds)
 
     print(years)
     #ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
@@ -662,21 +662,4 @@ def bartlet_kernel_avg(ds, kernel=None, dim='year'):
         kernel = ds.dims[dim]  
         kernel = kernel/kernel.sum()
     
-    return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).mean(dim=dim)
-
-
-
-
-
-
-
-
-
-def bartlet_kernel_avg(ds, dim='year'):
-    kernel = np.bartlett(6)
-    if ds.dims[dim] < kernel:
-        kernel = kernel[ds.dims[dim]]
-        kernel = kernel/kernel.sum()
-    return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim) 
-
-    xr.DataArray(kernel, dims=('year',), coords={'year': ds.coords['year']})
+    return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim)
