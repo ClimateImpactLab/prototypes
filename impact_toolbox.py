@@ -306,7 +306,7 @@ def compute_annual(previous_year_ds, growth_ds, write_path=None, metadata=None):
 
     return annual
 
-def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
+def get_growth_rates(gdp_growth_path):
     '''
 
     Parameters
@@ -330,12 +330,9 @@ def gen_growth_rates(gdp_growth_path, ssp, econ_model, year=None):
 
     growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
     growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
-    growth = growth.sel(year=year, model=econ_model, scenario=ssp)
 
     #for locations that do not have a growth rate, supply the global mean value
-    growth['growth'] = growth.growth.fillna(growth.growth.sel(iso='mean'))
-    growth = growth.drop('year')
-
+    
     return growth  
 
 
@@ -551,7 +548,7 @@ def get_annual_climate(model_paths, year, polymomial=4):
     return dataset
 
 
-def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, model, metadata, write_path):
+def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, model, metadata=None, write_path=None):
     '''
     Helper function to cycle through range of years and generate gdp files. Writes gdp file to disk.
 
@@ -586,17 +583,53 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     None 
 
     '''
+        
+    #format for writing baseline year
     base_write_path = write_path.format(ssp=ssp, model=model, year=2010)
+
+    #get your baseline gdp data
     base = gen_gdp_baseline(nightlights_path, baseline_gdp_path, ssp, model, base_year=2010, write_path=base_write_path)
-    growth = gen_growth_rates(growth_path, ssp, model, 2010)
+
+    #create series of unique ISOs in gdp dataset
+    iso = pd.Series(base.hierid.values).str.split('.').apply(lambda x: x[0])
+
+    #align coords of is to hierid
+    base.coords['iso'] = ('hierid', iso)
+
+    #get your growth rate
+    growth = get_growth_rates(growth_path)
+    #get the base year gdp_growth
+    growth_year = growth.sel(year=2010, model=model, scenario=ssp)
+
+    #growth_year = growth_year.fillna(growth_year.growth.sel(iso='mean'))
+    #growth_year = growth_year.loc[{'iso': growth.iso != 'mean'}]
+
+
+    ####################
+    # reindex for math #
+    growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
+    growth_year = growth_year.sel(iso=base.iso)
+    growth_year.coords['hierid'] = (('iso'),base.hierid)
+    growth_year = growth_year.swap_dims({'iso': 'hierid'})
+
+ 
+    #do math
     annual= xr.Dataset()
-    annual['gdppc'] = base['gdppc']*growth['growth']
+    annual['gdppc'] = base['gdppc']*growth_year['growth']
+
+    #metadata for base year
     metadata['year'] = 2010
     annual.attrs.update(metadata)
+
+    #redo for each year
     for year in range(2011, 2016):
         if year %5 == 0:
-             growth = gen_growth_rates(growth_path, ssp, model, year)
-        annual['gdppc'] = annual['gdppc']*growth['growth']
+            growth_year = growth_year.sel(year=year, model=model, scenario=ssp)
+            growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
+            growth_year = growth_year.sel(iso=base.iso)
+            growth_year.coords['hierid'] = (('iso'),base.hierid)
+            growth_year = growth_year.swap_dims({'iso': 'hierid'})
+        annual['gdppc'] = annual['gdppc']*growth_year['growth']
         metadata['year'] = year
         annual.attrs.update(metadata)
         if write_path:
@@ -606,7 +639,9 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
             annual.to_netcdf(annual_write_path)
 
+    return annual
 
+#pd.Series(base.loc[{'hierid': base.hierid}].hierid.values).str.split('.').apply(lambda x: x[0])
 
 def gen_kernel_covars(covariate_paths, kernel=30):
     ''' 
@@ -643,8 +678,8 @@ def gen_kernel_covars(covariate_paths, kernel=30):
         years.append(match[1])
         with xr.open_dataset(p) as ds:
             ds.load()
-        ds.drop('iso')
             datasets.append(ds)
+            ds.close()
 
     print(years)
     #ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
