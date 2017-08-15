@@ -585,7 +585,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     '''
         
     #format for writing baseline year
-    base_write_path = write_path.format(ssp=ssp, model=model, year=2010)
+    base_write_path = write_path.format(ssp=ssp, model=model,version= version ,year=2010)
 
     #get your baseline gdp data
     base = gen_gdp_baseline(nightlights_path, baseline_gdp_path, ssp, model, base_year=2010, write_path=base_write_path)
