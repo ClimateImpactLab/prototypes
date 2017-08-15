@@ -623,7 +623,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     annual.attrs.update(metadata)
 
     #calculate annual for each year
-    for year in range(2011, 2030):
+    for year in range(2011, 2100):
         if year %5 == 0:
             growth_year = growth.sel(year=year, model=model, scenario=ssp)
             growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
@@ -641,7 +641,6 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
             annual.to_netcdf(annual_write_path)
 
-            print(annual)
 
 #pd.Series(base.loc[{'hierid': base.hierid}].hierid.values).str.split('.').apply(lambda x: x[0])
 
