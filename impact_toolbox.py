@@ -635,7 +635,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
         metadata['year'] = year
         annual.attrs.update(metadata)
         if write_path:
-            annual_write_path = write_path.format(ssp=ssp, model=model,year=year)
+            annual_write_path = write_path.format(ssp=ssp, model=model,version=version, year=year)
             if not os.path.isdir(os.path.dirname(annual_write_path)):
               os.makedirs(os.path.dirname(annual_write_path))
 
