@@ -328,7 +328,7 @@ def get_growth_rates(gdp_growth_path):
 
     '''
 
-    growth_df = pd.read_csv(gdp_growth_path, skiprows=10).drop_duplicates()
+    growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
     growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
 
     #for locations that do not have a growth rate, supply the global mean value
@@ -611,16 +611,14 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     growth_year = growth_year.sel(iso=base.iso)
     growth_year.coords['hierid'] = (('iso'),base.hierid)
     growth_year = growth_year.swap_dims({'iso': 'hierid'})
-    growth_year = growth_year.drop('year').drop('model').drop('scenario')
 
- 
     #do math
     annual= xr.Dataset()
     annual['gdppc'] = base['gdppc']*growth_year['growth']
-
     #metadata for base year
     metadata['year'] = 2010
     annual.attrs.update(metadata)
+    annual = annual.drop('model').drop('scenario').drop('year')
 
     #calculate annual for each year
     for year in range(2011, 2100):
@@ -630,10 +628,17 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
             growth_year = growth_year.sel(iso=base.iso)
             growth_year.coords['hierid'] = (('iso'),base.hierid)
             growth_year = growth_year.swap_dims({'iso': 'hierid'})
-            growth_year = growth_year.drop('year').drop('model').drop('scenario')
+            # growth_year = growth_year.drop('year')
+
+
         annual['gdppc'] = annual['gdppc']*growth_year['growth']
-        metadata['year'] = year
+
+        metadata['year'] = str(year)
+
         annual.attrs.update(metadata)
+        annual = annual.drop('model').drop('scenario').drop('year')
+
+
         if write_path:
             annual_write_path = write_path.format(ssp=ssp, model=model,version=version, year=year)
             if not os.path.isdir(os.path.dirname(annual_write_path)):
