@@ -616,7 +616,8 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     annual= xr.Dataset()
     annual['gdppc'] = base['gdppc']*growth_year['growth']
     #metadata for base year
-    metadata['year'] = 2010
+    metadata['year'] = str(2010)
+  
     annual.attrs.update(metadata)
     annual = annual.drop('model').drop('scenario').drop('year')
 
@@ -637,7 +638,6 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
         annual.attrs.update(metadata)
         annual = annual.drop('model').drop('scenario').drop('year')
-
 
         if write_path:
             annual_write_path = write_path.format(ssp=ssp, model=model,version=version, year=year)
