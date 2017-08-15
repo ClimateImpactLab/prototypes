@@ -548,7 +548,7 @@ def get_annual_climate(model_paths, year, polymomial=4):
     return dataset
 
 
-def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, model, metadata=None, write_path=None):
+def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, model, version=None, metadata=None, write_path=None):
     '''
     Helper function to cycle through range of years and generate gdp files. Writes gdp file to disk.
 
