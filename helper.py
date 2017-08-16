@@ -45,4 +45,4 @@ if __name__ == '__main__':
     mdata['ssp'] = ssp
     mdata['model'] = model
 
-    gen_all_gdp_annuals(ntlt_path, baseline_gdp_path, growth_path, ssp, model, version, mdata, write_path)
+    gen_all_gdp_annuals(ntlt_path, baseline_gdp_path, growth_path, ssp, model, version= __version__, metadata=mdata, write_path=write_path)
