@@ -328,7 +328,7 @@ def get_growth_rates(gdp_growth_path):
 
     '''
 
-    growth_df = pd.read_csv(gdp_growth_path, skiprows=10).drop_duplicates()
+    growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
     growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
 
     #for locations that do not have a growth rate, supply the global mean value
@@ -601,16 +601,18 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     #get the base year gdp_growth
     growth_year = growth.sel(year=2010, model=model, scenario=ssp)
 
-    #growth_year = growth_year.fillna(growth_year.growth.sel(iso='mean'))
-    #growth_year = growth_year.loc[{'iso': growth.iso != 'mean'}]
+    # #growth_year = growth_year.fillna(growth_year.growth.sel(iso='mean'))
+    # #growth_year = growth_year.loc[{'iso': growth.iso != 'mean'}]
 
 
-    ####################
-    # reindex for math #
+    # ####################
+    # # reindex for math #
     growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
     growth_year = growth_year.sel(iso=base.iso)
     growth_year.coords['hierid'] = (('iso'),base.hierid)
     growth_year = growth_year.swap_dims({'iso': 'hierid'})
+
+    #growth_year = reindex_growth_rate(growth, base, ssp, model, 2010)
 
     #do math
     annual= xr.Dataset()
@@ -620,6 +622,8 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
   
     annual.attrs.update(metadata)
     annual = annual.drop('model').drop('scenario').drop('year')
+    annual.to_netcdf(base_write_path)
+
 
     #calculate annual for each year
     for year in range(2011, 2100):
@@ -630,6 +634,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
             growth_year.coords['hierid'] = (('iso'),base.hierid)
             growth_year = growth_year.swap_dims({'iso': 'hierid'})
             # growth_year = growth_year.drop('year')
+            #growth_year = reindex_growth_rate(growth, base, ssp, model, year)
 
 
         annual['gdppc'] = annual['gdppc']*growth_year['growth']
@@ -639,6 +644,8 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
         annual.attrs.update(metadata)
         annual = annual.drop('model').drop('scenario').drop('year')
 
+        print(annual)
+        
         if write_path:
             annual_write_path = write_path.format(ssp=ssp, model=model,version=version, year=year)
             if not os.path.isdir(os.path.dirname(annual_write_path)):
@@ -646,6 +653,35 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
             annual.to_netcdf(annual_write_path)
 
+def reindex_growth_rate(growth_ds, base, ssp, model, year):
+    '''
+    
+    Performs Xarray Dataset manipulations to generate subsets of data from larger xarray dataset
+    
+
+    Parameters
+    ----------
+    growth_ds: 
+
+    base: 
+
+    ssp: str
+        
+    model: str
+
+    year: str
+
+    Returns
+    -------
+    Xarray Dataset
+    '''
+    growth_year = growth_ds.sel(year=year, model=model, scenario=ssp)
+    growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
+    growth_year = growth_year.sel(iso=base.iso)
+    growth_year.coords['hierid'] = (('iso'),base.hierid)
+    growth_year = growth_year.swap_dims({'iso': 'hierid'})
+
+    return growth_year
 
 #pd.Series(base.loc[{'hierid': base.hierid}].hierid.values).str.split('.').apply(lambda x: x[0])
 
