@@ -7,7 +7,7 @@ import datetime
 
 from impact_toolbox import (
         get_growth_rates, 
-        get_all_gdp_annuals,
+        gen_all_gdp_annuals,
         gen_gdp_baseline,
         )
 
@@ -44,5 +44,5 @@ if __name__ == '__main__':
   for ssp,model in itertools.product(ssps, models):
     mdata['ssp'] = ssp
     mdata['model'] = model
-    
+
     gen_all_gdp_annuals(ntlt_path, baseline_gdp_path, growth_path, ssp, model, version, mdata, write_path)
