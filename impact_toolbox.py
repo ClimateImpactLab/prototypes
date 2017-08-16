@@ -628,6 +628,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
     #calculate annual for each year
     for year in range(2011, 2100):
         if year %5 == 1:
+            year = year - 1
             growth_year = growth.sel(year=year, model=model, scenario=ssp)
             growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
             growth_year = growth_year.sel(iso=base.iso)
