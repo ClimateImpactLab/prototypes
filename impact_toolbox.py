@@ -328,7 +328,7 @@ def get_growth_rates(gdp_growth_path):
 
     '''
 
-    growth_df = pd.read_csv(gdp_growth_path, skiprows=9).drop_duplicates()
+    growth_df = pd.read_csv(gdp_growth_path, skiprows=10).drop_duplicates()
     growth = xr.Dataset.from_dataframe(growth_df.set_index(list(growth_df.columns[:4])))
 
     #for locations that do not have a growth rate, supply the global mean value
