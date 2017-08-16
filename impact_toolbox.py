@@ -686,7 +686,7 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
 
 #pd.Series(base.loc[{'hierid': base.hierid}].hierid.values).str.split('.').apply(lambda x: x[0])
 
-def gen_kernel_covars(covariate_paths, kernel=30):
+def gen_kernel_covars(covariate_paths, kernel=None, climate=False):
     ''' 
     Computes the Bartlett kernel average for covariates
     Kernel length is set
@@ -711,12 +711,13 @@ def gen_kernel_covars(covariate_paths, kernel=30):
 
     '''
 
+    ############################
+    # Construct larger dataset #
+    ############################
     covariate_paths = glob.glob(covariate_paths)
     years = []
     datasets = []
-    print(covariate_paths)
     for p in covariate_paths:
-
         match = re.split('(\d{4})', p)
         years.append(match[1])
         with xr.open_dataset(p) as ds:
@@ -724,21 +725,36 @@ def gen_kernel_covars(covariate_paths, kernel=30):
             datasets.append(ds)
             ds.close()
 
-    print(years)
     ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
-    #xr.DataArray(kernel, dims=('year',), coords={'year': ds.coords['year']})
+    ###########################################
+    # Take the annual mean tas at each hierid #
+    ###########################################
+    if climate:
+
+      ds = ds.mean(dim='hierid')
+
+    ##################
+    # Compute kernel #
+    ##################
+    
+    ds = bartlett_kernel_avg(ds, kernel=kernel)
 
     return ds
 
 
-def bartlet_kernel_avg(ds, kernel=None, dim='year'):                                                    
+def bartlet_kernel_avg(ds, kernel=None, dim='year'):
+    '''
+    
+
+    
+    '''                                                    
     
     kernel = np.bartlett(kernel)
 
     if ds.dims[dim] < len(kernel):
 
-        kernel = np.bartlett(ds.dims[dim]+1)
+        kernel = np.bartlett(ds.dims[dim])
 
         kernel = kernel/kernel.sum()
     
