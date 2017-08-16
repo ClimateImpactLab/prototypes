@@ -627,7 +627,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
     #calculate annual for each year
     for year in range(2011, 2100):
-        if year %5 == 0:
+        if year %5 == 1:
             growth_year = growth.sel(year=year, model=model, scenario=ssp)
             growth_year = growth_year.reindex_like(xr.Dataset(coords={'iso': np.unique(base.iso)}))
             growth_year = growth_year.sel(iso=base.iso)
@@ -724,19 +724,21 @@ def gen_kernel_covars(covariate_paths, kernel=30):
             ds.close()
 
     print(years)
-    #ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
+    ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
+
     #xr.DataArray(kernel, dims=('year',), coords={'year': ds.coords['year']})
 
-    return datasets, years
+    return ds
 
 
 def bartlet_kernel_avg(ds, kernel=None, dim='year'):                                                    
     
-    kernel = np.bartlett(kernel+1)
+    kernel = np.bartlett(kernel)
 
-    if ds.dims[dim] < kernel:
+    if ds.dims[dim] < len(kernel):
 
-        kernel = ds.dims[dim]  
+        kernel = np.bartlett(ds.dims[dim]+1)
+
         kernel = kernel/kernel.sum()
     
     return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim)
