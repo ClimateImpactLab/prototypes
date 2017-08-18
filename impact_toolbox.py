@@ -686,44 +686,44 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
 
 #pd.Series(base.loc[{'hierid': base.hierid}].hierid.values).str.split('.').apply(lambda x: x[0])
 
-def gen_kernel_covars(covariate_paths, kernel=None, climate=False):
+def gen_kernel_covars(covariate_paths, kernel=None, climate=False, metadata=None, write_path=None):
     ''' 
-    Computes the Bartlett kernel average for covariates
-    Kernel length is set
+    Computes kernelized covariate from a series of length of kernel
 
-    
+    Parameters
+    ----------
+    covariate_paths: list
+      list of strings for file paths
 
-    #do some stuff to align the dimensions along time/year
-    #load datasets
+    kernel: int
+      duration to compute window
 
-    Input
-    -----
-    <xarray.Dataset>
-    Dimensions:   (hierid: 24378, iso: 185, year: 6)
-    Coordinates:
-        * hierid    (hierid) |S35 'ABW' 'AFG.11.R888b226f710b3709' 'AFG.15.167' ...
-        model     |S4 'high'
-        scenario  |S4 'SSP1'
-        * year      (year) object 2010 2011 2012 2013 2014 2015
-    Dimensions without coordinates: iso
-    Data variables:
-        gdppc     (year, hierid, iso) float64 1.411e+03 1.411e+03 1.411e+03 ...
+    climate: bool
+      whether or not you are computing climate covariates
+
+    Returns 
+    -------
+    xarray Dataset
 
     '''
 
     ############################
     # Construct larger dataset #
     ############################
-    covariate_paths = glob.glob(covariate_paths)
+
     years = []
     datasets = []
     for p in covariate_paths:
-        match = re.split('(\d{4})', p)
-        years.append(match[1])
-        with xr.open_dataset(p) as ds:
-            ds.load()
-            datasets.append(ds)
-            ds.close()
+        try:
+            with xr.open_dataset(p) as ds:
+                ds.load()
+                datasets.append(ds)
+                ds.close()
+                match = re.split('(\d{4})', p)
+                years.append(match[1])
+        #catch where files do not exist
+        except IOError:
+          continue
 
     ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
@@ -737,25 +737,110 @@ def gen_kernel_covars(covariate_paths, kernel=None, climate=False):
     ##################
     # Compute kernel #
     ##################
-    
-    ds = bartlett_kernel_avg(ds, kernel=kernel)
+    ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
 
-    return ds
+    #################
+    # write to disk #
+    #################
+    metadata['kernel'] = kernel
+    ds.attrs.update(metadata)
 
 
-def bartlet_kernel_avg(ds, kernel=None, dim='year'):
+    if write_path:
+      write_path = write_path.format(
+        ssp=metadata['ssp'], 
+        model=metadata['model'], 
+        year=metadata['year'], 
+        version=metadata['version'])
+      print(write_path)
+      if not os.path.isdir(os.path.dirname(write_path)):
+        os.makedirs(os.path.dirname(write_path))
+        ds.to_netcdf(write_path)
+
+    print ds
+
+
+def gen_smoothed_covars(ds, dim='year', kernel= None):
     '''
-    
+    Calculates the smooth average for a series
 
-    
+    Parameters
+    ----------
+
+    ds: Xarray Dataset
+
+    dim: str
+      dimension to smooth over
+
+    kernel: int
+      window to smooth over
+
+    Returns
+    -------
+    Xarray Dataset
+
+    Example
+    -------
+
+    .. code-block:: python
+
+
+        In [1]: ds = xr.Dataset({'temperature': (['location', 'year'], 
+           ...: np.random.randint(0,100,100).reshape(10,10))},
+           ...: coords={'location': ['loc' + str(i) for i in range(10)], 
+           ...: 'year' :[str(yr) for yr in range(2010, 2020)]})
+        In [2]: ds
+        Out[2]: 
+        <xarray.Dataset>
+        Dimensions:      (location: 10, year: 10)
+        Coordinates:
+          * location     (location) |S4 'loc0' 'loc1' 'loc2' 'loc3' 'loc4' 'loc5' ...
+          * year         (year) |S4 '2010' '2011' '2012' '2013' '2014' '2015' '2016' ...
+        Data variables:
+            temperature  (location, year) int64 98 52 81 55 11 42 0 16 28 40 89 35 ...
+        In [3]: gen_smoothed_covars(ds, dim='year', kernel=10)
+        Out[3]:
+        <xarray.Dataset>
+        Dimensions:      (location: 10)
+        Coordinates:
+          * location     (location) |S4 'loc0' 'loc1' 'loc2' 'loc3' 'loc4' 'loc5' ...
+        Data variables:
+            temperature  (location) float64 56.78 60.82 33.91 56.29 59.33 60.4 48.11 ...
+
     '''                                                    
+    smooth_array = triangle_smooth(kernel)
+
+    if ds.dims[dim] < len(smooth_array):
+
+        smooth_array = smooth_array[:ds.dims[dim]]
     
-    kernel = np.bartlett(kernel)
+    return (ds * xr.DataArray(smooth_array, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim)
 
-    if ds.dims[dim] < len(kernel):
 
-        kernel = np.bartlett(ds.dims[dim])
+def triangle_smooth(k):
+  '''
+  Produces the smoothed upper triangle array
 
-        kernel = kernel/kernel.sum()
-    
-    return (ds * xr.DataArray(kernel, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim)
+  Parameters
+  ----------
+  k: int
+
+  Returns
+  -------
+  numpy array of length k
+
+  Example
+  -------
+
+  .. code-block:: python
+
+      >>> smooth = lut_smooth(10)
+      >>> smooth
+      array([ 0.2       ,  0.17777778,  0.15555556,  0.13333333,  0.11111111,
+      0.08888889,  0.06666667,  0.04444444,  0.02222222,  0.        ])
+  '''
+
+  smooth_array = np.arange(k)
+  smooth_array = smooth_array/float(smooth_array.sum())
+
+  return smooth_array
