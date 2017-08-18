@@ -32,7 +32,8 @@ kernel = 13
 write_path_brc = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_' + str(kernel) +
                 '_gdppc/{ssp}/{model}/{year}/{version}.nc')
 
-covar_path_brc = '/global/scratch/jsimcock/data_files/covars/ssp_gdppc/{ssp}/{model}/{year}/{version}.nc'
+covar_path_brc = ('/global/scratch/jsimcock/data_files/covars/ssp_gdppc/{ssp}/{model}/{year}/'
+                  + str(__version__) + '.nc')
 
 # write_path = '/Users/justinsimcock/data/gdps/ssp_kernel_gddpc/{ssp}/{model}/{year}/{version}.nc'
 
