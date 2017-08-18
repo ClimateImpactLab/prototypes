@@ -684,7 +684,6 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
 
     return growth_year
 
-#pd.Series(base.loc[{'hierid': base.hierid}].hierid.values).str.split('.').apply(lambda x: x[0])
 
 def gen_kernel_covars(covariate_paths, kernel=None, climate=False, metadata=None, write_path=None):
     ''' 
@@ -752,12 +751,12 @@ def gen_kernel_covars(covariate_paths, kernel=None, climate=False, metadata=None
         model=metadata['model'], 
         year=metadata['year'], 
         version=metadata['version'])
-      print(write_path)
       if not os.path.isdir(os.path.dirname(write_path)):
         os.makedirs(os.path.dirname(write_path))
         ds.to_netcdf(write_path)
 
-    print ds
+    print('writing to {}'.format(write_path))
+
 
 
 def gen_smoothed_covars(ds, dim='year', kernel= None):
@@ -807,8 +806,15 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
         Data variables:
             temperature  (location) float64 56.78 60.82 33.91 56.29 59.33 60.4 48.11 ...
 
-    '''                                                    
+    ''' 
+    ######################
+    # smoothing function #
+    ######################                                                  
     smooth_array = triangle_smooth(kernel)
+
+    ##############################################
+    # handle sets of years less then kernel size #
+    ##############################################
 
     if ds.dims[dim] < len(smooth_array):
 
@@ -819,7 +825,10 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
 
 def triangle_smooth(k):
   '''
-  Produces the smoothed upper triangle array
+  Produces the smoothed upper triangle array. 
+  Because xarray Datasets are constructed with the larger year
+  to the 'right' of the dataset we make sure the higher value 
+  ratios are to the right to give more emphasis to recent values.
 
   Parameters
   ----------
@@ -834,10 +843,10 @@ def triangle_smooth(k):
 
   .. code-block:: python
 
-      >>> smooth = lut_smooth(10)
-      >>> smooth
-      array([ 0.2       ,  0.17777778,  0.15555556,  0.13333333,  0.11111111,
-      0.08888889,  0.06666667,  0.04444444,  0.02222222,  0.        ])
+      In [1]: smooth = triangle_smooth(10)
+      In [2[: smooth
+      array([ 0.        ,  0.02222222,  0.04444444,  0.06666667,  0.08888889,
+      0.11111111,  0.13333333,  0.15555556,  0.17777778,  0.2       ])
   '''
 
   smooth_array = np.arange(k)
