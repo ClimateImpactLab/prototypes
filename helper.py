@@ -23,8 +23,8 @@ __version__ = '0.1.0'
 
 # growth_path = '/global/scratch/jsimcock/social/baselines/gdppc-growth.csv'
 
-write_path_brc = '/global/scratch/jsimcock/data_files/covars/ssp_kernel_' + kernel +
-                '_gdppc/{ssp}/{model}/{year}/{version}.nc'
+write_path_brc = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_' + kernel +
+                '_gdppc/{ssp}/{model}/{year}/{version}.nc')
 
 covar_path_brc = '/global/scratch/jsimcock/data_files/covars/ssp_gdppc/{ssp}/{model}/{year}/{version}.nc'
 
