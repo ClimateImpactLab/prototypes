@@ -17,6 +17,12 @@ __contact__ = 'jsimcock@rhg.com'
 __version__ = '0.1.0'
 
 
+ssps = ['SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5']
+
+models = ['low', 'high']
+
+kernel = 13
+
 # ntlt_path = '/global/scratch/jsimcock/social/baselines/nightlight_weight_updated.nc'
 
 # baseline_gdp_path = '/global/scratch/jsimcock/social/baselines/gdppc-merged-baseline.csv'
@@ -32,11 +38,7 @@ covar_path_brc = '/global/scratch/jsimcock/data_files/covars/ssp_gdppc/{ssp}/{mo
 
 # covar_path = '/Users/justinsimcock/data/gdps/ssp_gddpc_{ssp}_{model}_{year}_1.0.nc'
 
-ssps = ['SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5']
 
-models = ['low', 'high']
-
-kernel = 13
 
 
 mdata = dict(
