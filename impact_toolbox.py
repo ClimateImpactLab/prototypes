@@ -685,7 +685,7 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
     return growth_year
 
 
-def gen_kernel_covars(covariate_paths, kernel=None, climate=False, metadata=None, write_path=None):
+def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=None):
     ''' 
     Computes kernelized covariate from a series of length of kernel
 
@@ -716,6 +716,8 @@ def gen_kernel_covars(covariate_paths, kernel=None, climate=False, metadata=None
         try:
             with xr.open_dataset(p) as ds:
                 ds.load()
+                if climate:
+                  ds = ds.mean(dim='time')
                 datasets.append(ds)
                 ds.close()
                 match = re.split('(\d{4})', p)
@@ -726,36 +728,25 @@ def gen_kernel_covars(covariate_paths, kernel=None, climate=False, metadata=None
 
     ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
-    ###########################################
-    # Take the annual mean tas at each hierid #
-    ###########################################
-    if climate:
-
-      ds = ds.mean(dim='hierid')
-
     ##################
     # Compute kernel #
     ##################
-    ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
+
+    ds = gen_smoothed_covars(ds, dim='year', kernel=metadata['kernel'])
 
     #################
     # write to disk #
     #################
-    metadata['kernel'] = kernel
     ds.attrs.update(metadata)
 
-
     if write_path:
-      write_path = write_path.format(
-        ssp=metadata['ssp'], 
-        model=metadata['model'], 
-        year=metadata['year'], 
-        version=metadata['version'])
       if not os.path.isdir(os.path.dirname(write_path)):
         os.makedirs(os.path.dirname(write_path))
         ds.to_netcdf(write_path)
 
-    print('writing to {}'.format(write_path))
+      print('writing to {}'.format(write_path))
+
+    print(ds)
 
 
 

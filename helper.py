@@ -1,68 +1,100 @@
-import xarray as xr
+
+import os
+import logging
+import datetime
+import itertools
 import numpy as np
 import pandas as pd
-import itertools
-import datetime
+import xarray as xr
+
+from jrnr import slurm_runner
 
 
-from impact_toolbox import (
-        get_growth_rates, 
-        gen_all_gdp_annuals,
-        gen_gdp_baseline,
-        gen_kernel_covars
-        )
+FORMAT = '%(asctime)-15s %(message)s'
+logging.basicConfig(format=FORMAT)
+
+logger = logging.getLogger('uploader')
+logger.setLevel('DEBUG')
+
 
 __author__ = 'Justin Simcock'
 __contact__ = 'jsimcock@rhg.com'
 __version__ = '0.1.0'
 
+write_path_brc = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/{variable}_kernel_{kernel}'
+                + '/{rcp}/{model}/{year}/{version}.nc')
 
-ssps = ['SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5']
-
-models = ['low', 'high']
-
-kernel = 13
-
-# ntlt_path = '/global/scratch/jsimcock/social/baselines/nightlight_weight_updated.nc'
-
-# baseline_gdp_path = '/global/scratch/jsimcock/social/baselines/gdppc-merged-baseline.csv'
-
-# growth_path = '/global/scratch/jsimcock/social/baselines/gdppc-growth.csv'
-
-write_path_brc = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_' + str(kernel) +
-                '_gdppc/{ssp}/{model}/{year}/{version}.nc')
-
-covar_path_brc = ('/global/scratch/jsimcock/data_files/covars/ssp_gdppc/{ssp}/{model}/{year}/'
-                  + str(__version__) + '.nc')
-
-# write_path = '/Users/justinsimcock/data/gdps/ssp_kernel_gddpc/{ssp}/{model}/{year}/{version}.nc'
-
-# covar_path = '/Users/justinsimcock/data/gdps/ssp_gddpc_{ssp}_{model}_{year}_1.0.nc'
+covar_path_brc = ('/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/{variable}/{rcp}/{model}/{year}/1.5.nc')
 
 
 
-
-mdata = dict(
+ADDITIONAL_METADATA = dict(
             description='annual kernelized gdppc by hierid', 
             dependencies= '',
             author=__author__, 
             contact=__contact__, 
             version=__version__, 
-            source= 'https://github.com/ClimateImpactLab/mortality/blob/mortality/impact_toolbox.py',
-            created = str(datetime.datetime.now()),
+            source= str(__file__),
+            project='gcp',
+            created = str(datetime.datetime.now())
             )
-if __name__ == '__main__':
 
-  for ssp,model in itertools.product(ssps, models):
-    mdata['ssp'] = ssp
-    mdata['model'] = model
 
-    for y in range(2010, 2100):
+KER = [dict(kernel='30')]
+
+VAR = [dict(variable='tas')]
+
+MODELS = list(map(lambda x: dict(model=x), [
+    'ACCESS1-0',
+    'bcc-csm1-1',
+    'BNU-ESM',
+    'CanESM2',
+    'CCSM4',
+    'CESM1-BGC',
+    'CNRM-CM5',
+    'CSIRO-Mk3-6-0',
+    'GFDL-CM3',
+    'GFDL-ESM2G',
+    'GFDL-ESM2M',
+    'IPSL-CM5A-LR',
+    'IPSL-CM5A-MR',
+    'MIROC-ESM-CHEM',
+    'MIROC-ESM',
+    'MIROC5',
+    'MPI-ESM-LR',
+    'MPI-ESM-MR',
+    'MRI-CGCM3',
+    'inmcm4',
+    'NorESM1-M']))
+
+JOB_SPEC = [KER, VAR,  MODELS]
+
+
+@slurm_runner(filepath=__file__, job_spec=JOB_SPEC, onfinish=onfinish)
+def gen_covars(
+          mdata,
+          model, 
+          variable, 
+          kernel
+            )
+
+  from impact_toolbox import (gen_kernel_covars)
+
+
+    for y in range(1981, 2100):
       window = range(y-(kernel-1), y+1)
       #print(window)
-      paths = [covar_path_brc.format(ssp=ssp, model=model,year=yr) for yr in window]
+      paths = []
+      for yr in window:
+        rcp == 'historical'
+        if yr > 2005:
+          rcp == 'rcp85'
+        paths.append(covar_path_brc.format(rcp=rcp, model=model,variable=variable, year=yr) for yr in window)
       #print(paths)
+      mdata.update(ADDITIONAL_METADATA)
       mdata['dependencies'] = str(paths)
-      mdata['year'] = y 
+      mdata['year'] = y
 
-      gen_kernel_covars(paths, kernel = kernel, metadata=mdata, write_path=write_path_brc)
+      write_path = write_path_brc.format(**mdata)
+
+      gen_kernel_covars(paths, climate=True, metadata=mdata, write_path=write_path)
