@@ -22,9 +22,9 @@ __contact__ = 'jsimcock@rhg.com'
 __version__ = '0.1.0'
 
 write_path_brc = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/{variable}_kernel_{kernel}'
-                + '/{rcp}/{model}/{year}/{version}.nc')
+                + '/{rcp}/{model}/{year}/{version}.nc4')
 
-covar_path_brc = ('/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/{variable}/{rcp}/{model}/{year}/1.5.nc')
+covar_path_brc = ('/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/{variable}/{rcp}/{model}/{year}/1.5.nc4')
 
 
 
