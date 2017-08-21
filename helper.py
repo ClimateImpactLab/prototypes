@@ -101,8 +101,8 @@ def gen_covars(
       else:
         read_rcp = rcp
 
-      paths.append(covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=yr) for yr in window)
-      print(paths)
+      paths.append(covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=yr))
+    print(paths)
     #print(paths)
 
     metadata.update(ADDITIONAL_METADATA)
