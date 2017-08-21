@@ -92,6 +92,7 @@ def gen_covars(
     window = range(y-(kernel-1), y+1)
     #print(window)
     #When we have years whose last 30 years span 
+    print(window)
     paths = []
     for yr in window:
       if yr < 2005:
