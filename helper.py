@@ -103,14 +103,14 @@ def gen_covars(
     else:
       read_rcp = rcp
 
-    covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
-    print(covar_path_brc)
+    covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
+    print(covar_path)
     #Load in first year, concat, if length of dim year is greater than 29, pop last and concat
 
 
 
     try:
-        with xr.open_dataset(covar_path_brc) as ds:
+        with xr.open_dataset(covar_path) as ds:
             ds.load()
             ds = ds.mean(dim='time')
             ds.coords['year'] = y
