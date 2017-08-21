@@ -44,6 +44,8 @@ KER = [dict(kernel='30')]
 
 VAR = [dict(variable='tas')]
 
+SCENARIO = [dict(rcp='rcp85')]
+
 MODELS = list(map(lambda x: dict(model=x), [
     'ACCESS1-0',
     'bcc-csm1-1',
@@ -67,12 +69,12 @@ MODELS = list(map(lambda x: dict(model=x), [
     'inmcm4',
     'NorESM1-M']))
 
-JOB_SPEC = [KER, VAR,  MODELS]
+JOB_SPEC = [KER, VAR,  SCENARIO, MODELS]
 
 
 @slurm_runner(filepath=__file__, job_spec=JOB_SPEC, onfinish=onfinish)
 def gen_covars(
-          mdata,
+          metadata,
           model, 
           variable, 
           kernel
@@ -81,20 +83,32 @@ def gen_covars(
   from impact_toolbox import (gen_kernel_covars)
 
 
-    for y in range(1981, 2100):
-      window = range(y-(kernel-1), y+1)
-      #print(window)
-      paths = []
-      for yr in window:
-        rcp == 'historical'
-        if yr > 2005:
-          rcp == 'rcp85'
-        paths.append(covar_path_brc.format(rcp=rcp, model=model,variable=variable, year=yr) for yr in window)
-      #print(paths)
-      mdata.update(ADDITIONAL_METADATA)
-      mdata['dependencies'] = str(paths)
-      mdata['year'] = y
+  for y in range(1981, 2100):
 
-      write_path = write_path_brc.format(**mdata)
+    logger.debug('attempting to build window for year {} climate covariate'.format(y))
 
-      gen_kernel_covars(paths, climate=True, metadata=mdata, write_path=write_path)
+    window = range(y-(kernel-1), y+1)
+    #print(window)
+    #When we have years whose last 30 years span 
+    paths = []
+    for yr in window:
+      rcp == 'historical'
+      if yr > 2005:
+        rcp == 'rcp85'
+      paths.append(covar_path_brc.format(rcp=rcp, model=model,variable=variable, year=yr) for yr in window)
+    #print(paths)
+
+    metadata.update(ADDITIONAL_METADATA)
+    metadata['dependencies'] = str(paths)
+    metadata['year'] = y
+
+    write_path = write_path_brc.format(**metadata)
+
+    logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
+
+    gen_kernel_covars(paths, climate=True, metadata=metadata, write_path=write_path)
+    
+    logger.debug('successful write of climate covariate for year {}'.format(y))
+
+
+

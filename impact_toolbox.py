@@ -710,6 +710,10 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=
     # Construct larger dataset #
     ############################
 
+    import xarray as xr
+    import pandas as pd
+    import numpy as np
+
     years = []
     datasets = []
     for p in covariate_paths:
@@ -735,7 +739,7 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=
     ds = gen_smoothed_covars(ds, dim='year', kernel=metadata['kernel'])
 
     #################
-    # write to disk #
+    # write to disk #print
     #################
     ds.attrs.update(metadata)
 
