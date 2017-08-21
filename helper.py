@@ -84,52 +84,55 @@ def gen_covars(
           rcp,
           interactive=False
             ):
-  from impact_toolbox import gen_smoothed_covars
-  import xarray as xr
-  import pandas as pd
-  import numpy as np
-  
-
-  datasets = xr.Dataset()
-  for y in range(1981, 2100):
-
-    logger.debug('attempting to build window for year {} climate covariate'.format(y))
-
-    #window = range(y-(kernel-1), y+1)
-    #When we have years whose last 30 years span 
-    #for yr in window:
-    if y < 2005:
-      read_rcp = 'historical'
-    else:
-      read_rcp = rcp
-
-    covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
-    print(covar_path)
-    #Load in first year, concat, if length of dim year is greater than 29, pop last and concat
+    from impact_toolbox import gen_smoothed_covars
+    import xarray as xr
+    import pandas as pd
+    import numpy as np
 
 
+    datasets = None
+    for y in range(1981, 2100):
 
-    try:
+        logger.debug('attempting to build window for year {} climate covariate'.format(y))
+
+        #window = range(y-(kernel-1), y+1)
+        #When we have years whose last 30 years span 
+        #for yr in window:
+        if y < 2005:
+        read_rcp = 'historical'
+        else:
+        read_rcp = rcp
+
+        covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
+        print(covar_path)
+        #Load in first year, concat, if length of dim year is greater than 29, pop last and concat
+
+
+
         with xr.open_dataset(covar_path) as ds:
-            ds.load()
-            ds = ds.mean(dim='time')
-            ds.coords['year'] = y
-            datasets = xr.concat([datasets, ds], dim='year')
-            ds.close()
-        
+          ds.load()
 
-        # datasets.append(ds)
-        # ds.close()
-        # match = re.split('(\d{4})', p)
-        # years.append(int(match[1]))
-    #catch where files do not exist
-    except IOError:
-      continue
+        ds = ds.mean(dim='time')
+        ds.coords['year'] = y
 
-    if y > 1982:
-      valid_years = range(max(y-30, 1981), y-1)
-      datasets = datasets.sel(year=valid_years)
-    print(datasets)
+        if datasets is None:
+          values = [ds]
+        else:
+          values = [datasets, ds]
+
+        datasets = xr.concat(values, dim='year')
+
+
+            # datasets.append(ds)
+            # ds.close()
+            # match = re.split('(\d{4})', p)
+            # years.append(int(match[1]))
+    
+
+        if y > 1982:
+            valid_years = range(max(y-30, 1981), y-1)
+            datasets = datasets.sel(year=valid_years)
+        print(datasets)
 
     
   # ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
