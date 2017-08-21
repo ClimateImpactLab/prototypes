@@ -84,46 +84,77 @@ def gen_covars(
           rcp,
           interactive=False
             ):
-  from impact_toolbox import gen_kernel_covars
+  from impact_toolbox import gen_smoothed_covars
+  import xarray as xr
+  import pandas as pd
+  import numpy as np
+  
 
-
+  datasets = xr.Dataset()
   for y in range(1981, 2100):
 
     logger.debug('attempting to build window for year {} climate covariate'.format(y))
 
-    window = range(y-(kernel-1), y+1)
+    #window = range(y-(kernel-1), y+1)
     #When we have years whose last 30 years span 
-    paths = []
-    for yr in window:
-      if yr < 2005:
-        read_rcp = 'historical'
-      else:
-        read_rcp = rcp
+    #for yr in window:
+    if y < 2005:
+      read_rcp = 'historical'
+    else:
+      read_rcp = rcp
 
-      paths.append(covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=yr))
+    covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
 
-    metadata.update(ADDITIONAL_METADATA)
-    metadata['dependencies'] = str(paths)
-    metadata['year'] = y
-
-    write_path = write_path_brc.format(**metadata)
-
-    logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
-
-    ds = gen_kernel_covars(paths, climate=True, kernel=int(metadata['kernel']))
+    #Load in first year, concat, if length of dim year is greater than 29, pop last and concat
 
 
-    ds.attrs.update({k: str(v) for k, v in metadata.items()})
+
+    try:
+        with xr.open_dataset(covar_path_brc) as ds:
+            ds.load()
+            ds = ds.mean(dim='time')
+            annual = xr.concat(ds, pd.Index([y], name='year', dtype=datetime.datetime))
+            ds.close()
+        
+
+        # datasets.append(ds)
+        # ds.close()
+        # match = re.split('(\d{4})', p)
+        # years.append(int(match[1]))
+    #catch where files do not exist
+    except IOError:
+      continue
+
+    datasets = xr.merge(datasets, annual)
+    valid_years = range(max(y-30, 1981), y-1)
+    datasets = datasets.sel(year=valid_years)
+
+    
+  # ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
+
+    print(datasets)
+    # metadata.update(ADDITIONAL_METADATA)
+    # metadata['dependencies'] = str(paths)
+    # metadata['year'] = y
+
+    # write_path = write_path_brc.format(**metadata)
+
+    # logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
+
+    # ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
 
 
-    logger.debug('attempting to write climate covariate for year {}'.format(y))
+    # ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
-    # if not os.path.isdir(os.path.dirname(write_path)):
-    #   os.makedirs(os.path.dirname(write_path))
-    #   ds.to_netcdf(write_path)
 
-    print(ds)
-    logger.debug('successful write of climate covariate for year {}'.format(y))
+    # logger.debug('attempting to write climate covariate for year {}'.format(y))
+
+    # # if not os.path.isdir(os.path.dirname(write_path)):
+    # #   os.makedirs(os.path.dirname(write_path))
+    # #   ds.to_netcdf(write_path)
+
+    # print(ds)
+    # logger.debug('successful write of climate covariate for year {}'.format(y))
 
 
 

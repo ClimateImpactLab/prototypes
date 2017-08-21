@@ -710,27 +710,36 @@ def gen_kernel_covars(covariate_paths, climate=False, kernel=None):
     # Construct larger dataset #
     ############################
 
-    import xarray as xr
-    import pandas as pd
-    import numpy as np
+    # import xarray as xr
+    # import pandas as pd
+    # import numpy as np
 
-    years = []
-    datasets = []
-    for p in covariate_paths:
-        try:
-            with xr.open_dataset(p) as ds:
-                ds.load()
-                if climate:
-                  ds = ds.mean(dim='time')
-                datasets.append(ds)
-                ds.close()
-                match = re.split('(\d{4})', p)
-                years.append(int(match[1]))
-        #catch where files do not exist
-        except IOError:
-          continue
+    # years = []
+    # datasets = xr.Dataset()
+    # for p in covariate_paths:
+    #     try:
+    #         with xr.open_dataset(p) as ds:
+    #             ds.load()
+
+
+    #         if climate:
+    #           ds = ds.mean(dim='time')
+
+    #         annual = xr.concat(ds, pd.Index([year], name='year', dtype=datetime.datetime))
+
+    #         valid_years = range(max(year-30, 1981), year-1)
+    #         datasets = datasets.sel(year=valid_years)
+    #         datasets = xr.merge(datasets, annual)
+
+    #         datasets.append(ds)
+    #         ds.close()
+    #         match = re.split('(\d{4})', p)
+    #         years.append(int(match[1])) 
+    #     #catch where files do not exist
+    #     except IOError:
+    #       continue
     
-    ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
+    # ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
     ##################
     # Compute kernel #
