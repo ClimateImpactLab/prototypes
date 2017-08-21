@@ -84,8 +84,7 @@ def gen_covars(
           rcp,
           interactive=False
             ):
-
-  from impact_toolbox import (gen_kernel_covars)
+  from impact_toolbox import gen_kernel_covars
 
 
   for y in range(1981, 2100):
