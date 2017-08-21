@@ -716,6 +716,7 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=
 
     years = []
     datasets = []
+    print(covariate_paths)
     for p in covariate_paths:
         try:
             with xr.open_dataset(p) as ds:
