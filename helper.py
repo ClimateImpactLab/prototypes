@@ -113,7 +113,8 @@ def gen_covars(
         with xr.open_dataset(covar_path_brc) as ds:
             ds.load()
             ds = ds.mean(dim='time')
-            annual = xr.concat(ds, pd.Index([y], name='year', dtype=datetime.datetime))
+            ds.coords['year'] = y
+            datasets = xr.concat([datasets, annual], dim='year')
             ds.close()
         
 
@@ -125,9 +126,9 @@ def gen_covars(
     except IOError:
       continue
 
-    datasets = xr.merge(datasets, annual)
-    valid_years = range(max(y-30, 1981), y-1)
-    datasets = datasets.sel(year=valid_years)
+    if y > 1982:
+      valid_years = range(max(y-30, 1981), y-1)
+      datasets = datasets.sel(year=valid_years)
     print(datasets)
 
     
