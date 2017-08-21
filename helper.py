@@ -99,7 +99,7 @@ def gen_covars(
         #When we have years whose last 30 years span 
         #for yr in window:
         if y < 2005:
-        read_rcp = 'historical'
+        read_rvicp = 'historical'
         else:
         read_rcp = rcp
 
@@ -130,35 +130,35 @@ def gen_covars(
     
 
         if y > 1982:
-            valid_years = range(max(y-30, 1981), y-1)
+            valid_years = range(max(y-30, 1981), y+1)
+            print(valid)
             datasets = datasets.sel(year=valid_years)
         print(datasets)
 
     
-  # ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
-    # metadata.update(ADDITIONAL_METADATA)
-    # metadata['dependencies'] = str(paths)
-    # metadata['year'] = y
+        metadata.update(ADDITIONAL_METADATA)
+        metadata['dependencies'] = str(paths)
+        metadata['year'] = y
 
-    # write_path = write_path_brc.format(**metadata)
+        write_path = write_path_brc.format(**metadata)
 
-    # logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
+        logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
-    # ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
-
-
-    # ds.attrs.update({k: str(v) for k, v in metadata.items()})
+        ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
 
 
-    # logger.debug('attempting to write climate covariate for year {}'.format(y))
+        ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
-    # # if not os.path.isdir(os.path.dirname(write_path)):
-    # #   os.makedirs(os.path.dirname(write_path))
-    # #   ds.to_netcdf(write_path)
 
-    # print(ds)
-    # logger.debug('successful write of climate covariate for year {}'.format(y))
+        logger.debug('attempting to write climate covariate for year {}'.format(y))
+
+        if not os.path.isdir(os.path.dirname(write_path)):
+          os.makedirs(os.path.dirname(write_path))
+          ds.to_netcdf(write_path)
+
+        print(ds)
+        logger.debug('successful write of climate covariate for year {}'.format(y))
 
 
 
