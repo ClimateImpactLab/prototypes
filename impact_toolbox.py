@@ -744,8 +744,7 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
     #################
     ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
-    print(ds)
-    #return ds
+    return ds
 
     
 
