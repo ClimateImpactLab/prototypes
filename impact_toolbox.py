@@ -685,7 +685,7 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
     return growth_year
 
 
-def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
+def gen_kernel_covars(covariate_paths, climate=False):
     ''' 
     Computes kernelized covariate from a series of length of kernel
 
@@ -717,7 +717,6 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
     years = []
     datasets = []
     for p in covariate_paths:
-        print(p)
         try:
             with xr.open_dataset(p) as ds:
                 ds.load()
@@ -739,10 +738,6 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
 
     ds = gen_smoothed_covars(ds, dim='year', kernel=int(metadata['kernel']))
 
-    #################
-    # write to disk #print
-    #################
-    ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
     return ds
 
