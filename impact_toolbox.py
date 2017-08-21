@@ -717,6 +717,7 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
     years = []
     datasets = []
     for p in covariate_paths:
+        print(p)
         try:
             with xr.open_dataset(p) as ds:
                 ds.load()
@@ -724,8 +725,8 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
                   ds = ds.mean(dim='time')
                 datasets.append(ds)
                 ds.close()
-                match = int(re.split('(\d{4})', p))
-                years.append(match[1])
+                match = re.split('(\d{4})', p)
+                years.append(int(match[1]))
         #catch where files do not exist
         except IOError:
           continue
