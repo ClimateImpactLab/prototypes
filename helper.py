@@ -110,7 +110,7 @@ def gen_covars(
 
     logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
-    gen_kernel_covars(paths, climate=True, metadata=metadata)
+    ds = gen_kernel_covars(paths, climate=True, metadata=metadata)
 
     logger.debug('attempting to write climate covariate for year {}'.format(y))
 
