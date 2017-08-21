@@ -110,7 +110,7 @@ def gen_covars(
 
     logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
-    ds = gen_kernel_covars(paths, climate=True)
+    ds = gen_kernel_covars(paths, climate=True, kernel=int(metadata['kernel']))
 
 
     ds.attrs.update({k: str(v) for k, v in metadata.items()})

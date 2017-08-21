@@ -685,7 +685,7 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
     return growth_year
 
 
-def gen_kernel_covars(covariate_paths, climate=False):
+def gen_kernel_covars(covariate_paths, climate=False, kernel=None):
     ''' 
     Computes kernelized covariate from a series of length of kernel
 
