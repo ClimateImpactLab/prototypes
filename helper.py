@@ -114,7 +114,7 @@ def gen_covars(
             ds.load()
             ds = ds.mean(dim='time')
             ds.coords['year'] = y
-            datasets = xr.concat([datasets, annual], dim='year')
+            datasets = xr.concat([datasets, ds], dim='year')
             ds.close()
         
 
