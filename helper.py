@@ -98,10 +98,10 @@ def gen_covars(
         #window = range(y-(kernel-1), y+1)
         #When we have years whose last 30 years span 
         #for yr in window:
-        if y < 2005:
-        read_rvicp = 'historical'
+        if y <= 2005:
+            read_rcp = 'historical'
         else:
-        read_rcp = rcp
+            read_rcp = rcp
 
         covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
         print(covar_path)
@@ -130,10 +130,8 @@ def gen_covars(
     
 
         if y > 1982:
-            valid_years = range(max(y-30, 1981), y+1)
-            print(valid)
+            valid_years = range(max(y-29, 1981), y+1)
             datasets = datasets.sel(year=valid_years)
-        print(datasets)
 
     
 
