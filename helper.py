@@ -104,7 +104,7 @@ def gen_covars(
       read_rcp = rcp
 
     covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
-
+    print(covar_path_brc)
     #Load in first year, concat, if length of dim year is greater than 29, pop last and concat
 
 
@@ -128,11 +128,11 @@ def gen_covars(
     datasets = xr.merge(datasets, annual)
     valid_years = range(max(y-30, 1981), y-1)
     datasets = datasets.sel(year=valid_years)
+    print(datasets)
 
     
   # ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
-    print(datasets)
     # metadata.update(ADDITIONAL_METADATA)
     # metadata['dependencies'] = str(paths)
     # metadata['year'] = y
