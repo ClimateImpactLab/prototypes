@@ -729,7 +729,8 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
         #catch where files do not exist
         except IOError:
           continue
-
+    print(covariate_paths)
+    print(datasets)
     ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
     ##################
