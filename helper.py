@@ -95,12 +95,14 @@ def gen_covars(
     print(window)
     paths = []
     for yr in window:
+      print(yr)
       if yr < 2005:
         read_rcp = 'historical'
       else:
         read_rcp = rcp
 
       paths.append(covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=yr) for yr in window)
+      print(paths)
     #print(paths)
 
     metadata.update(ADDITIONAL_METADATA)
@@ -111,7 +113,7 @@ def gen_covars(
 
     logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
-    gen_kernel_covars(paths, climate=True, metadata=metadata, write_path=write_path)
+    #gen_kernel_covars(paths, climate=True, metadata=metadata, write_path=write_path)
     
     logger.debug('successful write of climate covariate for year {}'.format(y))
 
