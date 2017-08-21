@@ -730,15 +730,14 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None):
         #catch where files do not exist
         except IOError:
           continue
-    print(covariate_paths)
-    print(datasets)
+    
     ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
 
     ##################
     # Compute kernel #
     ##################
 
-    ds = gen_smoothed_covars(ds, dim='year', kernel=metadata['kernel'])
+    ds = gen_smoothed_covars(ds, dim='year', kernel=int(metadata['kernel']))
 
     #################
     # write to disk #print
