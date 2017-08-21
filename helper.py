@@ -40,11 +40,11 @@ ADDITIONAL_METADATA = dict(
             )
 
 
-KER = [dict(kernel='30')]
+KER = [dict(kernel=30)]
 
 VAR = [dict(variable='tas')]
 
-SCENARIO = [dict(rcp='rcp85')]
+SCENARIO = [dict(rcp='rcp85'), dict(rcp='rcp45')]
 
 MODELS = list(map(lambda x: dict(model=x), [
     'ACCESS1-0',
@@ -72,13 +72,15 @@ MODELS = list(map(lambda x: dict(model=x), [
 JOB_SPEC = [KER, VAR,  SCENARIO, MODELS]
 
 
-@slurm_runner(filepath=__file__, job_spec=JOB_SPEC, onfinish=onfinish)
+@slurm_runner(filepath=__file__, job_spec=JOB_SPEC)
 def gen_covars(
           metadata,
           model, 
           variable, 
-          kernel
-            )
+          kernel,
+          rcp,
+          interactive=False
+            ):
 
   from impact_toolbox import (gen_kernel_covars)
 
@@ -92,10 +94,12 @@ def gen_covars(
     #When we have years whose last 30 years span 
     paths = []
     for yr in window:
-      rcp == 'historical'
-      if yr > 2005:
-        rcp == 'rcp85'
-      paths.append(covar_path_brc.format(rcp=rcp, model=model,variable=variable, year=yr) for yr in window)
+      if yr < 2005:
+        read_rcp = 'historical'
+      else:
+        read_rcp = rcp
+
+      paths.append(covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=yr) for yr in window)
     #print(paths)
 
     metadata.update(ADDITIONAL_METADATA)

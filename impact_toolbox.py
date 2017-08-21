@@ -724,7 +724,7 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=
                   ds = ds.mean(dim='time')
                 datasets.append(ds)
                 ds.close()
-                match = re.split('(\d{4})', p)
+                match = int(re.split('(\d{4})', p))
                 years.append(match[1])
         #catch where files do not exist
         except IOError:
@@ -741,7 +741,7 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=
     #################
     # write to disk #print
     #################
-    ds.attrs.update(metadata)
+    ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
     if write_path:
       if not os.path.isdir(os.path.dirname(write_path)):
