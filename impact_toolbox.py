@@ -736,7 +736,7 @@ def gen_kernel_covars(covariate_paths, climate=False, kernel=None):
     # Compute kernel #
     ##################
 
-    ds = gen_smoothed_covars(ds, dim='year', kernel=int(metadata['kernel']))
+    ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
 
 
     return ds
