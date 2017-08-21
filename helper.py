@@ -44,30 +44,33 @@ KER = [dict(kernel=30)]
 
 VAR = [dict(variable='tas')]
 
-SCENARIO = [dict(rcp='rcp85'), dict(rcp='rcp45')]
+SCENARIO = [dict(rcp='rcp85'), 
+            #dict(rcp='rcp45')
+            ]
 
 MODELS = list(map(lambda x: dict(model=x), [
     'ACCESS1-0',
-    'bcc-csm1-1',
-    'BNU-ESM',
-    'CanESM2',
-    'CCSM4',
-    'CESM1-BGC',
-    'CNRM-CM5',
-    'CSIRO-Mk3-6-0',
-    'GFDL-CM3',
-    'GFDL-ESM2G',
-    'GFDL-ESM2M',
-    'IPSL-CM5A-LR',
-    'IPSL-CM5A-MR',
-    'MIROC-ESM-CHEM',
-    'MIROC-ESM',
-    'MIROC5',
-    'MPI-ESM-LR',
-    'MPI-ESM-MR',
-    'MRI-CGCM3',
-    'inmcm4',
-    'NorESM1-M']))
+    # 'bcc-csm1-1',
+    # 'BNU-ESM',
+    # 'CanESM2',
+    # 'CCSM4',
+    # 'CESM1-BGC',
+    # 'CNRM-CM5',
+    # 'CSIRO-Mk3-6-0',
+    # 'GFDL-CM3',
+    # 'GFDL-ESM2G',
+    # 'GFDL-ESM2M',
+    # 'IPSL-CM5A-LR',
+    # 'IPSL-CM5A-MR',
+    # 'MIROC-ESM-CHEM',
+    # 'MIROC-ESM',
+    # 'MIROC5',
+    # 'MPI-ESM-LR',
+    # 'MPI-ESM-MR',
+    # 'MRI-CGCM3',
+    # 'inmcm4',
+    # 'NorESM1-M'
+    ]))
 
 JOB_SPEC = [KER, VAR,  SCENARIO, MODELS]
 
@@ -90,20 +93,15 @@ def gen_covars(
     logger.debug('attempting to build window for year {} climate covariate'.format(y))
 
     window = range(y-(kernel-1), y+1)
-    #print(window)
     #When we have years whose last 30 years span 
-    print(window)
     paths = []
     for yr in window:
-      print(yr)
       if yr < 2005:
         read_rcp = 'historical'
       else:
         read_rcp = rcp
 
       paths.append(covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=yr))
-    print(paths)
-    #print(paths)
 
     metadata.update(ADDITIONAL_METADATA)
     metadata['dependencies'] = str(paths)
@@ -113,8 +111,14 @@ def gen_covars(
 
     logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
-    #gen_kernel_covars(paths, climate=True, metadata=metadata, write_path=write_path)
-    
+    gen_kernel_covars(paths, climate=True, metadata=metadata)
+
+    logger.debug('attempting to write climate covariate for year {}'.format(y))
+
+    if not os.path.isdir(os.path.dirname(write_path)):
+      os.makedirs(os.path.dirname(write_path))
+      ds.to_netcdf(write_path)
+
     logger.debug('successful write of climate covariate for year {}'.format(y))
 
 

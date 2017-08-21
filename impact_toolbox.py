@@ -744,14 +744,10 @@ def gen_kernel_covars(covariate_paths, climate=False, metadata=None, write_path=
     #################
     ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
-    if write_path:
-      if not os.path.isdir(os.path.dirname(write_path)):
-        os.makedirs(os.path.dirname(write_path))
-        ds.to_netcdf(write_path)
-
-      print('writing to {}'.format(write_path))
-
     print(ds)
+    #return ds
+
+    
 
 
 
