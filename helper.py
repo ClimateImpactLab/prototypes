@@ -50,26 +50,26 @@ SCENARIO = [dict(rcp='rcp85'),
 
 MODELS = list(map(lambda x: dict(model=x), [
     'ACCESS1-0',
-    # 'bcc-csm1-1',
-    # 'BNU-ESM',
-    # 'CanESM2',
-    # 'CCSM4',
-    # 'CESM1-BGC',
-    # 'CNRM-CM5',
-    # 'CSIRO-Mk3-6-0',
-    # 'GFDL-CM3',
-    # 'GFDL-ESM2G',
-    # 'GFDL-ESM2M',
-    # 'IPSL-CM5A-LR',
-    # 'IPSL-CM5A-MR',
-    # 'MIROC-ESM-CHEM',
-    # 'MIROC-ESM',
-    # 'MIROC5',
-    # 'MPI-ESM-LR',
-    # 'MPI-ESM-MR',
-    # 'MRI-CGCM3',
-    # 'inmcm4',
-    # 'NorESM1-M'
+    'bcc-csm1-1',
+    'BNU-ESM',
+    'CanESM2',
+    'CCSM4',
+    'CESM1-BGC',
+    'CNRM-CM5',
+    'CSIRO-Mk3-6-0',
+    'GFDL-CM3',
+    'GFDL-ESM2G',
+    'GFDL-ESM2M',
+    'IPSL-CM5A-LR',
+    'IPSL-CM5A-MR',
+    'MIROC-ESM-CHEM',
+    'MIROC-ESM',
+    'MIROC5',
+    'MPI-ESM-LR',
+    'MPI-ESM-MR',
+    'MRI-CGCM3',
+    'inmcm4',
+    'NorESM1-M'
     ]))
 
 JOB_SPEC = [KER, VAR,  SCENARIO, MODELS]
@@ -122,13 +122,6 @@ def gen_covars(
 
         datasets = xr.concat(values, dim='year')
 
-
-            # datasets.append(ds)
-            # ds.close()
-            # match = re.split('(\d{4})', p)
-            # years.append(int(match[1]))
-    
-
         if y > 1982:
             valid_years = range(max(y-29, 1981), y+1)
             datasets = datasets.sel(year=valid_years)
@@ -136,6 +129,7 @@ def gen_covars(
     
 
         metadata.update(ADDITIONAL_METADATA)
+        metadatap['dependencies'] = covar_path
         metadata['year'] = y
 
         write_path = write_path_brc.format(**metadata)
@@ -143,10 +137,9 @@ def gen_covars(
         logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
         ds = gen_smoothed_covars(datasets, dim='year', kernel=kernel)
+
+        ds = ds.attrs.update({k: str(v) for k, v in metadata.items()})
         print(ds)
-
-        # ds.attrs.update({k: str(v) for k, v in metadata.items()})
-
 
         # logger.debug('attempting to write climate covariate for year {}'.format(y))
 
