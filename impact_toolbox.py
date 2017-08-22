@@ -815,7 +815,7 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     print(ds.dims)
     if ds.dims[dim] < len(smooth_array):
 
-        smooth_array = smooth_array[:ds.dims[dim]]
+        smooth_array = smooth_array[ds.dims[dim]:]
     
     return (ds * xr.DataArray(smooth_array, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim)
 
