@@ -129,6 +129,7 @@ def gen_covars(
     
 
         metadata.update(ADDITIONAL_METADATA)
+        metadata['rcp'] = read_rcp
         metadata['dependencies'] = covar_path
         metadata['year'] = y
 
