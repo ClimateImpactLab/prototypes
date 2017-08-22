@@ -155,7 +155,7 @@ def gen_covars(
         #   os.makedirs(os.path.dirname(write_path))
         #   ds.to_netcdf(write_path)
 
-        print(ds)
+        #print(ds)
         logger.debug('successful write of climate covariate for year {}'.format(y))
 
 
