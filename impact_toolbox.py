@@ -811,7 +811,6 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     # handle sets of years less then kernel size #
     ##############################################
 
-    print(ds)
 
     if ds.dims[dim] < len(smooth_array):
 
