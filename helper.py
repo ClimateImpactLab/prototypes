@@ -93,7 +93,6 @@ def gen_covars(
     datasets = None
     for y in range(1981, 2100):
 
-        logger.debug('attempting to build window for year {} climate covariate'.format(y))
 
         #window = range(y-(kernel-1), y+1)
         #When we have years whose last 30 years span 
@@ -104,7 +103,8 @@ def gen_covars(
             read_rcp = rcp
 
         covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
-        print(covar_path)
+        logger.debug('reading file {} climate covariate'.format(covar_path))
+        
         #Load in first year, concat, if length of dim year is greater than 29, pop last and concat
 
 
