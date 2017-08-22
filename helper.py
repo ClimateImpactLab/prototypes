@@ -143,7 +143,7 @@ def gen_covars(
         ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
         print(ds)
-        # logger.debug('attempting to write climate covariate for year {}'.format(y))
+        logger.debug('attempting to write climate covariate for year {}'.format(write_path))
 
         # if not os.path.isdir(os.path.dirname(write_path)):
         #   os.makedirs(os.path.dirname(write_path))
