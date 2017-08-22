@@ -136,7 +136,6 @@ def gen_covars(
     
 
         metadata.update(ADDITIONAL_METADATA)
-        metadata['dependencies'] = str(paths)
         metadata['year'] = y
 
         write_path = write_path_brc.format(**metadata)
@@ -155,7 +154,6 @@ def gen_covars(
         #   os.makedirs(os.path.dirname(write_path))
         #   ds.to_netcdf(write_path)
 
-        #print(ds)
         logger.debug('successful write of climate covariate for year {}'.format(y))
 
 
