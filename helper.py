@@ -3,9 +3,7 @@ import os
 import logging
 import datetime
 import itertools
-import numpy as np
-import pandas as pd
-import xarray as xr
+
 
 from jrnr import slurm_runner
 
@@ -154,3 +152,7 @@ def gen_covars(
 
 
 
+
+
+if __name__ == '__main__':
+    gen_covars()
