@@ -129,7 +129,7 @@ def gen_covars(
     
 
         metadata.update(ADDITIONAL_METADATA)
-        metadatap['dependencies'] = covar_path
+        metadata['dependencies'] = covar_path
         metadata['year'] = y
 
         write_path = write_path_brc.format(**metadata)
