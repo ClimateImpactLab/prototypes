@@ -143,7 +143,7 @@ def gen_covars(
         logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
         ds = gen_smoothed_covars(datasets, dim='year', kernel=kernel)
-
+        print(ds)
 
         # ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
