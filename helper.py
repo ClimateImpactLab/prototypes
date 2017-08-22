@@ -143,17 +143,17 @@ def gen_covars(
 
         logger.debug('attempting to compute kernel climate covariate for year {}'.format(y))
 
-        ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
+        # ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
 
 
-        ds.attrs.update({k: str(v) for k, v in metadata.items()})
+        # ds.attrs.update({k: str(v) for k, v in metadata.items()})
 
 
-        logger.debug('attempting to write climate covariate for year {}'.format(y))
+        # logger.debug('attempting to write climate covariate for year {}'.format(y))
 
-        if not os.path.isdir(os.path.dirname(write_path)):
-          os.makedirs(os.path.dirname(write_path))
-          ds.to_netcdf(write_path)
+        # if not os.path.isdir(os.path.dirname(write_path)):
+        #   os.makedirs(os.path.dirname(write_path))
+        #   ds.to_netcdf(write_path)
 
         print(ds)
         logger.debug('successful write of climate covariate for year {}'.format(y))
