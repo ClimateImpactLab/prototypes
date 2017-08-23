@@ -804,7 +804,8 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     ''' 
     ######################
     # smoothing function #
-    ######################                                                  
+    ######################    
+    print(ds)                                              
     smooth_array = triangle_smooth(kernel)
     print(smooth_array)
 
