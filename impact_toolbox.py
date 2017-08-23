@@ -807,7 +807,6 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     ######################    
     print(ds)                                              
     smooth_array = triangle_smooth(kernel)
-    print(smooth_array)
 
     ##############################################
     # handle sets of years less then kernel size #
