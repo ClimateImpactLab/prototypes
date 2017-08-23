@@ -806,6 +806,7 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     # smoothing function #
     ######################                                                  
     smooth_array = triangle_smooth(kernel)
+    print(smooth_array)
 
     ##############################################
     # handle sets of years less then kernel size #
@@ -813,8 +814,12 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     if ds.dims[dim] < len(smooth_array):
 
         smooth_array = smooth_array[-ds.dims[dim]:]
+
+    k = xr.DataArray(smooth_array, dims=(dim,), coords={dim: ds.coords[dim]})
+    print(k)
+    print((ds * k).sum(dim=dim))
     
-    return (ds * xr.DataArray(smooth_array, dims=(dim,), coords={dim: ds.coords[dim]})).sum(dim=dim)
+    return (ds * k).sum(dim=dim)
 
 
 def triangle_smooth(k):
