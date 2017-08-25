@@ -107,18 +107,14 @@ SSP = [dict(ssp='SSP' + str(i)) for i in range(1,6)]
 
 ECONMODEL = [dict(econ_model='low'), dict(econ_model='high')]
 
+POWER = [dict]
+
 #we want to do a realization of all models for the periods at a given set of periods
 JOB_SPEC = [PERIODS, MODELS, SSP, ECONMODEL, SEED]
 
 @slurm_runner(filepath=__file__, job_spec=JOB_SPEC)
-def mortality_annual(ssp, 
-                    econ_model,
-                    model, 
-                    scenario,
-                    seed, 
-                    power, 
-                    year, 
-                    metadata, 
+def mortality_annual(
+                    metadata,
                     interactive=False):
     '''
     Calculates the IR level daily/annual effect of temperature on Mortality Rates
@@ -150,28 +146,28 @@ def mortality_annual(ssp,
 
     import xarray as xr
     import pandas as pd
-    import numpuy as np
+    import numpy as np
 
     from impact_toolbox import (
         compute_betas,
         get_annual_climate,
         )
 
-    metadata.update(ADDITIONAL_METADATA.format(ssp=ssp, econ_model=econ_model, model=model, year=year, seed=seed))
+    metadata.update(ADDITIONAL_METADATA)
 
     if year < 2010:
-        gdp_covar_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, model=model, year=2010)
+        gdp_covar_path = GDP_COVAR.format(ssp=metadata['ssp'], econ_model=metadata['econ_model'], model=metadat['model'], year=2010)
 
     else:
         clim_covar_path = CLIMATE_COVAR.format(**metadata)
         gdp_covar_path = GDP_COVAR.format(**metadata)
 
     annual_climate_paths = ANNUAL_CLIMATE_FILE.format(poly='{poly}', 
-                                                    scenario=scenario, 
-                                                    model=model, 
-                                                    year=year)
+                                                    scenario=metadata['scenario'], 
+                                                    model=metadata['model'], 
+                                                    year=metadata['year'])
 
-    betas = compute_betas(clim_covar_path,gdp_covar_path, gammas_path, ssp, econ_model, seed)
+    betas = compute_betas(clim_covar_path,gdp_covar_path, gammas_path, metadata['ssp'], metadata['econ_model'], metadata['seed'])
 
     logger.debug('reading covariate data from {}'.format(clim_covar_path))
     logger.debug('reading covariate data from {}'.format(gdp_covar_path))

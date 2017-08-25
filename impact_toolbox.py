@@ -371,7 +371,7 @@ def read_csvv(path):
 
     return data
 
-def prep_gammas(path, power=None, seed=None):
+def prep_gammas(path, power=4, seed=None):
     '''
     Randomly draws gammas from a multivariate distribution
 
@@ -412,7 +412,7 @@ def prep_gammas(path, power=None, seed=None):
     indices = {'age_cohorts': pd.Index(['age0-4', 'age5-64', 'age65+'], name='age')}
 
 
-    for pwr in range(1,power):
+    for pwr in range(1,power+1):
             gammas['beta0_pow{}'.format(pwr)] = xr.DataArray(
                 data[pwr-1::12], dims=('age',), coords={'age':indices['age_cohorts']})
             gammas['gdp_pow{}'.format(pwr)] = xr.DataArray(
