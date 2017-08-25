@@ -115,6 +115,12 @@ JOB_SPEC = [PERIODS, MODELS, SSP, ECONMODEL, SEED]
 @slurm_runner(filepath=__file__, job_spec=JOB_SPEC)
 def mortality_annual(
                     metadata,
+                    econ_model, 
+                    model,
+                    scenario,
+                    seed, 
+                    ssp, 
+                    year, 
                     interactive=False):
     '''
     Calculates the IR level daily/annual effect of temperature on Mortality Rates
