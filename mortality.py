@@ -67,7 +67,6 @@ ADDITIONAL_METADATA = dict(
     frequency='daily',
     variable='mortality-daily',
     dependencies= str([GDP_FILE, GAMMAS_FILE,CLIMATE_COVAR, CLIMATE_FILE]),
-    version=__version__,
     seed= None, 
     year=None, 
     model=None, 
