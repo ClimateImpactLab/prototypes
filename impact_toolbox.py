@@ -45,20 +45,22 @@ My notes and questions
     J. Do something that compares the results from income/weather updates 
     (farm_curvegen) and the climtas_effect (whatever that is)?
 '''
+
+#import metacsv
+import os
+import re
+import csv
+import glob
+import time
+import toolz
+import datafs
+import datetime
+import itertools
 import xarray as xr
 import numpy as np
 import pandas as pd
-#import metacsv
 from six import string_types
-import itertools
-import toolz
-import time
-import datafs
-import csv
-import os
-import re
-import glob
-import datetime
+from scipy.stats import multivariate_normal as mn
 
 
 
@@ -350,7 +352,6 @@ def read_csvv(path):
     dict with keys of gamma, gammavcv, and residvcv
     '''
 
-    t1 = time.time()
     data = {}
 
     #constant, climtas, gdp
@@ -366,11 +367,11 @@ def read_csvv(path):
             if row[0] == 'residvcv':
                 data['residvcv'] = reader.next()
 
-    t2 = time.time()
-    print('Completing read_csvv:{}'.format(t2 - t1))
-    return data['gamma']
 
-def prep_gammas(path):
+
+    return data
+
+def prep_gammas(path, power=None, seed=None):
     '''
     Randomly draws gammas from a multivariate distribution
 
@@ -379,21 +380,39 @@ def prep_gammas(path):
     path: str
         path to file 
 
+    power: int
+      for polynomial specifications
+
     seed: int
         seed for random draw
 
     Returns
     -------
-    dict
+    Xarray Dataset
     '''
-    t1 = time.time()
-    indices = {'age_cohorts': pd.Index(['infant', 'mid', 'advanced'], name='age')}
 
-    data = [float(num) for num in read_csvv(path)]
+    ##########################
+    # Read in data from csvv #
+    ##########################
+    covar_data = read_csvv(path)
+
+    ##########################################
+    # convert gamma and covariance to floats #
+    ##########################################
+    _gamma = [float(num) for num in covar_data['gamma']]
+    _covar = [float(num) for num in covar_data['gammavcv']]
+
+    if seed: 
+      np.random.seed(seed)
+
+    data = mn.rvs(_gamma, _covar)
+
+
     gammas = xr.Dataset()
+    indices = {'age_cohorts': pd.Index(['age0-4', 'age5-64', 'age65+'], name='age')}
 
 
-    for pwr in range(1,5):
+    for pwr in range(1,power):
             gammas['beta0_pow{}'.format(pwr)] = xr.DataArray(
                 data[pwr-1::12], dims=('age',), coords={'age':indices['age_cohorts']})
             gammas['gdp_pow{}'.format(pwr)] = xr.DataArray(
@@ -401,8 +420,6 @@ def prep_gammas(path):
             gammas['tavg_pow{}'.format(pwr)] = xr.DataArray(
                 data[pwr+1::12], dims=('age',), coords={'age': indices['age_cohorts']})
 
-    t2 = time.time()
-    print('completing prep_gammas: {}'.format(t2- t1))
     return gammas
     
 
@@ -500,7 +517,7 @@ def compute_betas(clim_path, gdp_path, gammas_path, ssp, econ_model):
     print('Completing compute_betas: {}'.format(t2 - t1))
     return betas
 
-def get_annual_climate(model_paths, year, polymomial=4):
+def get_annual_climate(model_paths, polymomial=4):
     '''
     Parameters
     ----------
@@ -521,12 +538,10 @@ def get_annual_climate(model_paths, year, polymomial=4):
 
 
     '''
-    t1 =time.time()
-    print(model_paths.format(poly='',year=year))
 
     dataset = xr.Dataset()
 
-    with xr.open_dataset(model_paths.format(poly='',year=year)) as ds:
+    with xr.open_dataset(model_paths.format(poly='')) as ds:
         ds.load()
 
     varname = ds.variable
@@ -534,7 +549,7 @@ def get_annual_climate(model_paths, year, polymomial=4):
     
 
     for poly in range(2, polymomial+1):
-        fp = model_paths.format(poly='-poly-{}'.format(poly),year=year)
+        fp = model_paths.format(poly='-poly-{}'.format(poly))
 
         with xr.open_dataset(fp) as ds:
             ds.load()
@@ -685,7 +700,7 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
     return growth_year
 
 
-def gen_kernel_covars(covariate_paths, climate=False, kernel=None):
+def gen_kernel_covars(covariate_paths, rcp, kernel=None):
     ''' 
     Computes kernelized covariate from a series of length of kernel
 
@@ -706,47 +721,41 @@ def gen_kernel_covars(covariate_paths, climate=False, kernel=None):
 
     '''
 
-    ############################
-    # Construct larger dataset #
-    ############################
+    ####################################
+    # Construct larger rolling dataset #
+    ####################################
 
-    # import xarray as xr
-    # import pandas as pd
-    # import numpy as np
+    datasets = None
+    for y in range(1981, 2100):
+      if y <= 2005:
+            read_rcp = 'historical'
+      else:
+            read_rcp = rcp
 
-    # years = []
-    # datasets = xr.Dataset()
-    # for p in covariate_paths:
-    #     try:
-    #         with xr.open_dataset(p) as ds:
-    #             ds.load()
+      covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
+        
 
+      with xr.open_dataset(covar_path) as ds:
+        ds.load()
 
-    #         if climate:
-    #           ds = ds.mean(dim='time')
+      ds = ds.mean(dim='time')
+      ds.coords['year'] = y
 
-    #         annual = xr.concat(ds, pd.Index([year], name='year', dtype=datetime.datetime))
+      if datasets is None:
+        values = [ds]
+      else:
+        values = [datasets, ds]
 
-    #         valid_years = range(max(year-30, 1981), year-1)
-    #         datasets = datasets.sel(year=valid_years)
-    #         datasets = xr.merge(datasets, annual)
+      datasets = xr.concat(values, dim='year')
 
-    #         datasets.append(ds)
-    #         ds.close()
-    #         match = re.split('(\d{4})', p)
-    #         years.append(int(match[1])) 
-    #     #catch where files do not exist
-    #     except IOError:
-    #       continue
-    
-    # ds = xr.concat(datasets, pd.Index(years, name='year', dtype=datetime.datetime))
-
-    ##################
-    # Compute kernel #
-    ##################
-
-    ds = gen_smoothed_covars(ds, dim='year', kernel=kernel)
-
+      if y > 1982:
+          valid_years = range(max(y-(kernel-1), 1981), y+1)
+          datasets = datasets.sel(year=valid_years)
+      
+      ##################
+      # Compute kernel #
+      ##################    
+      ds = gen_smoothed_covars(datasets, dim='year', kernel=kernel)
 
     return ds
 
@@ -816,8 +825,7 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
         smooth_array = smooth_array[-ds.dims[dim]:]
 
     k = xr.DataArray(smooth_array, dims=(dim,), coords={dim: ds.coords[dim]})
-    print(k)
-    print((ds * k).sum(dim=dim))
+    
     
     return (ds * k).sum(dim=dim)
 
