@@ -11,7 +11,7 @@ import click
 import pprint
 import logging
 import datafs
-
+import time
 
 import itertools
 
@@ -77,26 +77,26 @@ ADDITIONAL_METADATA = dict(
 
 MODELS = list(map(lambda x: dict(model=x), [
     'ACCESS1-0',
-    # 'bcc-csm1-1',
-    # 'BNU-ESM',
-    # 'CanESM2',
-    # 'CCSM4',
-    # 'CESM1-BGC',
-    # 'CNRM-CM5',
-    # 'CSIRO-Mk3-6-0',
-    # 'GFDL-CM3',
-    # 'GFDL-ESM2G',
-    # 'GFDL-ESM2M',
-    # 'IPSL-CM5A-LR',
-    # 'IPSL-CM5A-MR',
-    # 'MIROC-ESM-CHEM',
-    # 'MIROC-ESM',
-    # 'MIROC5',
-    # 'MPI-ESM-LR',
-    # 'MPI-ESM-MR',
-    # 'MRI-CGCM3',
-    # 'inmcm4',
-    # 'NorESM1-M'
+    'bcc-csm1-1',
+    'BNU-ESM',
+    'CanESM2',
+    'CCSM4',
+    'CESM1-BGC',
+    'CNRM-CM5',
+    'CSIRO-Mk3-6-0',
+    'GFDL-CM3',
+    'GFDL-ESM2G',
+    'GFDL-ESM2M',
+    'IPSL-CM5A-LR',
+    'IPSL-CM5A-MR',
+    'MIROC-ESM-CHEM',
+    'MIROC-ESM',
+    'MIROC5',
+    'MPI-ESM-LR',
+    'MPI-ESM-MR',
+    'MRI-CGCM3',
+    'inmcm4',
+    'NorESM1-M'
     ]))
 
 SEED = [dict(seed=i) for i in range(1,11)]
@@ -149,7 +149,7 @@ def mortality_annual(
     Xarray Dataset 
 
     '''
-
+    t1 = time.time()
     import xarray as xr
     import pandas as pd
     import numpy as np
@@ -162,7 +162,7 @@ def mortality_annual(
     metadata.update(ADDITIONAL_METADATA)
 
     if year < 2010:
-        gdp_covar_path = GDP_COVAR.format(ssp=metadata['ssp'], econ_model=metadata['econ_model'], model=metadat['model'], year=2010)
+        gdp_covar_path = GDP_COVAR.format(ssp=metadata['ssp'], econ_model=metadata['econ_model'], model=metadata['model'], year=2010)
 
     else:
         clim_covar_path = CLIMATE_COVAR.format(**metadata)
@@ -207,7 +207,8 @@ def mortality_annual(
     #       os.makedirs(os.path.dirname(write_path))
         
     # impact.to_netcdf(write_path)
-
+    t2 = time.time()
+    print('Computed impact time {} for year {}'.format(t2 - t1, year))
 
     print(impact)
 
