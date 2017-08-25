@@ -189,7 +189,7 @@ def mortality_annual(ssp,
                                 betas['tas-poly-3']*climate['tas-poly-3'] + 
                                 betas['tas-poly-4']*climate['tas-poly-4'])
 
-    logger.debug('Computing impact for {}'.format(year)
+    logger.debug('Computing impact for {}'.format(year))
 
 
     impact = impact.sum(dim='time')
