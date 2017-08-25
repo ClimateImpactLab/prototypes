@@ -195,7 +195,7 @@ def mortality_annual(ssp,
     impact = impact.sum(dim='time')
     impact.attrs.update({k:str(v) for k,v in metadata.items()})
 
-    logger.debug('Computing impact for {}'.format(year)
+    logger.debug('Computing impact for {}'.format(year))
 
 
     # write_path = WRITE_PATH(**metadata)
