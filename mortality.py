@@ -67,11 +67,6 @@ ADDITIONAL_METADATA = dict(
     frequency='daily',
     variable='mortality-daily',
     dependencies= str([GDP_COVAR, GAMMAS_FILE,CLIMATE_COVAR, ANNUAL_CLIMATE_FILE]),
-    seed= None, 
-    year=None, 
-    model=None, 
-    ssp=None, 
-    scenario=None
     )
 
 
@@ -160,7 +155,13 @@ def mortality_annual(
         get_annual_climate,
         )
 
-    metadata.update(ADDITIONAL_METADATA.format(seed=seed, ssp=ssp, econ_model=econ_model, model=model, scenario=scenario, year=year))
+    metadata.update(ADDITIONAL_METADATA)
+    metadata['seed'] = seed
+    metadata['year'] = year
+    metadata['scenario'] = scenario
+    metadata['econ_model'] = econ_model
+    metadata['model'] = model
+    metadata['ssp'] = ssp
 
     if year < 2010:
         gdp_covar_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, model=model, year=2010)
