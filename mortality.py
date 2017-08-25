@@ -36,7 +36,7 @@ ANNUAL_CLIMATE_FILE = (
     'tas{poly}/{scenario}/{model}/{year}/1.5.nc4')
 
 CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
-    '{model}/{year}/0.1.1.nc4')
+    '{scenario}/{model}/{year}/0.1.1.nc4')
 
 GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
 
@@ -144,7 +144,6 @@ def mortality_annual(
     Xarray Dataset 
 
     '''
-    print(metadata)
     t1 = time.time()
     import xarray as xr
     import pandas as pd
