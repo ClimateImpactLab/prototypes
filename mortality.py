@@ -117,7 +117,8 @@ def mortality_annual(ssp,
                     seed, 
                     power, 
                     year, 
-                    metadata):
+                    metadata, 
+                    interactive=False):
     '''
     Calculates the IR level daily/annual effect of temperature on Mortality Rates
 
