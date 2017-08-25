@@ -13,7 +13,7 @@ import logging
 import datafs
 
 
-import utils
+import itertools
 
 
 from jrnr import slurm_runner
