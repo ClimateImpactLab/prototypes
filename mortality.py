@@ -149,6 +149,7 @@ def mortality_annual(
     Xarray Dataset 
 
     '''
+    print(metadata)
     t1 = time.time()
     import xarray as xr
     import pandas as pd
@@ -159,21 +160,21 @@ def mortality_annual(
         get_annual_climate,
         )
 
-    metadata.update(ADDITIONAL_METADATA)
+    metadata.update(ADDITIONAL_METADATA.format(seed=seed, ssp=ssp, econ_model=econ_model, model=model, scenario=scenario, year=year))
 
     if year < 2010:
-        gdp_covar_path = GDP_COVAR.format(ssp=metadata['ssp'], econ_model=metadata['econ_model'], model=metadata['model'], year=2010)
+        gdp_covar_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, model=model, year=2010)
 
     else:
         clim_covar_path = CLIMATE_COVAR.format(**metadata)
         gdp_covar_path = GDP_COVAR.format(**metadata)
 
     annual_climate_paths = ANNUAL_CLIMATE_FILE.format(poly='{poly}', 
-                                                    scenario=metadata['scenario'], 
-                                                    model=metadata['model'], 
-                                                    year=metadata['year'])
+                                                    scenario=scenario, 
+                                                    model=model, 
+                                                    year=year)
 
-    betas = compute_betas(clim_covar_path,gdp_covar_path, gammas_path, metadata['ssp'], metadata['econ_model'], metadata['seed'])
+    betas = compute_betas(clim_covar_path,gdp_covar_path, gammas_path, ssp, econ_model, seed)
 
     logger.debug('reading covariate data from {}'.format(clim_covar_path))
     logger.debug('reading covariate data from {}'.format(gdp_covar_path))
