@@ -38,7 +38,7 @@ ANNUAL_CLIMATE_FILE = (
 CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
     '{model}/{year}/0.1.1.nc4')
 
-GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{SSP}/{econ_model}/{year}/0.1.0.nc')
+GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
 
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
                 'global_interaction_Tmean-POLY-4-AgeSpec.csvv')
