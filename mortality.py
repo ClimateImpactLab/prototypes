@@ -157,7 +157,7 @@ def mortality_annual(ssp,
         get_annual_climate,
         )
 
-    metadata=ADDITIONAL_METADATA.format(ssp=ssp, econ_model=econ_model, model=model, year=year, seed=seed)
+    metadata.update(ADDITIONAL_METADATA.format(ssp=ssp, econ_model=econ_model, model=model, year=year, seed=seed))
 
     if year < 2010:
         gdp_covar_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, model=model, year=2010)
