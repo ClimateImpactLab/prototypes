@@ -94,7 +94,7 @@ MODELS = list(map(lambda x: dict(model=x), [
     'NorESM1-M'
     ]))
 
-SEED = [dict(seed=i) for i in range(1,1001)]
+SEED = [dict(seed=i) for i in range(1,10)]
 
 PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
 
