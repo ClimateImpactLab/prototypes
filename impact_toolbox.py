@@ -412,7 +412,7 @@ def prep_gammas(path, p=4, seed=None):
     indices = {'age_cohorts': pd.Index(['age0-4', 'age5-64', 'age65+'], name='age')}
 
 
-    for pwr in range(1,(p+1)):
+    for pwr in range(1,5):
             gammas['beta0_pow{}'.format(pwr)] = xr.DataArray(
                 data[pwr-1::12], dims=('age',), coords={'age':indices['age_cohorts']})
             gammas['gdp_pow{}'.format(pwr)] = xr.DataArray(
