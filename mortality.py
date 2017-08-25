@@ -212,3 +212,5 @@ def mortality_annual(
     print('Computed impact time {} for year {}'.format(t2 - t1, year))
 
 
+if __name__ == '__main__':
+    mortality_annual()
