@@ -176,7 +176,7 @@ def mortality_annual(
                                                     model=model, 
                                                     year=year)
 
-    betas = compute_betas(clim_covar_path,gdp_covar_path, GAMMAS_FILE, ssp, econ_model, seed)
+    betas = compute_betas(clim_covar_path, gdp_covar_path, GAMMAS_FILE, ssp, econ_model, seed)
 
     logger.debug('reading covariate data from {}'.format(clim_covar_path))
     logger.debug('reading covariate data from {}'.format(gdp_covar_path))
