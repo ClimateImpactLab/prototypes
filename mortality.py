@@ -114,6 +114,7 @@ JOB_SPEC = [PERIODS, MODELS, SSP, ECONMODEL, SEED]
 def mortality_annual(ssp, 
                     econ_model,
                     model, 
+                    scenario,
                     seed, 
                     power, 
                     year, 
