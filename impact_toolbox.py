@@ -495,7 +495,10 @@ def compute_betas(clim_path, gdp_path, gammas_path, seed):
     '''
 
     t1 = time.time()
+
+
     gdp_covar = xr.open_dataset(gdp_path)
+    
     clim_covar = xr.open_dataset(clim_path)
 
     gammas = prep_gammas(gammas_path, seed)
