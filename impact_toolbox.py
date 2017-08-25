@@ -465,7 +465,7 @@ def prep_covars(gdp_path, clim_path, ssp, econ_model, base_year=None):
 
 ####################
 
-def compute_betas(clim_path, gdp_path, gammas_path, ssp, econ_model,seed):
+def compute_betas(clim_path, gdp_path, gammas_path, seed):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
 
@@ -495,9 +495,9 @@ def compute_betas(clim_path, gdp_path, gammas_path, ssp, econ_model,seed):
     '''
 
     t1 = time.time()
-    # covars = prep_covars(gdp_path, clim_path, ssp, econ_model)
     gdp_covar = xr.open_dataset(gdp_path)
     clim_covar = xr.open_dataset(clim_path)
+
     gammas = prep_gammas(gammas_path, seed)
 
 
