@@ -94,7 +94,7 @@ MODELS = list(map(lambda x: dict(model=x), [
     'NorESM1-M'
     ]))
 
-SEED = [dict(seed=i) for i in range(1,11)]
+SEED = [dict(seed=i) for i in range(1,1001)]
 
 PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
 
@@ -184,8 +184,7 @@ def mortality_annual(
 
     logger.debug('reading annual weather data from {}'.format(annual_climate_paths))
 
-    print(betas)
-    print(climate)
+    
 
     impact = xr.Dataset()
     
@@ -203,14 +202,13 @@ def mortality_annual(
     logger.debug('Computing impact for {}'.format(year))
 
 
-    # write_path = WRITE_PATH(**metadata)
+    write_path = WRITE_PATH(**metadata)
 
-    # if not os.path.isdir(os.path.dirname(write_path)):
-    #       os.makedirs(os.path.dirname(write_path))
+    if not os.path.isdir(os.path.dirname(write_path)):
+          os.makedirs(os.path.dirname(write_path))
         
-    # impact.to_netcdf(write_path)
+    impact.to_netcdf(write_path)
     t2 = time.time()
     print('Computed impact time {} for year {}'.format(t2 - t1, year))
 
-    print(impact)
 
