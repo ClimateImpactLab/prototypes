@@ -167,9 +167,10 @@ def mortality_annual(
         gdp_covar_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, model=model, year=2010)
 
     else:
-        clim_covar_path = CLIMATE_COVAR.format(**metadata)
         gdp_covar_path = GDP_COVAR.format(**metadata)
 
+    clim_covar_path = CLIMATE_COVAR.format(**metadata)
+    
     annual_climate_paths = ANNUAL_CLIMATE_FILE.format(poly='{poly}', 
                                                     scenario=scenario, 
                                                     model=model, 
