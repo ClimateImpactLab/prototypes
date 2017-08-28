@@ -94,7 +94,7 @@ MODELS = list(map(lambda x: dict(model=x), [
     # 'NorESM1-M'
     ]))
 
-SEED = [dict(seed=i) for i in range(1,3)]
+
 
 PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
 
@@ -105,7 +105,7 @@ ECONMODEL = [dict(econ_model='low'), dict(econ_model='high')]
 POWER = [dict]
 
 #we want to do a realization of all models for the periods at a given set of periods
-JOB_SPEC = [PERIODS, MODELS, SSP, ECONMODEL, SEED]
+JOB_SPEC = [PERIODS, MODELS, SSP, ECONMODEL]
 
 @slurm_runner(filepath=__file__, job_spec=JOB_SPEC)
 def mortality_annual(
@@ -151,16 +151,17 @@ def mortality_annual(
 
     from impact_toolbox import (
         compute_betas,
+        prep_gammas,
         get_annual_climate,
         )
 
-    metadata.update(ADDITIONAL_METADATA)
-    metadata['seed'] = seed
-    metadata['year'] = year
-    metadata['scenario'] = scenario
-    metadata['econ_model'] = econ_model
-    metadata['model'] = model
-    metadata['ssp'] = ssp
+    annual_climate_paths = ANNUAL_CLIMATE_FILE.format(poly='{poly}', 
+                                                        scenario=scenario, 
+                                                        model=model, 
+                                                        year=year)
+
+
+    clim_covar_path = CLIMATE_COVAR.format(**metadata)
 
     if year < 2010:
         gdp_covar_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, model=model, year=2010)
@@ -168,54 +169,70 @@ def mortality_annual(
     else:
         gdp_covar_path = GDP_COVAR.format(**metadata)
 
-    clim_covar_path = CLIMATE_COVAR.format(**metadata)
 
-    annual_climate_paths = ANNUAL_CLIMATE_FILE.format(poly='{poly}', 
-                                                    scenario=scenario, 
-                                                    model=model, 
-                                                    year=year)
-
-    t1 = time.time()
-    betas = compute_betas(clim_covar_path, gdp_covar_path, GAMMAS_FILE, seed)
-    t2 = time.time()
-    print('Compute Betas time: {}'.format(t2-t1))
-    logger.debug('reading covariate data from {}'.format(clim_covar_path))
-    logger.debug('reading covariate data from {}'.format(gdp_covar_path))
 
     t1 = time.time()
     climate = get_annual_climate(annual_climate_paths, 4)
     t2 = time.time()
-    print('Get annual climate time: {}'.format(t2-t1))
     logger.debug('reading annual weather data from {}'.format(annual_climate_paths))
-
-    
-    t1 = time.time()
-    impact = xr.Dataset()
-    
-    impact['mortality_impact'] = (betas['tas']*climate['tas'] + 
-                                betas['tas-poly-2']*climate['tas-poly-2'] + 
-                                betas['tas-poly-3']*climate['tas-poly-3'] + 
-                                betas['tas-poly-4']*climate['tas-poly-4'])
-
-    t2 - time.time()
-    print('Impact calculation time: {}'.format(t2-t1))
-    logger.debug('Computing impact for {}'.format(year))
+    print('Get annual climate time: {}'.format(t2-t1))
 
 
-    impact = impact.sum(dim='time')
-    impact.attrs.update({k:str(v) for k,v in metadata.items()})
 
-    logger.debug('Computing impact for {}'.format(year))
+    gdp_covar = xr.open_dataset(gdp_covar_path)
+    logger.debug('reading covariate data from {}'.format(gdp_covar_path))
 
 
-    write_path = WRITE_PATH.format(**metadata)
+    clim_covar = xr.open_dataset(clim__covar_path)
+    logger.debug('reading covariate data from {}'.format(clim_covar_path))
 
-    if not os.path.isdir(os.path.dirname(write_path)):
-          os.makedirs(os.path.dirname(write_path))
+
+    for seed in range(3):
+
+        gammas = prep_gammas(GAMMAS_FILE, seed)
         
-    impact.to_netcdf(write_path)
-    t_2 = time.time()
-    print('Computed impact time {} for year {}'.format(t_2 - t_1, year))
+        metadata.update(ADDITIONAL_METADATA)
+        metadata['seed'] = seed
+        metadata['year'] = year
+        metadata['scenario'] = scenario
+        metadata['econ_model'] = econ_model
+        metadata['model'] = model
+        metadata['ssp'] = ssp
+
+
+        t1 = time.time()
+        betas = compute_betas(clim_covar, gdp_covar, gammas)
+        t2 = time.time()
+        print('Compute Betas time: {}'.format(t2-t1))
+
+        
+        t1 = time.time()
+        impact = xr.Dataset()
+        
+        impact['mortality_impact'] = (betas['tas']*climate['tas'] + 
+                                    betas['tas-poly-2']*climate['tas-poly-2'] + 
+                                    betas['tas-poly-3']*climate['tas-poly-3'] + 
+                                    betas['tas-poly-4']*climate['tas-poly-4'])
+
+        t2 - time.time()
+        print('Impact calculation time: {}'.format(t2-t1))
+        logger.debug('Computing impact for {}'.format(year))
+
+
+        impact = impact.sum(dim='time')
+        impact.attrs.update({k:str(v) for k,v in metadata.items()})
+
+        logger.debug('Computing impact for {}'.format(year))
+
+
+        write_path = WRITE_PATH.format(**metadata)
+
+        if not os.path.isdir(os.path.dirname(write_path)):
+              os.makedirs(os.path.dirname(write_path))
+            
+        impact.to_netcdf(write_path)
+        t_2 = time.time()
+        print('Computed impact time {} for year {}'.format(t_2 - t_1, year))
 
 
 if __name__ == '__main__':
