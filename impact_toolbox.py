@@ -851,3 +851,55 @@ def triangle_smooth(k):
   smooth_array = smooth_array/float(smooth_array.sum())
 
   return smooth_array
+
+
+def compute_baseline(base_path, begin, end, write_path):
+  '''
+  Computes the arithmetic mean of impacts from base_year_begin to base_year_end
+
+
+  '''
+
+
+  datasets = []
+  years = []
+  paths = []
+  for year in range(begin, end + 1):
+      years.append(year)
+      base_path = base_path.format(year=year)
+      paths.append(base_path)
+      with xr.open_dataset(base_path) as ds:
+          ds.load()
+          datasets.append(ds)
+
+
+  base = xr.concat(datasets, pd.Index(years, name='year'))
+  metadata = base.attrs
+
+  base = base.mean(dim='year')
+
+  metadata['baseline_years'] = str([begin, end])
+  metadata['dependencies'] = str(paths)
+  metadata['oneline'] = 'Baseline impact value for mortality'
+  metadata['description'] = 'Baseline impact value for mortality. Values are annual/daily expected damage resolved to GCP hierid/country level region.'
+
+  base.attrs.update(metadata)
+  base.to_netcdf(write_path)
+
+
+@memoize
+def get_baselin(base_path):
+  '''
+
+  '''
+  with xr.open_dataset(base_path) as ds: 
+      ds.load()
+    
+  return ds
+ 
+
+
+
+
+
+
