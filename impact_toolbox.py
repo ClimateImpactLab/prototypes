@@ -52,13 +52,13 @@ import re
 import csv
 import glob
 import time
-import toolz
 import datafs
 import datetime
 import itertools
 import xarray as xr
 import numpy as np
 import pandas as pd
+from toolz import memoize
 from six import string_types
 from scipy.stats import multivariate_normal as mn
 
@@ -337,7 +337,7 @@ def get_growth_rates(gdp_growth_path):
     
     return growth  
 
-
+@memoize
 def read_csvv(path):
     '''
     Returns the gammas and covariance matrix 
