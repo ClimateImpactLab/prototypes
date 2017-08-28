@@ -496,10 +496,6 @@ def compute_betas(clim_covar, gdp_covar, gammmas):
 
     t1 = time.time()
 
-    gammas = prep_gammas(gammas_path, seed)
-
-    print(gammas)
-
     betas = xr.Dataset()
 
     betas['tas'] = (gammas['beta0_pow1'] + gammas['gdp_pow1'] * gdp_covar['gdppc'] + gammas['tavg_pow1']*clim_covar['tas'])
