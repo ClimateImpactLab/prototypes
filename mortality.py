@@ -187,6 +187,7 @@ def mortality_annual(
 
     for seed in range(3):
 
+        t_inner_1 = time.time()
         gammas = prep_gammas(GAMMAS_FILE, seed)
         
         metadata.update(ADDITIONAL_METADATA)
@@ -229,8 +230,10 @@ def mortality_annual(
               os.makedirs(os.path.dirname(write_path))
             
         impact.to_netcdf(write_path)
-        t_2 = time.time()
-        print('Computed impact time {} for year {}'.format(t_2 - t_1, year))
+        t_inner_2 = time.time()
+        print('Inner Loop time: {}'.format(t_innner_2 - t_inner_1))
+    t_2 = time.time()
+    print('Computed impact time {} for year {}'.format(t_2 - t_1, year))
 
 
 if __name__ == '__main__':
