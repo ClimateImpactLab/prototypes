@@ -181,7 +181,7 @@ def mortality_annual(
     logger.debug('reading covariate data from {}'.format(gdp_covar_path))
 
 
-    clim_covar = xr.open_dataset(clim__covar_path)
+    clim_covar = xr.open_dataset(clim_covar_path)
     logger.debug('reading covariate data from {}'.format(clim_covar_path))
 
 
