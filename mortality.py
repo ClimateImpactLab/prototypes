@@ -94,7 +94,7 @@ MODELS = list(map(lambda x: dict(model=x), [
     # 'NorESM1-M'
     ]))
 
-SEED = [dict(seed=i) for i in range(1,10)]
+SEED = [dict(seed=i) for i in range(1,3)]
 
 PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
 
@@ -144,7 +144,7 @@ def mortality_annual(
     Xarray Dataset 
 
     '''
-    t1 = time.time()
+    t_1 = time.time()
     import xarray as xr
     import pandas as pd
     import numpy as np
@@ -175,17 +175,21 @@ def mortality_annual(
                                                     model=model, 
                                                     year=year)
 
+    t1 = time.time()
     betas = compute_betas(clim_covar_path, gdp_covar_path, GAMMAS_FILE, seed)
-
+    t2 = time.time()
+    print('Compute Betas time: {}'.format(t2-t1))
     logger.debug('reading covariate data from {}'.format(clim_covar_path))
     logger.debug('reading covariate data from {}'.format(gdp_covar_path))
 
+    t1 = time.time()
     climate = get_annual_climate(annual_climate_paths, 4)
-
+    t2 = time.time()
+    print('Get annual climate time: {}'.format(t2-t1))
     logger.debug('reading annual weather data from {}'.format(annual_climate_paths))
 
     
-
+    t1 = time.time()
     impact = xr.Dataset()
     
     impact['mortality_impact'] = (betas['tas']*climate['tas'] + 
@@ -193,6 +197,8 @@ def mortality_annual(
                                 betas['tas-poly-3']*climate['tas-poly-3'] + 
                                 betas['tas-poly-4']*climate['tas-poly-4'])
 
+    t2 - time.time()
+    print('Impact calculation time: {}'.format(t2-t1))
     logger.debug('Computing impact for {}'.format(year))
 
 
@@ -202,14 +208,14 @@ def mortality_annual(
     logger.debug('Computing impact for {}'.format(year))
 
 
-    write_path = WRITE_PATH(**metadata)
+    write_path = WRITE_PATH.format(**metadata)
 
     if not os.path.isdir(os.path.dirname(write_path)):
           os.makedirs(os.path.dirname(write_path))
         
     impact.to_netcdf(write_path)
-    t2 = time.time()
-    print('Computed impact time {} for year {}'.format(t2 - t1, year))
+    t_2 = time.time()
+    print('Computed impact time {} for year {}'.format(t_2 - t_1, year))
 
 
 if __name__ == '__main__':
