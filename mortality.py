@@ -231,7 +231,7 @@ def mortality_annual(
             
         impact.to_netcdf(write_path)
         t_inner_2 = time.time()
-        print('Inner Loop time: {}'.format(t_innner_2 - t_inner_1))
+        print('Inner Loop time: {}'.format(t_inner_2 - t_inner_1))
     t_2 = time.time()
     print('Computed impact time {} for year {}'.format(t_2 - t_1, year))
 
