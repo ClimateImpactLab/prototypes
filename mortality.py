@@ -50,7 +50,7 @@ GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' +
                 'global_interaction_Tmean-POLY-4-AgeSpec.csvv')
 
 
-baseline_impacts_path = ('/global/scratch/jsimcock/gcp/impacts/mortality/{seed}/{scenario}/{econ_model}/{ssp}/{model}/baseline/{version}.nc4')
+baseline_impacts_path = ('/global/scratch/jsimcock/gcp/impacts/mortality/{seed}/rcp85/{econ_model}/{ssp}/{model}/baseline/{version}.nc4')
 
 base_years = [2000, 2010]
 
