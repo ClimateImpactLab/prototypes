@@ -835,7 +835,7 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     precomputes the baseline impact from beginning year to end year
     '''
 
-    
+    print(metadata)
     if os.path.isfile(write_path):
         return get_baseline(write_path)
 
