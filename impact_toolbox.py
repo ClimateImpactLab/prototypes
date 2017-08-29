@@ -889,8 +889,7 @@ def build_baseline_weather(model_paths, metadata, begin, end):
 
     ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
     ds_concat = ds_concat.mean(dim='year')
-    varname = ds_concat.variable
-    return ds_concat[varname]
+    return ds_concat
 
 
 @memoize
