@@ -830,13 +830,13 @@ def triangle_smooth(k):
   return smooth_array
 
 
-def compute_baseline_precompute(weather_model_paths, gdp_covar_path, climate_covar_path, gammas, metadata, begin, end, poly=None, write_path=None):
+def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path, gammas, metadata, begin, end, poly=None, write_path=None):
     '''
     precomputes the baseline impact from beginning year to end year
     '''
     base = xr.Dataset()
     annual_weather_paths_tas = weather_model_paths.format(ssp=metadata['ssp'], model=metadata['model'], poly='')
-    base['tas'] = build_baseline_weather(annual_climate_paths_tas, metadata, begin, end)
+    base['tas'] = build_baseline_weather(annual_weather_paths_tas, metadata, begin, end)
 
     for p in range(2, poly + 1):
         annual_weather_paths = weather_model_paths.format(ssp=metadata['ssp'], model=metadata['model'], poly=p)
@@ -856,7 +856,7 @@ def compute_baseline_precompute(weather_model_paths, gdp_covar_path, climate_cov
                                     betas['tas-poly-3']*base['tas-poly-3'] + 
                                     betas['tas-poly-4']*base['tas-poly-4'])
 
-    metadata['baseline_years'] = str([begin, year])
+    metadata['baseline_years'] = str([begin, end])
     metadata['dependencies'] = str([weather_model_paths, gdp_covar_path, climate_covar_path, gammas])
     metadata['oneline'] = 'Baseline impact value for mortality'
     metadata['description'] = 'Baseline impact value for mortality. Values are annual/daily expected damage resolved to GCP hierid/country level region.'
@@ -875,14 +875,13 @@ def compute_baseline_precompute(weather_model_paths, gdp_covar_path, climate_cov
 def build_baseline_weather(model_paths, metadata, begin, end):
     years = []
     datasets = []
-    paths = []
     for year in range(begin, end+1):
         if year <= 2005:
             read_rcp = 'historical'
         else: 
             read_rcp = metadata['scenario']
 
-        with xr.open_dataset(model_paths_tas.format(scenario=read_rcp ,year=year)) as ds:
+        with xr.open_dataset(model_paths.format(scenario=read_rcp ,year=year)) as ds:
             ds.load()
         datasets.append(ds)
 

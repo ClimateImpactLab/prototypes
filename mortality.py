@@ -157,12 +157,9 @@ def mortality_annual(
     '''
     t_outer1 = time.time()
     import xarray as xr
-    import pandas as pd
-    import numpy as np
 
     from impact_toolbox import (
-        compute_baseline, 
-        get_baseline,
+        precompute_baseline, 
         compute_betas,
         prep_gammas,
         get_annual_climate,
@@ -230,9 +227,9 @@ def mortality_annual(
 #        compute_baseline
         
         t_base1 = time.time()
-        baseline = compute_baseline(ANNUAL_CLIMATE_FILE, GDP_2015, CLIMATE_2015, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
+        baseline = precompute_baseline(ANNUAL_CLIMATE_FILE, GDP_2015, CLIMATE_2015, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
         t_base2 = time.time()
-        logger.debug('Computing baseline for {} {} {} {}'.format(scenario, econ_model, model, ssp))
+        logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
 
         #########################
         # compute no adaptation #
@@ -277,7 +274,7 @@ def mortality_annual(
                                     betas['tas-poly-4']*climate['tas-poly-4']) - baseline
 
         t_full2 = time.time()
-        logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - tfull1))
+        logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))
 
         ################################
         # compute no income adaptation #
