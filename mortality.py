@@ -44,7 +44,7 @@ GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ss
 GDP_2015 = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/2015/0.1.0.nc')
 
 CLIMATE_2015 = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
-    '{scenario}/{model}/2015/0.1.1.nc4')
+    'rcp85/{model}/2015/0.1.1.nc4')
 
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
                 'global_interaction_Tmean-POLY-4-AgeSpec.csvv')
