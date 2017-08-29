@@ -850,9 +850,7 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     with xr.open_dataset(climate_covar_path) as clim_covar:
         clim_covar.load()
 
-    print(gdp_covar)
-    print(clim_covar)
-    betas = compute_betas(gdp_covar, clim_covar, gammas)
+    betas = compute_betas(clim_covar, gdp_covar, gammas)
 
     base_impact = xr.Dataset()
 
