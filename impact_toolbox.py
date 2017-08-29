@@ -840,7 +840,7 @@ def compute_baseline_precompute(weather_model_paths, gdp_covar_path, climate_cov
 
     for p in range(2, poly + 1):
         annual_weather_paths = weather_model_paths.format(ssp=metadata['ssp'], model=metadata['model'], poly=p)
-        base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_climate_paths, begin, end)
+        base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_weather_paths, metadata, begin, end)
 
     with xr.open_dataset(gdp_covar_path) as gdp_covar:
         gdp_covar.load()
@@ -870,12 +870,6 @@ def compute_baseline_precompute(weather_model_paths, gdp_covar_path, climate_cov
         base_impact.to_netcdf(write_path)
 
     return base_impact
-
-
-
-   
-
-
 
 
 def build_baseline_weather(model_paths, metadata, begin, end):
