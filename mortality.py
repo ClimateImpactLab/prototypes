@@ -171,7 +171,6 @@ def mortality_annual(
                                                         year=year)
 
 
-    base_path = baseline_impacts_path.format(**metadata)
 
     # no_adaptation_climate = CLIMATE_2010.format(**metadata)
     # no_adaptation_gdp = GDP_2010.format(**metadata)
@@ -225,7 +224,10 @@ def mortality_annual(
         impact = xr.Dataset()
 
 #        compute_baseline
+
+        base_path = baseline_impacts_path.format(**metadata)
         
+
         t_base1 = time.time()
         baseline = precompute_baseline(ANNUAL_CLIMATE_FILE, GDP_2015, CLIMATE_2015, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
         t_base2 = time.time()
