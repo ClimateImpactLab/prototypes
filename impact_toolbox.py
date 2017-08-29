@@ -829,7 +829,6 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     precomputes the baseline impact from beginning year to end year
     '''
 
-    print(metadata)
     if os.path.isfile(write_path):
         return get_baseline(write_path)
 
@@ -850,6 +849,7 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     betas = compute_betas(gdp_covar, clim_covar, gammas)
 
     base_impact = xr.Dataset()
+
     base_impact['baseline'] =  (betas['tas']*base['tas'] + 
                                     betas['tas-poly-2']*base['tas-poly-2'] + 
                                     betas['tas-poly-3']*base['tas-poly-3'] + 
@@ -881,7 +881,6 @@ def build_baseline_weather(model_paths, metadata, begin, end):
             read_rcp = 'rcp85'
 
         path = model_paths.format(scenario=read_rcp ,year=year)
-        print(path)
         with xr.open_dataset(path) as ds:
             ds.load()
         ds = ds.mean(dim='time')
@@ -889,11 +888,8 @@ def build_baseline_weather(model_paths, metadata, begin, end):
         years.append(year)
 
     ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
-    print(ds_concat)
-    ds_concat = ds_concat.mean(dim='year')
-    print(ds_concat)
-    
-    return ds_concat
+
+    return ds_concat.mean(dim='year').variable
 
 
 @memoize
