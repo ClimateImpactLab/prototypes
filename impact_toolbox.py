@@ -881,6 +881,7 @@ def build_baseline_weather(model_paths, metadata, begin, end):
             read_rcp = 'rcp85'
 
         path = model_paths.format(scenario=read_rcp ,year=year)
+        print(path)
         with xr.open_dataset(path) as ds:
             ds.load()
         ds = ds.mean(dim='time')
