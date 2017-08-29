@@ -884,12 +884,12 @@ def build_baseline_weather(model_paths, metadata, begin, end):
         print(path)
         with xr.open_dataset(path) as ds:
             ds.load()
-        print(ds)
+        ds = ds.mean(dim='time')
         datasets.append(ds)
         years.append(year)
 
-    ds = xr.concat(datasets, pd.Index(years, name='year')) 
-    return ds.mean(dim='time').mean(dim='year')
+    ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
+    return ds_concat.mean(dim='year')
 
 
 @memoize
