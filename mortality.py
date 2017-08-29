@@ -41,7 +41,7 @@ CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popw
 GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
 
 
-GDP_2015 = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{model}/2015/0.1.0.nc')
+GDP_2015 = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/2015/0.1.0.nc')
 
 CLIMATE_2015 = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
     '{scenario}/{model}/2015/0.1.1.nc4')
