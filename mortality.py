@@ -172,14 +172,15 @@ def mortality_annual(
 
 
 
+
     # no_adaptation_climate = CLIMATE_2010.format(**metadata)
     # no_adaptation_gdp = GDP_2010.format(**metadata)
 
-    with xr.open_dataset(CLIMATE_2015.format(**metadata)) as clim_covar_2015:
+    with xr.open_dataset(CLIMATE_2015.format(model=model)) as clim_covar_2015:
         clim_covar_2015.load()
 
 
-    with xr.open_dataset(GDP_2015.format(**metadata)) as gdp_covar_2015:
+    with xr.open_dataset(GDP_2015.format(ssp=ssp, econ_model=econ_model)) as gdp_covar_2015:
         gdp_covar_2015.load()
 
 
@@ -188,13 +189,13 @@ def mortality_annual(
     #     gdp_covar = gdp_covar_2015
     #     clim_covar = clim_covar_2015
 
-    with xr.open_dataset(GDP_COVAR.format(**metadata),autoclose=True) as gdp_covar:
+    with xr.open_dataset(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year),autoclose=True) as gdp_covar:
         gdp_covar.load()
-    logger.debug('reading covariate data from {}'.format(GDP_COVAR.format(**metadata)))
+    logger.debug('reading covariate data from {}'.format(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year)))
 
-    with xr.open_dataset(CLIMATE_COVAR.format(**metadata), autoclose=True) as clim_covar:
+    with xr.open_dataset(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year), autoclose=True) as clim_covar:
         clim_covar.load()
-    logger.debug('reading covariate data from {}'.format(CLIMATE_COVAR.format(**metadata)))
+    logger.debug('reading covariate data from {}'.format(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year)))
 
 
 
@@ -223,8 +224,10 @@ def mortality_annual(
         
         impact = xr.Dataset()
 
-#        compute_baseline
-
+        ####################
+        # compute_baseline #
+        ####################
+        
         base_path = baseline_impacts_path.format(**metadata)
         
 
