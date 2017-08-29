@@ -837,7 +837,11 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     base['tas'] = build_baseline_weather(annual_weather_paths_tas, metadata, begin, end)['tas']
 
     for p in range(2, poly + 1):
-        annual_weather_paths_poly_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', year='{year}', model=metadata['model'], poly=p)
+        annual_weather_paths_poly_tas = weather_model_paths.format(ssp=metadata['ssp'], 
+                                                                scenario='{scenario}', 
+                                                                year='{year}', 
+                                                                model=metadata['model'], 
+                                                                poly='-poly-{}'.format(p))
         base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_weather_paths_poly_tas, metadata, begin, end)['tas-poly-{}'.format(p)]
 
     with xr.open_dataset(gdp_covar_path) as gdp_covar:
@@ -859,7 +863,6 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     metadata['dependencies'] = str([weather_model_paths, gdp_covar_path, climate_covar_path, gammas])
     metadata['oneline'] = 'Baseline impact value for mortality'
     metadata['description'] = 'Baseline impact value for mortality. Values are annual/daily expected damage resolved to GCP hierid/country level region.'
-
 
     base_impact.attrs.update(metadata)
 
@@ -892,7 +895,6 @@ def build_baseline_weather(model_paths, metadata, begin, end):
     ds_concat = ds_concat.mean(dim='year')
     return ds_concat
 
-
 @memoize
 def get_baseline(base_path):
   '''
@@ -903,9 +905,3 @@ def get_baseline(base_path):
     
   return ds
  
-
-
-
-
-
-
