@@ -840,11 +840,11 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
         return get_baseline(write_path)
 
     base = xr.Dataset()
-    annual_weather_paths_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', model=metadata['model'], poly='')
+    annual_weather_paths_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', year='{year}', model=metadata['model'], poly='')
     base['tas'] = build_baseline_weather(annual_weather_paths_tas, metadata, begin, end)
 
     for p in range(2, poly + 1):
-        annual_weather_paths_poly_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', model=metadata['model'], poly=p)
+        annual_weather_paths_poly_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', year='{year}', model=metadata['model'], poly=p)
         base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_weather_paths_poly_tas, metadata, begin, end)
 
     with xr.open_dataset(gdp_covar_path) as gdp_covar:
