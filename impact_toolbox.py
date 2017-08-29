@@ -890,6 +890,7 @@ def build_baseline_weather(model_paths, metadata, begin, end):
         print(path)
         with xr.open_dataset(path) as ds:
             ds.load()
+            print(ds)
         datasets.append(ds)
         years.append(year)
 
