@@ -213,6 +213,7 @@ def mortality_annual(
 
         t_inner_1 = time.time()
         gammas = prep_gammas(GAMMAS_FILE, seed)
+
         
         metadata.update(ADDITIONAL_METADATA)
         metadata['seed'] = seed
@@ -227,6 +228,11 @@ def mortality_annual(
         
         impact = xr.Dataset()
 
+#        compute_baseline
+
+        baseline = compute_baseline(2000, 2010, base_path)
+
+
         #########################
         # compute no adaptation #
         #########################
@@ -237,7 +243,7 @@ def mortality_annual(
         impact['no_adaptation'] = (betas_no_adaptation['tas']*climate['tas'] + 
                                 betas_no_adaptation['tas-poly-2']*climate['tas-poly-2'] +
                                 betas_no_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
-                                betas_no_adaptation['tas-poly-4']*climate['tas-poly-4'])
+                                betas_no_adaptation['tas-poly-4']*climate['tas-poly-4']) - baseline
 
         t_noadp2 = time.time()
         logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
@@ -252,7 +258,7 @@ def mortality_annual(
         impact['income_adaptation'] = (betas_income_adaptation['tas']*climate['tas'] + 
                                 betas_income_adaptation['tas-poly-2']*climate['tas-poly-2'] +
                                 betas_income_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
-                                betas_income_adaptation['tas-poly-4']*climate['tas-poly-4'])
+                                betas_income_adaptation['tas-poly-4']*climate['tas-poly-4']) - baseline
 
         t_incadp2 = time.time()
         logger.debug('Computing income only adaptiaion for {}: {}'.format(year, t_incadp2 - t_incadp1))
@@ -267,7 +273,7 @@ def mortality_annual(
         impact['mortality_full_adaptation'] = (betas['tas']*climate['tas'] + 
                                     betas['tas-poly-2']*climate['tas-poly-2'] + 
                                     betas['tas-poly-3']*climate['tas-poly-3'] + 
-                                    betas['tas-poly-4']*climate['tas-poly-4'])
+                                    betas['tas-poly-4']*climate['tas-poly-4']) - baseline
 
         t_full2 = time.time()
         logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - tfull1))
@@ -282,7 +288,7 @@ def mortality_annual(
         impact['no_income_adaptation'] = (betas_no_income_adaptation['tas']*climate['tas'] + 
                                 betas_no_income_adaptation['tas-poly-2']*climate['tas-poly-2'] +
                                 betas_no_income_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
-                                betas_no_income_adaptation['tas-poly-4']*climate['tas-poly-4'])
+                                betas_no_income_adaptation['tas-poly-4']*climate['tas-poly-4']) - baseline
 
         t_noincome2 = time.time()
         logger.debug('Computing no income adaptiaion for {}: {}'.format(year, t_noincome2 - t_noincome1))
@@ -304,15 +310,15 @@ def mortality_annual(
         ###########################
         # compute baseline impact #
         ###########################
-        if year == 2011: 
+        # if year == 2011: 
 
-            paths = WRITE_PATH.format(seed=seed, scenario=scenario, econ_model=econ_model, ssp=ssp, model=model, version=version)
-            baseline = compute_baseline(paths, 2000, 2010, base_path)
-            impact = impact - baseline
+        #     paths = WRITE_PATH.format(seed=seed, scenario=scenario, econ_model=econ_model, ssp=ssp, model=model, version=version)
+        #     baseline = compute_baseline(paths, 2000, 2010, base_path)
+        #     impact = impact - baseline
 
-        if year > 2011:
+        # if year > 2011:
 
-            impact = impact - get_baseline(base_path) 
+        #     impact = impact - get_baseline(base_path) 
 
         impact.attrs.update({k:str(v) for k,v in metadata.items()})
 
