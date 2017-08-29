@@ -493,24 +493,13 @@ def compute_betas(clim_covar, gdp_covar, gammas):
     Xarray Dataset with values for each of the Betas
 
     '''
-
-    t1 = time.time()
-
     betas = xr.Dataset()
 
     betas['tas'] = (gammas['beta0_pow1'] + gammas['gdp_pow1'] * gdp_covar['gdppc'] + gammas['tavg_pow1']*clim_covar['tas'])
-    print(betas['tas'])
     betas['tas-poly-2'] = (gammas['beta0_pow2'] + gammas['gdp_pow2'] * gdp_covar['gdppc'] + gammas['tavg_pow2']*clim_covar['tas'])
-    print(betas['tas-poly-2'])
     betas['tas-poly-3'] = (gammas['beta0_pow3'] + gammas['gdp_pow3'] * gdp_covar['gdppc'] + gammas['tavg_pow3']*clim_covar['tas'])
-    print(betas['tas-poly-3'])
     betas['tas-poly-4'] = (gammas['beta0_pow4'] + gammas['gdp_pow4'] * gdp_covar['gdppc'] + gammas['tavg_pow4']*clim_covar['tas'])
-    print(betas['tas-poly-4'])
 
-
-
-    t2 = time.time()
-    print('Completing compute_betas: {}'.format(t2 - t1))
     return betas
 
 def get_annual_climate(model_paths, polymomial=4):
@@ -527,12 +516,9 @@ def get_annual_climate(model_paths, polymomial=4):
         order of polynomial to read
         used for path handling
 
-
     Returns
     -------
     Xarray Dataset with each climate polynomial as a variable 
-
-
     '''
     dataset = xr.Dataset()
 
@@ -662,9 +648,7 @@ def gen_all_gdp_annuals(nightlights_path, baseline_gdp_path, growth_path, ssp, m
 
 def reindex_growth_rate(growth_ds, base, ssp, model, year):
     '''
-    
     Performs Xarray Dataset manipulations to generate subsets of data from larger xarray dataset
-    
 
     Parameters
     ----------
@@ -690,7 +674,6 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
 
     return growth_year
 
-
 def gen_kernel_covars(covariate_paths, rcp, kernel=None):
     ''' 
     Computes kernelized covariate from a series of length of kernel
@@ -711,7 +694,6 @@ def gen_kernel_covars(covariate_paths, rcp, kernel=None):
     xarray Dataset
 
     '''
-
     ####################################
     # Construct larger rolling dataset #
     ####################################
@@ -749,10 +731,6 @@ def gen_kernel_covars(covariate_paths, rcp, kernel=None):
       ds = gen_smoothed_covars(datasets, dim='year', kernel=kernel)
 
     return ds
-
-    
-
-
 
 def gen_smoothed_covars(ds, dim='year', kernel= None):
     '''
@@ -805,7 +783,6 @@ def gen_smoothed_covars(ds, dim='year', kernel= None):
     ######################
     # smoothing function #
     ######################    
-    print(ds)                                              
     smooth_array = triangle_smooth(kernel)
 
     ##############################################
@@ -853,38 +830,72 @@ def triangle_smooth(k):
   return smooth_array
 
 
-def compute_baseline(base_path, begin, end, write_path):
-  '''
-  Computes the arithmetic mean of impacts from base_year_begin to base_year_end
+def compute_baseline_precompute(weather_model_paths, gdp_covar_path, climate_covar_path, gammas, metadata, begin, end, poly=None, write_path=None):
+    '''
+    precomputes the baseline impact from beginning year to end year
+    '''
+    base = xr.Dataset()
+    annual_weather_paths_tas = weather_model_paths.format(ssp=metadata['ssp'], model=metadata['model'], poly='')
+    base['tas'] = build_baseline_weather(annual_climate_paths_tas, metadata, begin, end)
+
+    for p in range(2, poly + 1):
+        annual_weather_paths = weather_model_paths.format(ssp=metadata['ssp'], model=metadata['model'], poly=p)
+        base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_climate_paths, begin, end)
+
+    with xr.open_dataset(gdp_covar_path) as gdp_covar:
+        gdp_covar.load()
+
+    with xr.open_dataset(climate_covar_path) as clim_covar:
+        clim_covar.load()
+
+    betas = compute_betas(gdp_covar, clim_covar, gammas)
+
+    base_impact = xr.Dataset()
+    base_impact['baseline'] =  (betas['tas']*base['tas'] + 
+                                    betas['tas-poly-2']*base['tas-poly-2'] + 
+                                    betas['tas-poly-3']*base['tas-poly-3'] + 
+                                    betas['tas-poly-4']*base['tas-poly-4'])
+
+    metadata['baseline_years'] = str([begin, year])
+    metadata['dependencies'] = str([weather_model_paths, gdp_covar_path, climate_covar_path, gammas])
+    metadata['oneline'] = 'Baseline impact value for mortality'
+    metadata['description'] = 'Baseline impact value for mortality. Values are annual/daily expected damage resolved to GCP hierid/country level region.'
 
 
-  '''
+    base_impact.attrs.update(metadata)
+
+    if write_path:
+        if not os.path.isdir(os.path.dirname(write_path)):
+              os.makedirs(os.path.dirname(write_path))
+        base_impact.to_netcdf(write_path)
+
+    return base_impact
 
 
-  datasets = []
-  years = []
-  paths = []
-  for year in range(begin, end + 1):
-      years.append(year)
-      base_path = base_path.format(year=year)
-      paths.append(base_path)
-      with xr.open_dataset(base_path) as ds:
-          ds.load()
-          datasets.append(ds)
+
+   
 
 
-  base = xr.concat(datasets, pd.Index(years, name='year'))
-  metadata = base.attrs
 
-  base = base.mean(dim='year')
 
-  metadata['baseline_years'] = str([begin, end])
-  metadata['dependencies'] = str(paths)
-  metadata['oneline'] = 'Baseline impact value for mortality'
-  metadata['description'] = 'Baseline impact value for mortality. Values are annual/daily expected damage resolved to GCP hierid/country level region.'
+def build_baseline_weather(model_paths, metadata, begin, end):
+    years = []
+    datasets = []
+    paths = []
+    for year in range(begin, end+1):
+        if year <= 2005:
+            read_rcp = 'historical'
+        else: 
+            read_rcp = metadata['scenario']
 
-  base.attrs.update(metadata)
-  base.to_netcdf(write_path)
+        with xr.open_dataset(model_paths_tas.format(scenario=read_rcp ,year=year)) as ds:
+            ds.load()
+        datasets.append(ds)
+
+    ds = xr.concat(datasets, pd.Index(years, name='year')) 
+    return ds.mean(dim='year')
+
+
 
 
 @memoize

@@ -229,9 +229,11 @@ def mortality_annual(
         impact = xr.Dataset()
 
 #        compute_baseline
-
-        baseline = compute_baseline(2000, 2010, base_path)
-
+        
+        t_base1 = time.time()
+        baseline = compute_baseline(ANNUAL_CLIMATE_FILE, GDP_2015, CLIMATE_2015, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
+        t_base2 = time.time()
+        logger.debug('Computing baseline for {} {} {} {}'.format(scenario, econ_model, model, ssp))
 
         #########################
         # compute no adaptation #
