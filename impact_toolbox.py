@@ -48,18 +48,12 @@ My notes and questions
 
 #import metacsv
 import os
-import re
 import csv
-import glob
 import time
-import datafs
-import datetime
-import itertools
 import xarray as xr
 import numpy as np
 import pandas as pd
 from toolz import memoize
-from six import string_types
 from scipy.stats import multivariate_normal as mn
 
 
@@ -890,7 +884,8 @@ def build_baseline_weather(model_paths, metadata, begin, end):
         print(path)
         with xr.open_dataset(path) as ds:
             ds.load()
-            print(ds)
+        ds = ds.drop('time')    
+        print(ds)
         datasets.append(ds)
         years.append(year)
 
