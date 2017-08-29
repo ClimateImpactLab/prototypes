@@ -171,16 +171,21 @@ def mortality_annual(
                                                         year=year)
 
 
+    gdp_covar_current_path = GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year)
+    gdp_covar_2015_path = GDP_2015.format(ssp=ssp, econ_model=econ_model)
+
+    climate_covar_current_path = CLIMATE_COVAR.format(scenario=scenario, model=model, year=year)
+    climate_covar_2015_path = CLIMATE_2015.format(model=model)
 
 
     # no_adaptation_climate = CLIMATE_2010.format(**metadata)
     # no_adaptation_gdp = GDP_2010.format(**metadata)
 
-    with xr.open_dataset(CLIMATE_2015.format(model=model)) as clim_covar_2015:
+    with xr.open_dataset(climate_covar_2015_path) as clim_covar_2015:
         clim_covar_2015.load()
 
 
-    with xr.open_dataset(GDP_2015.format(ssp=ssp, econ_model=econ_model)) as gdp_covar_2015:
+    with xr.open_dataset(gdp_covar_2015_path) as gdp_covar_2015:
         gdp_covar_2015.load()
 
 
@@ -190,13 +195,13 @@ def mortality_annual(
         clim_covar = clim_covar_2015
 
     else: 
-        with xr.open_dataset(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year),autoclose=True) as gdp_covar:
+        with xr.open_dataset(gdp_covar_current_path,autoclose=True) as gdp_covar:
             gdp_covar.load()
-        logger.debug('reading covariate data from {}'.format(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year)))
+        logger.debug('reading covariate data from {}'.format(gdp_covar_current_path))
 
-        with xr.open_dataset(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year), autoclose=True) as clim_covar:
+        with xr.open_dataset(climate_covar_current_path, autoclose=True) as clim_covar:
             clim_covar.load()
-        logger.debug('reading covariate data from {}'.format(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year)))
+        logger.debug('reading covariate data from {}'.format(climate_covar_current_path))
 
 
 
@@ -233,7 +238,7 @@ def mortality_annual(
 
 
         t_base1 = time.time()
-        baseline = precompute_baseline(ANNUAL_CLIMATE_FILE, GDP_2015, CLIMATE_2015, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
+        baseline = precompute_baseline(ANNUAL_CLIMATE_FILE, gdp_covar_2015_path, climate_covar_2015_path, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
         t_base2 = time.time()
         logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
 
@@ -244,12 +249,12 @@ def mortality_annual(
         t_noadp1 = time.time()
         betas_no_adaptation = compute_betas(clim_covar_2015, gdp_covar_2015, gammas)
 
-        impact['no_adaptation'] = (betas_no_adaptation['tas']*climate['tas'] + 
-                                betas_no_adaptation['tas-poly-2']*climate['tas-poly-2'] +
-                                betas_no_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
-                                betas_no_adaptation['tas-poly-4']*climate['tas-poly-4'])
+        no_adaptation  = (betas_no_adaptation['tas']*climate['tas'] + 
+                            betas_no_adaptation['tas-poly-2']*climate['tas-poly-2'] +
+                            betas_no_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
+                            betas_no_adaptation['tas-poly-4']*climate['tas-poly-4'])
 
-        impact['no_adaptation'] = impact['no_adaptation'].sum(dim='time') - baseline['baseline']
+        impact['no_adaptation'] = no_adaptation.sum(dim='time') - baseline['baseline']
 
         t_noadp2 = time.time()
         logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
@@ -261,12 +266,12 @@ def mortality_annual(
         t_incadp1 = time.time()
         betas_income_adaptation = compute_betas(clim_covar_2015, gdp_covar, gammas)
 
-        impact['income_adaptation'] = (betas_income_adaptation['tas']*climate['tas'] + 
+        income_adaptation = (betas_income_adaptation['tas']*climate['tas'] + 
                                 betas_income_adaptation['tas-poly-2']*climate['tas-poly-2'] +
                                 betas_income_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
                                 betas_income_adaptation['tas-poly-4']*climate['tas-poly-4'])
 
-        impact['income_adaptation'] = impact['income_adaptation'].sum(dim='time') - baseline['baseline']
+        impact['income_adaptation'] = income_adaptation.sum(dim='time') - baseline['baseline']
 
         t_incadp2 = time.time()
         logger.debug('Computing income only adaptiaion for {}: {}'.format(year, t_incadp2 - t_incadp1))
@@ -278,12 +283,12 @@ def mortality_annual(
         t_full1 = time.time()
         betas = compute_betas(clim_covar, gdp_covar, gammas)
 
-        impact['mortality_full_adaptation'] = (betas['tas']*climate['tas'] + 
+        mortality_full_adaptation = (betas['tas']*climate['tas'] + 
                                     betas['tas-poly-2']*climate['tas-poly-2'] + 
                                     betas['tas-poly-3']*climate['tas-poly-3'] + 
                                     betas['tas-poly-4']*climate['tas-poly-4'])
 
-        impact['mortality_full_adaptation'] = impact['mortality_full_adaptation'].sum(dim='time') - baseline['baseline']
+        impact['mortality_full_adaptation'] = mortality_full_adaptation.sum(dim='time') - baseline['baseline']
 
         t_full2 = time.time()
         logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))
@@ -295,12 +300,12 @@ def mortality_annual(
         t_noincome1 = time.time()
         betas_no_income_adaptation = compute_betas(clim_covar, gdp_covar_2015, gammas)
 
-        impact['no_income_adaptation'] = (betas_no_income_adaptation['tas']*climate['tas'] + 
+        no_income_adaptation = (betas_no_income_adaptation['tas']*climate['tas'] + 
                                 betas_no_income_adaptation['tas-poly-2']*climate['tas-poly-2'] +
                                 betas_no_income_adaptation['tas-poly-3']*climate['tas-poly-3'] + 
                                 betas_no_income_adaptation['tas-poly-4']*climate['tas-poly-4'])
 
-        impact['no_income_adaptation'] = impact['no_income_adaptation'].sum(dim='time') - baseline['baseline']
+        impact['no_income_adaptation'] = no_income_adaptation.sum(dim='time') - baseline['baseline']
 
         t_noincome2 = time.time()
         logger.debug('Computing no income adaptiaion for {}: {}'.format(year, t_noincome2 - t_noincome1))
