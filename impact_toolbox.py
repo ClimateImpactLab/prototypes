@@ -881,10 +881,10 @@ def build_baseline_weather(model_paths, metadata, begin, end):
     years = []
     datasets = []
     for year in range(begin, end+1):
-        if year < 2005:
+        if year <= 2005:
             read_rcp = 'historical'
         else: 
-            read_rcp = metadata['scenario']
+            read_rcp = 'rcp85'
 
         path = model_paths.format(scenario=read_rcp ,year=year)
         print(path)
