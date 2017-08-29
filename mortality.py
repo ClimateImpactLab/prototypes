@@ -185,17 +185,18 @@ def mortality_annual(
 
 
 
-    # if year < 2015:
-    #     gdp_covar = gdp_covar_2015
-    #     clim_covar = clim_covar_2015
+    if year < 2015:
+        gdp_covar = gdp_covar_2015
+        clim_covar = clim_covar_2015
 
-    with xr.open_dataset(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year),autoclose=True) as gdp_covar:
-        gdp_covar.load()
-    logger.debug('reading covariate data from {}'.format(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year)))
+    else: 
+        with xr.open_dataset(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year),autoclose=True) as gdp_covar:
+            gdp_covar.load()
+        logger.debug('reading covariate data from {}'.format(GDP_COVAR.format(ssp=ssp, econ_model=econ_model, year=year)))
 
-    with xr.open_dataset(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year), autoclose=True) as clim_covar:
-        clim_covar.load()
-    logger.debug('reading covariate data from {}'.format(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year)))
+        with xr.open_dataset(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year), autoclose=True) as clim_covar:
+            clim_covar.load()
+        logger.debug('reading covariate data from {}'.format(CLIMATE_COVAR.format(scenario=scenario, model=model, year=year)))
 
 
 
@@ -227,9 +228,9 @@ def mortality_annual(
         ####################
         # compute_baseline #
         ####################
-        
+
         base_path = baseline_impacts_path.format(**metadata)
-        
+
 
         t_base1 = time.time()
         baseline = precompute_baseline(ANNUAL_CLIMATE_FILE, GDP_2015, CLIMATE_2015, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
