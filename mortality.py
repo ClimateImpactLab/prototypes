@@ -219,7 +219,6 @@ def mortality_annual(
         metadata['econ_model'] = econ_model
         metadata['model'] = model
         metadata['ssp'] = ssp
-        print(metadata)
 
 
 

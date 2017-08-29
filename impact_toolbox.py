@@ -886,7 +886,9 @@ def build_baseline_weather(model_paths, metadata, begin, end):
         else: 
             read_rcp = metadata['scenario']
 
-        with xr.open_dataset(model_paths.format(scenario=read_rcp ,year=year)) as ds:
+        path = model_paths.format(scenario=read_rcp ,year=year)
+        print(path)
+        with xr.open_dataset(path) as ds:
             ds.load()
         datasets.append(ds)
         years.append(year)
