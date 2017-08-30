@@ -208,7 +208,7 @@ def mortality_annual(
     logger.debug('reading annual weather data from {}: {}'.format(annual_climate_paths, t2-t1))
 
 
-    for seed in range(3):
+    for seed in range(13):
 
         t_inner_1 = time.time()
         gammas = prep_gammas(GAMMAS_FILE, seed)
