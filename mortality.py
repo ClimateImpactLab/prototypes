@@ -315,7 +315,7 @@ def mortality_annual(
         #######################
 
         t_goodmoney1 = time.time()
-        impact['goodmoney'] = max(impact['mortality_full_adaptation'], impact['no_income_adaptation'])
+        impact['goodmoney'] = np.maximum(impact['mortality_full_adaptation'], impact['no_income_adaptation'])
         t_goodmoney2 = time.time()
         logger.debug('Computing goodmoney for {}: {}'.format(year, t_goodmoney2 - t_goodmoney1))
 
