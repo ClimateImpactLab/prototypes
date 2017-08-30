@@ -823,6 +823,39 @@ def triangle_smooth(k):
 
   return smooth_array
 
+def compute_polynomial(annual_weather, clim_covar, gdp_covar, gammas):
+    '''
+    Implements polynomial specification for impact calculation
+
+    Parameters
+    ----------
+    annual_weather: `xarray.DataSet` 
+        annual weather values for each polynomial
+
+    clim_covar: `xarray.DataSet`
+        TAVG for each hierid for a given year
+
+    gdp_covar: `xarray.DataSet`
+        gdppc for each hierid for given year
+
+    gammas: `xarray.Dataset`
+        coefficient values organized by covariate 
+
+    Returns
+    -------
+    `xarray.DataArray` of impacts
+
+    '''
+
+    betas = compute_betas(clim_covar, gdp_covar, gammas)
+
+
+    impact =  (betas['tas']*annual_weather['tas'] + 
+                betas['tas-poly-2']*annual_weather['tas-poly-2'] + 
+                betas['tas-poly-3']*annual_weather['tas-poly-3'] + 
+                betas['tas-poly-4']*annual_weather['tas-poly-4'])
+
+    return impact
 
 def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path, gammas, metadata, begin, end, poly=None, write_path=None):
     '''
@@ -832,6 +865,8 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
     if os.path.isfile(write_path):
         return get_baseline(write_path)
 
+
+    #Construct Multi-year avg climate values
     base = xr.Dataset()
     annual_weather_paths_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', year='{year}', model=metadata['model'], poly='')
     base['tas'] = build_baseline_weather(annual_weather_paths_tas, metadata, begin, end)['tas']
@@ -844,21 +879,19 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
                                                                 poly='-poly-{}'.format(p))
         base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_weather_paths_poly_tas, metadata, begin, end)['tas-poly-{}'.format(p)]
 
+    #Load Covars
     with xr.open_dataset(gdp_covar_path) as gdp_covar:
         gdp_covar.load()
 
     with xr.open_dataset(climate_covar_path) as clim_covar:
         clim_covar.load()
 
-    betas = compute_betas(clim_covar, gdp_covar, gammas)
-
+    #compute impacts
     base_impact = xr.Dataset()
 
-    base_impact['baseline'] =  (betas['tas']*base['tas'] + 
-                                    betas['tas-poly-2']*base['tas-poly-2'] + 
-                                    betas['tas-poly-3']*base['tas-poly-3'] + 
-                                    betas['tas-poly-4']*base['tas-poly-4'])
+    base_impact['baseline'] =  compute_polynomial(base, clim_covar, gdp_covar, gammas)
 
+    #update metadata
     metadata['baseline_years'] = str([begin, end])
     metadata['dependencies'] = str([weather_model_paths, gdp_covar_path, climate_covar_path, gammas])
     metadata['oneline'] = 'Baseline impact value for mortality'
@@ -875,6 +908,27 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
 
 
 def build_baseline_weather(model_paths, metadata, begin, end):
+    '''
+    Constructs Tavg for baseline period for each of the climate variables
+
+    Parameters
+    ----------
+
+    model_paths: str
+        unformatted string for paths
+
+    metadata: dict
+        args for this spec including: ssp, model, econ_model, scenario, seed, etc
+
+    begin: int
+
+    end: int
+
+    Returns
+    -------
+
+    `xarray.DataSet`
+    '''
     years = []
     datasets = []
     for year in range(begin, end+1):
@@ -884,7 +938,6 @@ def build_baseline_weather(model_paths, metadata, begin, end):
             read_rcp = 'rcp85'
 
         path = model_paths.format(scenario=read_rcp ,year=year)
-        print(path)
         with xr.open_dataset(path) as ds:
             ds.load()
         ds = ds.mean(dim='time')
@@ -898,10 +951,17 @@ def build_baseline_weather(model_paths, metadata, begin, end):
 @memoize
 def get_baseline(base_path):
   '''
+  Returns the cached version of the baseline impact
 
   '''
   with xr.open_dataset(base_path) as ds: 
       ds.load()
     
   return ds
+
+
+def flat_curve_adaptation():
+    '''
+    Computes the minimum value of a function 
+    '''
  
