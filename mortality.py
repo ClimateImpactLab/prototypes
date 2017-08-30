@@ -7,13 +7,10 @@ Values are annual/daily expected damage resolved to GCP hierid/country level reg
 '''
 
 import os
-import click
-import pprint
 import logging
-import datafs
 import time
+import numpy as np
 
-import itertools
 
 
 from jrnr import slurm_runner
