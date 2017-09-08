@@ -10,6 +10,7 @@ import os
 import logging
 import time
 import numpy as np
+import datetime
 
 
 
@@ -18,7 +19,7 @@ from jrnr import slurm_runner
 FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT)
 
-logger = logging.getLogger('uploder')
+logger = logging.getLogger('uploader')
 logger.setLevel('DEBUG')
 
 
@@ -77,6 +78,7 @@ ADDITIONAL_METADATA = dict(
     frequency='daily',
     variable='mortality-daily',
     dependencies= str([GDP_COVAR, GAMMAS_FILE,CLIMATE_COVAR, ANNUAL_CLIMATE_FILE]),
+    created= str(datetime.datetime.now())
     )
 
 
@@ -234,6 +236,8 @@ def mortality_annual(
         t_base2 = time.time()
         logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
 
+        #ßflat_curve_adaptation = find_poly_mins
+
         #########################
         # compute no adaptation #
         #########################
@@ -242,7 +246,7 @@ def mortality_annual(
 
         no_adaptation  = compute_polynomial(climate, clim_covar_2015, gdp_covar_2015, gammas)
 
-        impact['no_adaptation'] = (no_adaptation.sum(dim='time') - baseline['baseline'])/1e5
+        impact['no_adaptation'] = (no_adaptation.sum(dim='time') - baseline['baseline'])*1e5
 
         t_noadp2 = time.time()
         logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
@@ -255,7 +259,7 @@ def mortality_annual(
 
         income_adaptation = compute_polynomial(climate, clim_covar_2015, gdp_covar, gammas)
 
-        impact['income_adaptation'] = (income_adaptation.sum(dim='time') - baseline['baseline'])/1e5
+        impact['income_adaptation'] = (income_adaptation.sum(dim='time') - baseline['baseline'])*1e5
 
         t_incadp2 = time.time()
         logger.debug('Computing income only adaptiaion for {}: {}'.format(year, t_incadp2 - t_incadp1))

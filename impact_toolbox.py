@@ -57,7 +57,7 @@ from toolz import memoize
 from scipy.stats import multivariate_normal as mn
 
 
-
+#deprecated
 def compute_climate_covariates(path,base_year=None, rolling_window=None):
     ''' 
     Method to calculate climate covariate
@@ -102,6 +102,7 @@ def compute_climate_covariates(path,base_year=None, rolling_window=None):
     print('Finishing compute_climate_covariates: {}'.format(t2-t1))
     return ds
 
+#deprecated
 def compute_gdp_covariates(path, ssp, econ_model,base_year=2010):
     '''
     Method to calculate climate covariate
@@ -355,12 +356,15 @@ def read_csvv(path):
         reader = csv.reader(file)
         for row in reader:
             if row[0] == 'gamma':
-                data['gamma'] = reader.next()
+                data['gamma'] = [float(i) for i in reader.next()]
             if row[0] == 'gammavcv':
-                data['gammavcv'] = reader.next()
+                data['gammavcv'] = [float(i) for i in reader.next()]
             if row[0] == 'residvcv':
-                data['residvcv'] = reader.next()
-
+                data['residvcv'] = [float(i) for i in reader.next()]
+            if row[0] == 'prednames':
+                data['prednames'] = list(set([pred.strip() for pred in reader.next()]))
+            if row[0] == 'covarnames':
+                data['covarnames'] = list(set([cv.strip() for cv in reader.next()]))
 
 
     return data
@@ -388,34 +392,48 @@ def prep_gammas(path, p=4, seed=None):
     ##########################
     # Read in data from csvv #
     ##########################
-    covar_data = read_csvv(path)
+    data = read_csvv(path)
+    len_preds = len(data['prednames'])  
 
-    ##########################################
-    # convert gamma and covariance to floats #
-    ##########################################
-    _gamma = [float(num) for num in covar_data['gamma']]
-    _covar = [float(num) for num in covar_data['gammavcv']]
+    print(data['covarnames'])
+    if seed:
+        np.random.seed(seed)
+        data = mn.rvs(data['gamma'], data['gammavcv'])
 
-    if seed: 
-      np.random.seed(seed)
-
-    data = mn.rvs(_gamma, _covar)
-
+    else: 
+        data = data['gamma']
 
     gammas = xr.Dataset()
-    indices = {'age_cohorts': pd.Index(['age0-4', 'age5-64', 'age65+'], name='age')}
+    indices = {'outcomes': pd.Index(['age0-4', 'age5-64', 'age65+'], name='age')}
+   # print(len(data['prednames']))
 
-
-    for pwr in range(1,5):
+    ##This is wrong, the indices are misaligned and assigning values incorrectly
+    for pwr in range(1, len_preds+1):
             gammas['beta0_pow{}'.format(pwr)] = xr.DataArray(
-                data[pwr-1::12], dims=('age',), coords={'age':indices['age_cohorts']})
+                data[0*pwr::12], dims=('age',), coords={'age':indices['age_cohorts']})
             gammas['gdp_pow{}'.format(pwr)] = xr.DataArray(
-                data[pwr::12], dims=('age',), coords={'age': indices['age_cohorts']})
+                data[1*pwr::12], dims=('age',), coords={'age': indices['age_cohorts']})
             gammas['tavg_pow{}'.format(pwr)] = xr.DataArray(
-                data[pwr+1::12], dims=('age',), coords={'age': indices['age_cohorts']})
+                data[2*pwr::12], dims=('age',), coords={'age': indices['age_cohorts']})
 
     return gammas
     
+
+# i = 1
+# for covar in sorted(gs['covarnames']):
+#     j = 1
+
+#     for pred in sorted(gs['prednames']):
+    
+#         print(i, 'i')
+#         print(j, 'j')
+#         print(i*j-1, 'i*j-1')
+#         gammas_ds[str(covar) + '_' + pred] = xr.DataArray(data[(j*i)-1::len(gs['prednames'])*len(gs['covarnames'])], 
+#                                         dims = (indices.values()[0].name,), 
+#                                         coords={indices.values()[0].name: indices.values()[0]})
+#         j+= 1 
+#     i += 1
+
 
 
 ##################
@@ -668,7 +686,7 @@ def reindex_growth_rate(growth_ds, base, ssp, model, year):
 
     return growth_year
 
-def gen_kernel_covars(covariate_paths, rcp, kernel=None):
+def gen_kernel_covars(covar_path, kernel=None, **kwargs):
     ''' 
     Computes kernelized covariate from a series of length of kernel
 
@@ -680,12 +698,10 @@ def gen_kernel_covars(covariate_paths, rcp, kernel=None):
     kernel: int
       duration to compute window
 
-    climate: bool
-      whether or not you are computing climate covariates
-
     Returns 
     -------
-    xarray Dataset
+    Dataset
+      returns a new :py:class: `~xarray.Dataset` 
 
     '''
     ####################################
@@ -699,7 +715,9 @@ def gen_kernel_covars(covariate_paths, rcp, kernel=None):
       else:
             read_rcp = rcp
 
-      covar_path = covar_path_brc.format(rcp=read_rcp, model=model,variable=variable, year=y)
+      kwargs.update({'year':y, 'rcp': read_rcp})
+
+      covar_path = covar_path.format(**kwargs)
         
 
       with xr.open_dataset(covar_path) as ds:
@@ -722,7 +740,7 @@ def gen_kernel_covars(covariate_paths, rcp, kernel=None):
       ##################
       # Compute kernel #
       ##################    
-      ds = gen_smoothed_covars(datasets, dim='year', kernel=kernel)
+      ds = _gen_smoothed_covars(datasets, dim='year', kernel=kernel)
 
     return ds
 
@@ -857,9 +875,44 @@ def compute_polynomial(annual_weather, clim_covar, gdp_covar, gammas):
 
     return impact
 
-def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path, gammas, metadata, begin, end, poly=None, write_path=None):
+def precompute_baseline(weather_model_paths, 
+                        gdp_covar_path, 
+                        climate_covar_path, 
+                        gammas, 
+                        metadata, 
+                        begin, 
+                        end, poly=None, write_path=None):
     '''
     precomputes the baseline impact from beginning year to end year
+
+    Parameters
+    ----------
+    weather_model_paths: str
+        unformatted str variable for paths to annual weather
+
+    gdp_covar_path: str
+        baseline gdp path
+
+    climate_covar_path: str
+        baseline tavg climate path
+
+    gammas: :py:class:`~xarray.Dataset` of gammas 
+
+    metadata: dict
+
+    begin: int 
+        year to begin baseline calculation
+    
+    end: int
+        year to end baseline calculation
+
+
+    Returns
+    -------
+    
+    Dataset
+        returns a new `~xarray.Dataset` of baseline impacts
+
     '''
 
     if os.path.isfile(write_path):
@@ -868,15 +921,17 @@ def precompute_baseline(weather_model_paths, gdp_covar_path, climate_covar_path,
 
     #Construct Multi-year avg climate values
     base = xr.Dataset()
-    annual_weather_paths_tas = weather_model_paths.format(ssp=metadata['ssp'], scenario='{scenario}', year='{year}', model=metadata['model'], poly='')
+    annual_weather_paths_tas = weather_model_paths.format(scenario='{scenario}', 
+                                                            year='{year}', 
+                                                            model=metadata['model'], 
+                                                            poly='')
     base['tas'] = build_baseline_weather(annual_weather_paths_tas, metadata, begin, end)['tas']
 
     for p in range(2, poly + 1):
-        annual_weather_paths_poly_tas = weather_model_paths.format(ssp=metadata['ssp'], 
-                                                                scenario='{scenario}', 
-                                                                year='{year}', 
-                                                                model=metadata['model'], 
-                                                                poly='-poly-{}'.format(p))
+        annual_weather_paths_poly_tas = weather_model_paths.format(scenario='{scenario}', 
+                                                                    year='{year}', 
+                                                                    model=metadata['model'], 
+                                                                    poly='-poly-{}'.format(p))
         base['tas-poly-{}'.format(p)] = build_baseline_weather(annual_weather_paths_poly_tas, metadata, begin, end)['tas-poly-{}'.format(p)]
 
     #Load Covars
