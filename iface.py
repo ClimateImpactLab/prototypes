@@ -11,7 +11,6 @@ import logging
 import time
 import numpy as np
 import datetime
-from csvv import Gammas
 from impact import Impact
 
 
@@ -127,7 +126,8 @@ def mortality_annual(
                     model,
                     scenario,
                     ssp, 
-                    year, 
+                    year,
+                    mc=False,
                     interactive=False):
     '''
     Calculates the IR level daily/annual effect of temperature on Mortality Rates
@@ -159,6 +159,8 @@ def mortality_annual(
     t_outer1 = time.time()
     import xarray as xr
     from impact import Impact
+    from csvv import Gammas
+
 
     metadata.update(ADDITIONAL_METADATA)
     metadata['year'] = year
@@ -166,9 +168,6 @@ def mortality_annual(
     metadata['econ_model'] = econ_model
     metadata['model'] = model
     metadata['ssp'] = ssp
-
-
-    #Stille need to generalize this so we can take arbitrary inputs
 
 
     gdp_covar_current_path = GDP_COVAR.format(**metadata)
@@ -204,114 +203,113 @@ def mortality_annual(
 
     impact = Impact()
 
-    t1 = time.time()
-    t2 = time.time()
-    logger.debug('reading annual weather data from {}: {}'.format(annual_climate_paths, t2-t1))
-
     gammas, spec = Gammas(GAMMAS_FILE)
     median = gammas.median()
+
     annual_weather = impact.get_annual_weather(ANNUAL_WEATHER_FILE, spec)
 
-    median_impact = impact.compute_impact()
 
-    for seed in range(13):
+    median_impact = impact.compute_impact(ANNUAL_WEATHER_FILE, gdp_covar, clim_covar, spec, median=True)
 
-        t_inner_1 = time.time()
-        sample = gammas.sample(seed)
+    if mc: 
+        for seed in range(13):
 
-        metadata['seed'] = seed
-        
-        
-        impact = xr.Dataset()
+            t_inner_1 = time.time()
+            sample = gammas.sample(seed)
 
-        ####################
-        # compute_baseline #
-        ####################
-
-        base_path = baseline_impacts_path.format(**metadata)
-
-        t_base1 = time.time()
-        baseline = precompute_baseline(ANNUAL_CLIMATE_FILE, gdp_covar_2015_path, climate_covar_2015_path, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
-        t_base2 = time.time()
-        logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
-
-        #ßflat_curve_adaptation = find_poly_mins
-
-        #########################
-        # compute no adaptation #
-        #########################
-
-        t_noadp1 = time.time()
-
-        no_adaptation  = compute_polynomial(climate, clim_covar_2015, gdp_covar_2015, gammas)
-
-        impact['no_adaptation'] = (no_adaptation.sum(dim='time') - baseline['baseline'])*1e5
-
-        t_noadp2 = time.time()
-        logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
-
-        #############################
-        # compute income adaptation #
-        #############################
-
-        t_incadp1 = time.time()
-
-        income_adaptation = compute_polynomial(climate, clim_covar_2015, gdp_covar, gammas)
-
-        impact['income_adaptation'] = (income_adaptation.sum(dim='time') - baseline['baseline'])*1e5
-
-        t_incadp2 = time.time()
-        logger.debug('Computing income only adaptiaion for {}: {}'.format(year, t_incadp2 - t_incadp1))
-
-        ###########################
-        # compute full adaptation #
-        ###########################
-
-        t_full1 = time.time()
-
-        mortality_full_adaptation = compute_polynomial(climate, clim_covar, gdp_covar, gammas)
-
-        impact['mortality_full_adaptation'] = (mortality_full_adaptation.sum(dim='time') - baseline['baseline'])/1e5
-
-        t_full2 = time.time()
-        logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))
-
-        ################################
-        # compute no income adaptation #
-        ################################
-
-        t_noincome1 = time.time()
-
-        no_income_adaptation = compute_polynomial(climate, clim_covar, gdp_covar_2015, gammas)
-
-        impact['no_income_adaptation'] = (no_income_adaptation.sum(dim='time') - baseline['baseline'])/1e5
-
-        t_noincome2 = time.time()
-        logger.debug('Computing no income adaptiaion for {}: {}'.format(year, t_noincome2 - t_noincome1))
-
-        #######################
-        # computing goodmoney #
-        #######################
-
-        t_goodmoney1 = time.time()
-        impact['goodmoney'] = np.maximum(impact['mortality_full_adaptation'], impact['no_income_adaptation'])
-        t_goodmoney2 = time.time()
-        logger.debug('Computing goodmoney for {}: {}'.format(year, t_goodmoney2 - t_goodmoney1))
-
-        logger.debug('Computing impact for {}'.format(year))
-   
-
-        impact.attrs.update({k:str(v) for k,v in metadata.items()})
-
-        write_path = WRITE_PATH.format(**metadata)
-
-        if not os.path.isdir(os.path.dirname(write_path)):
-              os.makedirs(os.path.dirname(write_path))
+            metadata['seed'] = seed
             
-        impact.to_netcdf(write_path)
+            
+            ds = xr.Dataset()
 
-        t_inner_2 = time.time()
-        logger.debug('Inner Loop time for {}: {}'.format(year, t_inner_2 - t_inner_1))
+            ####################
+            # compute_baseline #
+            ####################
+
+            base_path = baseline_impacts_path.format(**metadata)
+
+            t_base1 = time.time()
+            baseline = impact.precompute_baseline(ANNUAL_CLIMATE_FILE, gdp_covar_2015_path, climate_covar_2015_path, gammas, metadata, 2000, 2010, poly=4, write_path=base_path)
+            t_base2 = time.time()
+            logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
+
+            #ßflat_curve_adaptation = find_poly_mins
+
+            #########################
+            # compute no adaptation #
+            #########################
+
+            t_noadp1 = time.time()
+
+            no_adaptation  = impact.compute_impact(climate, clim_covar_2015, gdp_covar_2015, gammas)
+
+            ds['no_adaptation'] = (no_adaptation.sum(dim='time') - baseline['baseline'])*1e5
+
+            t_noadp2 = time.time()
+            logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
+
+            #############################
+            # compute income adaptation #
+            #############################
+
+            t_incadp1 = time.time()
+
+            income_adaptation = compute_polynomial(climate, clim_covar_2015, gdp_covar, gammas)
+
+            impact['income_adaptation'] = (income_adaptation.sum(dim='time') - baseline['baseline'])*1e5
+
+            t_incadp2 = time.time()
+            logger.debug('Computing income only adaptiaion for {}: {}'.format(year, t_incadp2 - t_incadp1))
+
+            ###########################
+            # compute full adaptation #
+            ###########################
+
+            t_full1 = time.time()
+
+            mortality_full_adaptation = compute_polynomial(climate, clim_covar, gdp_covar, gammas)
+
+            impact['mortality_full_adaptation'] = (mortality_full_adaptation.sum(dim='time') - baseline['baseline'])/1e5
+
+            t_full2 = time.time()
+            logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))
+
+            ################################
+            # compute no income adaptation #
+            ################################
+
+            t_noincome1 = time.time()
+
+            no_income_adaptation = compute_polynomial(climate, clim_covar, gdp_covar_2015, gammas)
+
+            impact['no_income_adaptation'] = (no_income_adaptation.sum(dim='time') - baseline['baseline'])/1e5
+
+            t_noincome2 = time.time()
+            logger.debug('Computing no income adaptiaion for {}: {}'.format(year, t_noincome2 - t_noincome1))
+
+            #######################
+            # computing goodmoney #
+            #######################
+
+            t_goodmoney1 = time.time()
+            impact['goodmoney'] = np.maximum(impact['mortality_full_adaptation'], impact['no_income_adaptation'])
+            t_goodmoney2 = time.time()
+            logger.debug('Computing goodmoney for {}: {}'.format(year, t_goodmoney2 - t_goodmoney1))
+
+            logger.debug('Computing impact for {}'.format(year))
+       
+
+            impact.attrs.update({k:str(v) for k,v in metadata.items()})
+
+            write_path = WRITE_PATH.format(**metadata)
+
+            if not os.path.isdir(os.path.dirname(write_path)):
+                  os.makedirs(os.path.dirname(write_path))
+                
+            impact.to_netcdf(write_path)
+
+            t_inner_2 = time.time()
+            logger.debug('Inner Loop time for {}: {}'.format(year, t_inner_2 - t_inner_1))
 
     t_outer2 = time.time()
     logger.debug('Computed impact for year {}: {}'.format(year, t_outer2 - t_outer1))

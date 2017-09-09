@@ -990,7 +990,7 @@ def build_baseline_weather(model_paths, metadata, begin, end):
         if year <= 2005:
             read_rcp = 'historical'
         else: 
-            read_rcp = 'rcp85'
+            read_rcp = metadata['rcp']
 
         path = model_paths.format(scenario=read_rcp ,year=year)
         with xr.open_dataset(path) as ds:
