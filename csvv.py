@@ -1,9 +1,11 @@
 
 import csv
-import toolz
+from toolz import memoize
+import xarray as xr
+import pandas as pd
 
 
-class Gammas(csvv_file):
+class Gammas():
 	'''
 	Base class for reading csvv files. 
 	1. Constructs data structure representing covar/predname coefficients
@@ -12,13 +14,14 @@ class Gammas(csvv_file):
 	'''
 
 
-	def __init__(self, csvv_file):
-		self.data = self._read_csvv(csvv_file)
+	def __init__(self, csvv_path):
+		self.csvv_path = csvv_path
+		self.data = self._read_csvv(self.csvv_path)
 
 
 
 	@memoize
-	def _read_csvv(csvv_file):
+	def _read_csvv(self, csvv_path):
 	    '''
 	    Returns the gammas and covariance matrix 
 	    
@@ -36,7 +39,7 @@ class Gammas(csvv_file):
 
 	    data = {}
 
-	    with open(path, 'r') as file:
+	    with open(csvv_path, 'r') as file:
 	        reader = csv.reader(file)
 	        for row in reader:
 	            if row[0] == 'gamma':
@@ -54,9 +57,9 @@ class Gammas(csvv_file):
 	    return data
 
 
-    def median():
-    	'''
-    	Returns the values in the array of gammas organized according to specification
+	def median(self):
+		'''
+		Returns the values in the array of gammas organized according to specification
 		
 		Parameters
 		----------
@@ -66,14 +69,14 @@ class Gammas(csvv_file):
 		-------
 
 			:py:class `~xarray.Dataset` of gamma coefficients organized by covar and pred
-    	'''
+		'''
 
 
-    	return _prep_gamma(self.data)
+		return self._prep_gammas(self.data)
 
 
-    def sample(seed=None):
-    	'''
+	def sample(self, seed=None):
+		'''
 		Takes a draw from a multivariate distribution and returns a Dataset of coefficients. 
 		Labels on coefficients can be used to construct a specification of the functional form.
 
@@ -87,15 +90,15 @@ class Gammas(csvv_file):
 		Returns: 
 
 			:py:class `~xarray.Dataset` of gamma coefficients organized by covar and pred
-    	'''
+		'''
 
 
-    	return _prep_gammas(seed=seed)
+		return self._prep_gammas(seed=seed)
 
 
 
 
-    def _prep_gammas(data, seed=None):
+	def _prep_gammas(self, data, seed=None):
 	    '''
 		Constructs the data structure to organize the functional spec of impact computation. 
 		If seed is provided a random sample is drawn from the multivariate distribution. 

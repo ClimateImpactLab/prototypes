@@ -1,3 +1,5 @@
+import xarray as xr
+import pandas as pd
 
 
 class Impact(gammas, weather, covariates):
@@ -6,139 +8,10 @@ class Impact(gammas, weather, covariates):
 
   '''
   def __init__(self):
-    self.weather = self.get_annual_weather(weather, spec)
-    self.betas = self.compute_betas(gammas, covariates)
-    self.impact = self.compute_impact(self.weather, self.betas)
     self.gammas = gammas
-
-
-  def precompute_baseline(weather_model_paths, 
-                        gdp_covar_path, 
-                        climate_covar_path, 
-                        gammas, 
-                        metadata, 
-                        begin, 
-                        end, poly=None, write_path=None):
-    '''
-    precomputes the baseline impact from beginning year to end year
-
-    Parameters
-    ----------
-    weather_model_paths: str
-        unformatted str variable for paths to annual weather
-
-    gdp_covar_path: str
-        baseline gdp path
-
-    climate_covar_path: str
-        baseline tavg climate path
-
-    gammas: :py:class:`~xarray.Dataset` of gammas 
-
-    metadata: dict
-
-    begin: int 
-        year to begin baseline calculation
-    
-    end: int
-        year to end baseline calculation
-
-
-    Returns
-    -------
-    
-    Dataset
-        returns a new `~xarray.Dataset` of baseline impacts
-
-    '''
-
-    if os.path.isfile(write_path):
-        return get_baseline(write_path)
-
-
-    #Construct Multi-year avg climate values
-    base = xr.Dataset()
-    annual_weather_paths_tas = weather_model_paths.format(scenario='{scenario}', 
-                                                            year='{year}', 
-                                                            model=metadata['model'], 
-                                                            poly='')
-    base['tas'] = _construct_baseline_weather(annual_weather_paths_tas, metadata, begin, end)['tas']
-
-    for p in range(2, poly + 1):
-        annual_weather_paths_poly_tas = weather_model_paths.format(scenario='{scenario}', 
-                                                                    year='{year}', 
-                                                                    model=metadata['model'], 
-                                                                    poly='-poly-{}'.format(p))
-        base['tas-poly-{}'.format(p)] = _construct_baseline_weather(annual_weather_paths_poly_tas, metadata, begin, end)['tas-poly-{}'.format(p)]
-
-    #Load Covars
-    with xr.open_dataset(gdp_covar_path) as gdp_covar:
-        gdp_covar.load()
-
-    with xr.open_dataset(climate_covar_path) as clim_covar:
-        clim_covar.load()
-
-    #compute impacts
-    base_impact = xr.Dataset()
-
-    base_impact['baseline'] =  compute_polynomial(base, clim_covar, gdp_covar, gammas)
-
-    #update metadata
-    metadata['baseline_years'] = str([begin, end])
-    metadata['dependencies'] = str([weather_model_paths, gdp_covar_path, climate_covar_path, gammas])
-    metadata['oneline'] = 'Baseline impact value for mortality'
-    metadata['description'] = 'Baseline impact value for mortality. Values are annual/daily expected damage resolved to GCP hierid/country level region.'
-
-    base_impact.attrs.update(metadata)
-
-    if write_path:
-        if not os.path.isdir(os.path.dirname(write_path)):
-              os.makedirs(os.path.dirname(write_path))
-        base_impact.to_netcdf(write_path)
-
-    return base_impact
-
-
-  def _construct_baseline_weather(model_paths, metadata, begin, end):
-    '''
-    Constructs Tavg for baseline period for each of the climate variables
-
-    Parameters
-    ----------
-
-    model_paths: str
-        unformatted string for paths
-
-    metadata: dict
-        args for this spec including: ssp, model, econ_model, scenario, seed, etc
-
-    begin: int
-
-    end: int
-
-    Returns
-    -------
-
-    `xarray.DataSet`
-    '''
-    years = []
-    datasets = []
-    for year in range(begin, end+1):
-        if year <= 2005:
-            read_rcp = 'historical'
-        else: 
-            read_rcp = metadata['rcp']
-
-        path = model_paths.format(scenario=read_rcp ,year=year)
-        with xr.open_dataset(path) as ds:
-            ds.load()
-        ds = ds.mean(dim='time')
-        datasets.append(ds)
-        years.append(year)
-
-    ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
-    ds_concat = ds_concat.mean(dim='year')
-    return ds_concat
+    self.spec = spec
+    self.annual_weather = self.get_annual_weather(weather, self.spec)
+    self.betas = self.comput_betas(self.gammas, covariate)
 
 
   def get_annual_weather(weather, spec):
@@ -181,34 +54,36 @@ class Impact(gammas, weather, covariates):
 
     return weather
 
-  def compute_betas(gammas, covariates):
+  def compute_betas(gammas, spec, covariates):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
-
-    1. Calls method to get gammas at given p-value
-    2. Calls method toompute gdp covariate
-    3. Calls method to compute tas covariate
-    4. Computes outer product of 
-
+    
     Parameters
     ----------
-    clim_path: str
-        path to climate covariate
+    gammas: :py:class `~xarray.Dataset`
+        Coefficients for pred/covar combo
 
-    gdp_path: str
-        path to gdp covariate
+    spec: 
+      specifies the shape/structure of computation
 
-    ssp: str
-        one of the following: 'SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
-
-    econ_model: str
-        one of the following: 'high', 'low'
+    clim_covars: :py:class `~xarray.Dataset`
+        covariates for each hierid
+    
+    gpd_covars: :py:class `~xarray.Dataset`
+        covariates for each hierid
  
     Returns
     -------
-    Xarray Dataset with values for each of the Betas
+      :py:class `~xarray.Dataset` values for each predname beta
 
     '''
+
+    #Something like this where we use spec or sympy to structure a computation
+    # betas = xr.Dataset()
+    # for pred, pred_covar in spec.items():
+    #       betas[pred] = gammas[pred] + (gammas[pred_covar]*covar for covar in covars)
+
+
     betas = xr.Dataset()
 
     betas['tas'] = (gammas['beta0_pow1'] + gammas['gdp_pow1'] * gdp_covar['gdppc'] + gammas['tavg_pow1']*clim_covar['tas'])
@@ -219,21 +94,44 @@ class Impact(gammas, weather, covariates):
     return betas
 
 
-  def _functioal_form(betas, weather):
-    raise NotImplementedError('You need to specify a functional form')
+  def compute(gammas, 
+                      spec,  
+                      gdp_covars,
+                      clim_covars,
+                      annual_weather_paths,
+                      min_max,boundaries
+                      baseline,
+                      impact_function=None):
+    '''
+    Computes an impact for a unique set of gdp, climate, weather and gamma coefficient inputs.
+    For each set of these, we take the analytic minimum value between two points and 
+    
+
+    '''
+    #Generate Betas
+    betas = self.compute_betas(gammas, spec, clim_covars, gdp_covars)
+
+    #Compute the min for flat curve adaptation
+    clipped_curve_mins = self.find_mins(betas, min_max_boundaries)
+
+    #Compute Raw Impact
+    impact_raw = impact_function(betas, self.annual_weather, spec)
+
+    #Compare values and evaluate a max
+    impact_clipped = np.maximum(impact_raw, clipped_curve_mins)
+
+    #Sum to annual, substract baseline, normalize 
+    impact_annual = (impact_clipped.sum(dim='time')  - baseline['baseline'])/1e5
+
+    return impact_annual
 
 
-  def compute_impact(betas, weather, impact=None):
+def find_mins(betas, min_max_boundaries):
+  raise NotImplementedError
 
-      baseline = self.compute_baseline()
-
-
-
-
-    return impact
 
   def postprocess_daily(impact):
-    return
+    raise NotImplementedError
 
   def postprocess_annual(impact):
-    return
+    raise NotImplementedError
