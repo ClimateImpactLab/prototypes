@@ -4,6 +4,7 @@ from toolz import memoize
 import xarray as xr
 import pandas as pd
 import numpy as np
+from scipy.stats import multivariate_normal as mn
 
 class Gammas():
 	'''
