@@ -80,7 +80,7 @@ class Impact(gammas, weather, covariates):
     #simply concat together in a long array to compute the min
     #after compute min, we could sum then compute the impact
 
-    betas = gammas.sel(covarnames='1') + gammas.sel(covarnames='climtas')*climtas + gammas.sel(covarnames='loggdppc')*gdppc 
+    #betas = gammas.sel(covarnames='1') + gammas.sel(covarnames='climtas')*climtas + gammas.sel(covarnames='loggdppc')*gdppc 
 
     betas = sum((gammas*covars).data_vars.values())
 
