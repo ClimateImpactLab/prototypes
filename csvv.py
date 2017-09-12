@@ -99,7 +99,7 @@ class Gammas():
 
 
 
-	def _prep_gammas(self, data, seed=None):
+	def _prep_gammas(self, seed=None):
 	    '''
 		Constructs the data structure to organize the functional spec of impact computation. 
 		If seed is provided a random sample is drawn from the multivariate distribution. 
@@ -127,13 +127,13 @@ class Gammas():
 
 	    if seed:
 	        np.random.seed(seed)
-	        g = mn.rvs(data['gamma'], data['gammavcv'])
+	        g = mn.rvs(self.data['gamma'], self.data['gammavcv'])
 
 	    else: 
 	        g = data['gamma']
 
 
-	    ind = pd.MultiIndex.from_tuples(zip(data['outcome'], data['prednames'], data['covarnames']), 
+	    ind = pd.MultiIndex.from_tuples(zip(self.data['outcome'], self.data['prednames'], self.data['covarnames']), 
 	    									names=['outcome', 'prednames', 'covarnames'])
 
 	    gammas = xr.DataArray.from_series(pd.Series(g, index=ind))
