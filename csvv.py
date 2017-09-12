@@ -137,6 +137,8 @@ class Gammas():
 	    ind = pd.MultiIndex.from_tuples(zip(self.data['outcome'], self.data['prednames'], self.data['covarnames']), 
 	    									names=['outcome', 'prednames', 'covarnames'])
 
-	    gammas = xr.DataArray.from_series(pd.Series(g, index=ind))
+	    gammas = pd.Series(g, index=ind)
+
+	    gammas = xr.Dataset.from_dataframe(gammas.unstack('covarnames'))
 
 	    return gammas
