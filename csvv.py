@@ -3,7 +3,7 @@ import csv
 from toolz import memoize
 import xarray as xr
 import pandas as pd
-
+import numpy as np
 
 class Gammas():
 	'''
@@ -32,7 +32,7 @@ class Gammas():
 
 	    Returns
 	    -------
-	    dict with keys of gamma, gammavcv, prednames, covarnames and residvcv
+	    dict with keys of gamma, gammavcv, prednames, covarnames outcomes, and residvcv
 
 	  	Extracts necessary information to specify an impact function
 	    '''
@@ -43,16 +43,17 @@ class Gammas():
 	        reader = csv.reader(file)
 	        for row in reader:
 	            if row[0] == 'gamma':
-	                data['gamma'] = [float(i) for i in reader.next()]
+	                data['gamma'] = np.array([float(i) for i in reader.next()])
 	            if row[0] == 'gammavcv':
-	                data['gammavcv'] = [float(i) for i in reader.next()]
+	                data['gammavcv'] = np.array([float(i) for i in reader.next()])
 	            if row[0] == 'residvcv':
-	                data['residvcv'] = [float(i) for i in reader.next()]
+	                data['residvcv'] = np.array([float(i) for i in reader.next()])
 	            if row[0] == 'prednames':
-	                data['prednames'] = list(set([pred.strip() for pred in reader.next()]))
+	                data['prednames'] = [i.strip() for i in reader.next()]
 	            if row[0] == 'covarnames':
-	                data['covarnames'] = list(set([cv.strip() for cv in reader.next()]))
-
+	                data['covarnames'] = [i.strip() for i in reader.next()]
+	            if row[0] == 'outcome': 
+	            	data['outcome'] =[cv.strip() for cv in reader.next()]
 
 	    return data
 
@@ -123,26 +124,18 @@ class Gammas():
 	    ##########################
 	    # Read in data from csvv #
 	    ##########################
-	    len_preds = len(data['prednames'])  
 
 	    if seed:
 	        np.random.seed(seed)
-	        data = mn.rvs(data['gamma'], data['gammavcv'])
+	        g = mn.rvs(data['gamma'], data['gammavcv'])
 
 	    else: 
-	        data = data['gamma']
+	        g = data['gamma']
 
-	    gammas = xr.Dataset()
-	    indices = {'outcomes': pd.Index(['age0-4', 'age5-64', 'age65+'], name='age')}
-	   # print(len(data['prednames']))
 
-	    ##This is wrong, the indices are misaligned and assigning values incorrectly
-	    for pwr in range(1, len_preds+1):
-	            gammas['beta0_pow{}'.format(pwr)] = xr.DataArray(
-	                data[0*pwr::12], dims=('age',), coords={'age':indices['age_cohorts']})
-	            gammas['gdp_pow{}'.format(pwr)] = xr.DataArray(
-	                data[1*pwr::12], dims=('age',), coords={'age': indices['age_cohorts']})
-	            gammas['tavg_pow{}'.format(pwr)] = xr.DataArray(
-	                data[2*pwr::12], dims=('age',), coords={'age': indices['age_cohorts']})
+	    ind = pd.MultiIndex.from_tuples(zip(data['outcome'], data['prednames'], data['covarnames']), 
+	    									names=['outcome', 'prednames', 'covarnames'])
+
+	    gammas = xr.DataArray.from_series(pd.Series(g, index=ind))
 
 	    return gammas

@@ -1,4 +1,6 @@
 import xarray as xr
+import numpy as np
+import toolz
 
 
 
@@ -142,3 +144,116 @@ def _get_baseline(base_path):
       ds.load()
 
     return ds
+
+
+def _compute_tstar(coeffs, min_max):
+    '''
+    Computes the min value for a set of coefficients (gammas)
+
+
+    Parameters
+    ----------
+    coeffs: :py:class `~xarray.DataArray`
+        coefficients for the gammas used to compute the analytic min
+
+    min_max: list
+        min and max temp values to evaluate derivative at
+
+    gammas_min_path: str
+        path to save/read data
+
+    Returns
+    -------
+        Dataset
+            :py:class `~xarray.DatArray` min temp by hierid
+
+    Example
+    -------
+
+
+    '''
+    minx = min_max.min()
+    maxx = min_max.max()
+
+    derivcoeffs = np.array(coeffs[1:]) * np.arange(1, len(coeffs)) # Construct the derivative
+    roots = np.roots(derivcoeffs[::-1])
+
+    # Filter out complex roots; note: have to apply real_if_close to individual values, not array until filtered
+    possibles = filter(lambda root: np.real_if_close(root).imag == 0 and np.real_if_close(root) >= minx and np.real_if_close(root) <= maxx, roots)
+    possibles = list(np.real_if_close(possibles)) + [minx, maxx]
+
+    with warnings.catch_warnings(): # catch warning from using infs
+        warnings.simplefilter("ignore")
+        values = np.polyval(coeffs[::-1], np.real_if_close(possibles))
+        
+    # polyval doesn't handle infs well
+    if minx == -np.inf:
+        if len(coeffs) % 2 == 1: # largest power is even
+            values[-2] = -np.inf if coeffs[-1] < 0 else np.inf
+        else: # largest power is odd
+            values[-2] = np.inf if coeffs[-1] < 0 else -np.inf
+            
+    if maxx == np.inf:
+        values[-1] = np.inf if coeffs[-1] > 0 else -np.inf
+    
+    index = np.argmin(values)
+
+    return possibles[index]
+
+def compute_M_tstar(gammas_ds, min_max, min_function=None, write_path=None):
+    '''
+    Computes the impact tstar based on that computes m_tstar
+
+    Parameters
+    ----------
+    gammas_ds: :py:class `~xarray.Dataset` 
+        coefficients by hierid Dataset or np.ndarray
+
+    min_max: np.array
+        values to evaluate min at
+
+    min_function: minimizing function to compute tstar
+
+
+    write_path: str
+
+    Returns
+    -------
+
+    M_star Dataset
+        :py:class`~xarray.Dataset` of impacts evaluated at tstar. 
+
+
+    .. note:: writes to disk and subsequent calls will read from disk. 
+    '''
+
+    if os.path.isdir(write_path):
+        return get_mstar(write_path)
+
+
+    tstar = np.apply_along_axis(
+                        lambda x: min_function(x min_max),
+                        1, 
+                        gammas_ds.values)
+
+    #Something like evaluate the structure of gammas_ds and generate a temperature dataset.
+
+    tas_star_something= xr.Dataset()
+    for i, pred in enumerate(gammas_ds):
+        tas_star_something['tstar_{}'.format(i)] = xr.DataArray(tstar**i, coords={gammas_ds['hierid']}, dims=['hierid'])
+
+
+    #Compute M_star as a function of tas_star_something and gammas_ds
+    M_star = tas_star_something*gammas_ds
+
+    if not os.path.isdir(os.path.dirname(write_path)):
+            os.path.makedir(os.path.dirname(write_path))
+
+    M_star.to_netcdf(write_path)
+
+    return M_star
+
+@memoize
+def get_mstar(path):
+    return xr.open_dataset(path)
+

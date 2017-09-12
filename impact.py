@@ -10,11 +10,11 @@ class Impact(gammas, weather, covariates):
   def __init__(self):
     self.gammas = gammas
     self.spec = spec
-    self.annual_weather = self.get_annual_weather(weather, self.spec)
+    self.annual_weather = self.get_annual_weather(weather, self.gammas.prednames.values)
     self.betas = self.comput_betas(self.gammas, covariate)
 
 
-  def get_annual_weather(weather, spec):
+  def get_annual_weather(weather, preds):
     '''
     Constructs the annual weather dataset for a given years impact
 
@@ -23,7 +23,7 @@ class Impact(gammas, weather, covariates):
     models_paths: list
         unformatted string representing path to weather variables for that year
 
-    spec: dict
+    preds: dict
       describes how to format input file paths for weather files
 
     Returns
@@ -32,29 +32,19 @@ class Impact(gammas, weather, covariates):
       Dataset
         :py:class `~xarray Dataset` with each weather variable as an `~xarray DataArray`
     '''
+    weather_files = [weather.format(pred=pred) for pred in preds]
 
-    dataset = xr.Dataset()
+    datasets = []
+    for file in weather_files:
+      with xr.open_dataset(file) as ds:
+          ds.load()
+          datasets.append(ds)
 
-    with xr.open_dataset(model_paths.format(poly='')) as ds:
-        ds.load()
-
-    varname = ds.variable
-    dataset[varname] = ds[varname]
-    
-
-    for poly in range(2, polymomial+1):
-        fp = model_paths.format(poly='-poly-{}'.format(poly))
-
-        with xr.open_dataset(fp) as ds:
-            ds.load()
-
-        varname = ds.variable
-        dataset[varname] = ds[varname]
-    return dataset
+    weather = xr.concat(datasets, pd.Index(preds, name='prednames'))
 
     return weather
 
-  def compute_betas(gammas, spec, covariates):
+  def compute_betas(gammas, covariates):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -86,6 +76,14 @@ class Impact(gammas, weather, covariates):
 
     betas = xr.Dataset()
 
+    #One way to do this is to save them as a list of values, this would preserve their value and then when doing findmins we could 
+    #simply concat together in a long array to compute the min
+    #after compute min, we could sum then compute the impact
+
+    #for pred in gammas['prednames']:
+
+      #beta[pred] =  
+
     betas['tas'] = (gammas['beta0_pow1'] + gammas['gdp_pow1'] * gdp_covar['gdppc'] + gammas['tavg_pow1']*clim_covar['tas'])
     betas['tas-poly-2'] = (gammas['beta0_pow2'] + gammas['gdp_pow2'] * gdp_covar['gdppc'] + gammas['tavg_pow2']*clim_covar['tas'])
     betas['tas-poly-3'] = (gammas['beta0_pow3'] + gammas['gdp_pow3'] * gdp_covar['gdppc'] + gammas['tavg_pow3']*clim_covar['tas'])
@@ -101,6 +99,8 @@ class Impact(gammas, weather, covariates):
                       annual_weather_paths,
                       min_max,boundaries
                       baseline,
+                      min_function=None,
+                      min_write_path=None,
                       impact_function=None):
     '''
     Computes an impact for a unique set of gdp, climate, weather and gamma coefficient inputs.
@@ -111,17 +111,20 @@ class Impact(gammas, weather, covariates):
     #Generate Betas
     betas = self.compute_betas(gammas, spec, clim_covars, gdp_covars)
 
-    #Compute the min for flat curve adaptation
-    clipped_curve_mins = self.find_mins(betas, min_max_boundaries)
-
     #Compute Raw Impact
-    impact_raw = impact_function(betas, self.annual_weather, spec)
+    impact= impact_function(betas, self.annual_weather, spec)
 
-    #Compare values and evaluate a max
-    impact_clipped = np.maximum(impact_raw, clipped_curve_mins)
+    #Compute the min for flat curve adaptation
+    if min_function:
+      clipped_curve_mins = self.min_function(gammas, min_max_boundaries, min_write_path)
+      #Compare values and evaluate a max
+      impact = np.maximum(impact, clipped_curve_mins)
+
+    
+
 
     #Sum to annual, substract baseline, normalize 
-    impact_annual = (impact_clipped.sum(dim='time')  - baseline['baseline'])/1e5
+    impact_annual = (impact.sum(dim='time')  - baseline['baseline'])
 
     return impact_annual
 
