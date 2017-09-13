@@ -253,7 +253,7 @@ def compute_m_tstar(betas, min_function=_findpolymins, min_max=[10,25], write_pa
     t_star_poly = _get_t_star(write_path)
 
     #m_star = t_star_something*betas
-    return tas_star_poly*betas
+    return t_star_poly*betas
 
 @memoize
 def _get_t_star(path):
