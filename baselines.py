@@ -1,6 +1,7 @@
 import xarray as xr
 import numpy as np
 import toolz
+import warnings
 
 
 
@@ -146,7 +147,7 @@ def _get_baseline(base_path):
     return ds
 
 
-def _compute_tstar(coeffs, min_max):
+def _findpolymins(coeffs, min_max):
     '''
     Computes the min value for a set of coefficients (gammas)
 
@@ -170,8 +171,9 @@ def _compute_tstar(coeffs, min_max):
     Example
     -------
     '''
-    minx = min_max.min()
-    maxx = min_max.max()
+
+    minx = np.asarray(min_max).min()
+    maxx = np.asarray(min_max).max()
 
     derivcoeffs = np.array(coeffs[1:]) * np.arange(1, len(coeffs)) # Construct the derivative
     roots = np.roots(derivcoeffs[::-1])
@@ -182,10 +184,8 @@ def _compute_tstar(coeffs, min_max):
 
     with warnings.catch_warnings(): # catch warning from using infs
         warnings.simplefilter("ignore")
-        #
-        values = np.polyval(coeffs[::-1], np.real_if_close(possibles))
-        #Take the min of (values)
-    #Do they want tstar or just the value?    
+    
+        values = np.polyval(coeffs[::-1], np.real_if_close(possibles))  
         
     # polyval doesn't handle infs well
     if minx == -np.inf:
@@ -199,62 +199,65 @@ def _compute_tstar(coeffs, min_max):
     
     index = np.argmin(values)
 
-    return possibles[index], 
+    return possibles[index]
 
-def compute_M_tstar(betas_ds, min_max, min_function=None, write_path=None):
+def compute_m_tstar(betas, min_function=_findpolymins, min_max=[10,25], write_path=None):
     '''
-    Computes the impact tstar based on that computes m_tstar
+    Computes m_star, the value of an impact function for a given set of betas given t_star. 
+    t_star, the value t at which an impact is minimized for a given hierid is precomputed 
+    and used to compute m_star.
 
     Parameters
     ----------
-    gammas_ds: :py:class `~xarray.Dataset` 
-        coefficients by hierid Dataset or np.ndarray
+    betas: :py:class `~xarray.Dataset` 
+        coefficients by hierid Dataset 
 
     min_max: np.array
-        values to evaluate min at
+        values to evaluate min at 
 
     min_function: minimizing function to compute tstar
-
 
     write_path: str
 
     Returns
     -------
 
-    M_star Dataset
+    m_star Dataset
         :py:class`~xarray.Dataset` of impacts evaluated at tstar. 
 
 
     .. note:: writes to disk and subsequent calls will read from disk. 
     '''
+    #if file does not exist create it
+    if not os.path.isfile(write_path):
 
-    if os.path.isdir(write_path):
-        return get_mstar(write_path)
+        #Compute t_star according to min function
+        t_star = np.apply_along_axis(lambda x: min_function, 1, betas, min_max)
 
+        #Compute the weather dataset with t_star as base weather var
+        t_star_poly = xr.Dataset()
+        for i, pred in enumerate(betas.prednames.values):
+            t_star_poly['{}'.format(pred)] = xr.DataArray(t_star**i, coords={betas['hierid']}, dims=['hierid'])
 
-    tstar = np.apply_along_axis(
-                        lambda x: min_function(x, min_max),
-                        1, 
-                        betas_ds.values)
+        #write to disk
+        if not os.path.isdir(os.path.dirname(write_path)):
+                os.path.makedir(os.path.dirname(write_path))
 
-    #Something like evaluate the structure of gammas_ds and generate a temperature dataset.
+        t_star_poly.to_netcdf(write_path)
 
-    tas_star_something= xr.Dataset()
-    for i, pred in enumerate(betas_ds.prednames.values):
-        tas_star_something['tstar_{}'.format(i)] = xr.DataArray(tstar**i, coords={betas_ds['hierid']}, dims=['hierid'])
+    #Read from disk
+    t_star_poly = _get_t_star(write_path)
 
-
-    #Compute M_star as a function of tas_star_something and gammas_ds
-    M_star = tas_star_something*betas_ds
-
-    if not os.path.isdir(os.path.dirname(write_path)):
-            os.path.makedir(os.path.dirname(write_path))
-
-    M_star.to_netcdf(write_path)
-
-    return M_star
+    #m_star = t_star_something*betas
+    return tas_star_poly*betas
 
 @memoize
-def get_mstar(path):
-    return xr.open_dataset(path)
+def _get_t_star(path):
+    '''
+    Returns cached verison of t_star
+
+    '''
+    with xr.open_dataset(path) as ds:
+        ds.load()
+    return ds
 

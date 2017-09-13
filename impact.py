@@ -2,16 +2,15 @@ import xarray as xr
 import pandas as pd
 
 
-class Impact(gammas, weather, covariates):
+class Impact(gammas):
   '''
     Base class for computing an impact as specified by the Climate Impact Lab
 
   '''
   def __init__(self):
     self.gammas = gammas
-    self.spec = spec
     self.annual_weather = self.get_annual_weather(weather, self.gammas.prednames.values)
-    self.betas = self.comput_betas(self.gammas, covariate)
+    # self.betas = self.comput_betas(self.gammas, covariate)
 
 
   def get_annual_weather(weather, preds):
@@ -75,7 +74,6 @@ class Impact(gammas, weather, covariates):
 
     #add intercept for easy math
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
-    #betas = gammas.sel(covarnames='1') + gammas.sel(covarnames='climtas')*climtas + gammas.sel(covarnames='loggdppc')*gdppc 
 
     betas = sum((gammas*covars).data_vars.values())
 
@@ -83,19 +81,29 @@ class Impact(gammas, weather, covariates):
 
 
   def compute(gammas, 
-                      spec,  
-                      gdp_covars,
-                      clim_covars,
-                      annual_weather_paths,
-                      min_max,boundaries,
-                      baseline,
-                      min_function=None,
-                      min_write_path=None,
-                      impact_function=None):
+              spec, 
+              gdp_covars,
+              clim_covars,
+              annual_weather_paths,
+              baseline,
+              min_function=None,
+              min_max=None,
+              min_write_path=None,
+              impact_function=None,
+              postprocess_daily=False,
+              postprocess_annual=False):
     '''
     Computes an impact for a unique set of gdp, climate, weather and gamma coefficient inputs.
     For each set of these, we take the analytic minimum value between two points and 
     
+
+    Parameters
+    ----------
+
+
+    Returns
+    -------
+      :py:class `~xarray.Dataset` of impacts by hierid by outcome group 
 
     '''
     #Generate Betas
@@ -106,12 +114,14 @@ class Impact(gammas, weather, covariates):
 
     #Compute the min for flat curve adaptation
     if min_function:
-      clipped_curve_mins = self.min_function(gammas, min_max_boundaries, min_write_path)
+      m_star = self.min_function(betas, min_max_boundaries, min_write_path)
       #Compare values and evaluate a max
-      impact = np.maximum(impact, clipped_curve_mins)
+      impact = np.minimum(impact, m_star)
 
-    
-
+    if postprocess_daily:
+      impact = postprocess_daily(impact)
+    if postprocess_annual:
+      impact = postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
     impact_annual = (impact.sum(dim='time')  - baseline['baseline'])
