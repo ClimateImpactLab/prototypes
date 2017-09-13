@@ -9,8 +9,6 @@ class Impact():
   '''
   def __init__(self, gammas):
     self.gammas = gammas
-    self.annual_weather = self.get_annual_weather(weather, self.gammas.prednames.values)
-    # self.betas = self.comput_betas(self.gammas, covariate)
 
 
   def get_annual_weather(weather, preds):
