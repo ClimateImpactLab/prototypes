@@ -43,7 +43,7 @@ class Impact(gammas):
 
     return weather
 
-  def compute_betas(gammas, clim_covars, gdp_covars):
+  def compute_betas(clim_covars, gdp_covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -75,7 +75,7 @@ class Impact(gammas):
     #add intercept for easy math
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
 
-    betas = sum((gammas*covars).data_vars.values())
+    betas = sum((self.gammas*covars).data_vars.values())
 
     return betas
 

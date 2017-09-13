@@ -2,6 +2,7 @@ import xarray as xr
 import numpy as np
 from toolz import memoize
 import warnings
+import os
 
 
 
