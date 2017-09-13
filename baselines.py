@@ -1,6 +1,6 @@
 import xarray as xr
 import numpy as np
-import toolz
+from toolz import memoize
 import warnings
 
 
