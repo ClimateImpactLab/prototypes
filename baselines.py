@@ -238,7 +238,10 @@ def compute_m_tstar(betas, min_function=_findpolymins, min_max=[10,25], write_pa
         #Compute the weather dataset with t_star as base weather var
         t_star_poly = xr.Dataset()
         for i, pred in enumerate(betas.prednames.values):
-            t_star_poly['{}'.format(pred)] = xr.DataArray(t_star**i, coords={betas['hierid']}, dims=['hierid'])
+            t_star_poly['{}'.format(pred)] = xr.DataArray(t_star**(i+1), 
+                                            coords={'hierid': betas['hierid'], 'outcome': betas['outcome']}, 
+                                            dims=['outcome', 'hierid']
+                                            )
 
         #write to disk
         if not os.path.isdir(os.path.dirname(write_path)):
