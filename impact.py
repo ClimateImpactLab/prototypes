@@ -2,12 +2,12 @@ import xarray as xr
 import pandas as pd
 
 
-class Impact(gammas):
+class Impact():
   '''
     Base class for computing an impact as specified by the Climate Impact Lab
 
   '''
-  def __init__(self):
+  def __init__(self, gammas):
     self.gammas = gammas
     self.annual_weather = self.get_annual_weather(weather, self.gammas.prednames.values)
     # self.betas = self.comput_betas(self.gammas, covariate)
@@ -43,7 +43,7 @@ class Impact(gammas):
 
     return weather
 
-  def compute_betas(clim_covars, gdp_covars):
+  def compute_betas(gammas, clim_covars, gdp_covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -75,7 +75,7 @@ class Impact(gammas):
     #add intercept for easy math
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
 
-    betas = sum((self.gammas*covars).data_vars.values())
+    betas = sum((gammas*covars).data_vars.values())
 
     return betas
 
