@@ -11,7 +11,7 @@ class Impact():
   def __init__(self, gammas):
     self.gammas = gammas
 
-  def get_annual_weather(weather, preds):
+  def get_annual_weather(self, weather, preds):
     '''
     Constructs the annual weather dataset for a given years impact
 
@@ -41,7 +41,7 @@ class Impact():
 
     return weather
 
-  def compute_betas(clim_covars, gdp_covars):
+  def compute_betas(self, clim_covars, gdp_covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -78,7 +78,7 @@ class Impact():
     return betas
 
 
-  def compute(gammas, 
+  def compute(self,  
               spec, 
               gdp_covars,
               clim_covars,
@@ -105,14 +105,14 @@ class Impact():
 
     '''
     #Generate Betas
-    betas = self.compute_betas(gammas, clim_covars, gdp_covars)
+    betas = self.compute_betas(clim_covars, gdp_covars)
 
     #Compute Raw Impact
     impact= impact_function(betas, self.annual_weather, spec)
 
     #Compute the min for flat curve adaptation
     if min_function:
-      m_star = self.min_function(betas, min_max_boundaries, min_write_path)
+      m_star = self.compute_m_star(betas, min_max_boundaries, min_write_path)
       #Compare values and evaluate a max
       impact = np.minimum(impact, m_star)
 
@@ -127,8 +127,11 @@ class Impact():
     return impact_annual
 
 
-  def postprocess_daily(impact):
+  def compute_m_star():
+
+
+  def postprocess_daily(self, impact):
     raise NotImplementedError
 
-  def postprocess_annual(impact):
+  def postprocess_annual(self, impact):
     raise NotImplementedError
