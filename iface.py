@@ -35,6 +35,12 @@ ANNUAL_WEATHER_FILE = (
 CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
     '{scenario}/{model}/{year}/0.1.1.nc4')
 
+covar_files_hist = {
+    'climtas': ,
+    'loggdppc':
+}
+
+
 GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
 
 
@@ -101,7 +107,7 @@ MODELS = list(map(lambda x: dict(model=x), [
     # 'NorESM1-M'
     ]))
 
-
+MINS = [dict(min_function='findpolymin')]
 
 PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
 
@@ -121,6 +127,7 @@ def impact`_annual(
                     scenario,
                     ssp, 
                     year,
+                    min_function=None,
                     mc=False,
                     interactive=False):
     '''

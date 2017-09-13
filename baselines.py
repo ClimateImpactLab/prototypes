@@ -157,7 +157,7 @@ def _compute_tstar(coeffs, min_max):
         coefficients for the gammas used to compute the analytic min
 
     min_max: list
-        min and max temp values to evaluate derivative at
+       min and max temp values to evaluate derivative at
 
     gammas_min_path: str
         path to save/read data
@@ -169,8 +169,6 @@ def _compute_tstar(coeffs, min_max):
 
     Example
     -------
-
-
     '''
     minx = min_max.min()
     maxx = min_max.max()
@@ -184,7 +182,10 @@ def _compute_tstar(coeffs, min_max):
 
     with warnings.catch_warnings(): # catch warning from using infs
         warnings.simplefilter("ignore")
+        #
         values = np.polyval(coeffs[::-1], np.real_if_close(possibles))
+        #Take the min of (values)
+    #Do they want tstar or just the value?    
         
     # polyval doesn't handle infs well
     if minx == -np.inf:
@@ -198,9 +199,9 @@ def _compute_tstar(coeffs, min_max):
     
     index = np.argmin(values)
 
-    return possibles[index]
+    return possibles[index], 
 
-def compute_M_tstar(gammas_ds, min_max, min_function=None, write_path=None):
+def compute_M_tstar(betas_ds, min_max, min_function=None, write_path=None):
     '''
     Computes the impact tstar based on that computes m_tstar
 
@@ -232,19 +233,19 @@ def compute_M_tstar(gammas_ds, min_max, min_function=None, write_path=None):
 
 
     tstar = np.apply_along_axis(
-                        lambda x: min_function(x min_max),
+                        lambda x: min_function(x, min_max),
                         1, 
-                        gammas_ds.values)
+                        betas_ds.values)
 
     #Something like evaluate the structure of gammas_ds and generate a temperature dataset.
 
     tas_star_something= xr.Dataset()
-    for i, pred in enumerate(gammas_ds):
-        tas_star_something['tstar_{}'.format(i)] = xr.DataArray(tstar**i, coords={gammas_ds['hierid']}, dims=['hierid'])
+    for i, pred in enumerate(betas_ds.prednames.values):
+        tas_star_something['tstar_{}'.format(i)] = xr.DataArray(tstar**i, coords={betas_ds['hierid']}, dims=['hierid'])
 
 
     #Compute M_star as a function of tas_star_something and gammas_ds
-    M_star = tas_star_something*gammas_ds
+    M_star = tas_star_something*betas_ds
 
     if not os.path.isdir(os.path.dirname(write_path)):
             os.path.makedir(os.path.dirname(write_path))

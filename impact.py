@@ -44,7 +44,7 @@ class Impact(gammas, weather, covariates):
 
     return weather
 
-  def compute_betas(gammas, covariates):
+  def compute_betas(gammas, clim_covars, gdp_covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -68,26 +68,16 @@ class Impact(gammas, weather, covariates):
 
     '''
 
-    #Something like this where we use spec or sympy to structure a computation
-    # betas = xr.Dataset()
-    # for pred, pred_covar in spec.items():
-    #       betas[pred] = gammas[pred] + (gammas[pred_covar]*covar for covar in covars)
-
-
     betas = xr.Dataset()
 
-    #One way to do this is to save them as a list of values, this would preserve their value and then when doing findmins we could 
-    #simply concat together in a long array to compute the min
-    #after compute min, we could sum then compute the impact
+    
+    covars = xr.merge([clim_covars, gdp_covars])
 
+    #add intercept for easy math
+    covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
     #betas = gammas.sel(covarnames='1') + gammas.sel(covarnames='climtas')*climtas + gammas.sel(covarnames='loggdppc')*gdppc 
 
     betas = sum((gammas*covars).data_vars.values())
-
-    # betas['tas'] = (gammas['beta0_pow1'] + gammas['gdp_pow1'] * gdp_covar['gdppc'] + gammas['tavg_pow1']*clim_covar['tas'])
-    # betas['tas-poly-2'] = (gammas['beta0_pow2'] + gammas['gdp_pow2'] * gdp_covar['gdppc'] + gammas['tavg_pow2']*clim_covar['tas'])
-    # betas['tas-poly-3'] = (gammas['beta0_pow3'] + gammas['gdp_pow3'] * gdp_covar['gdppc'] + gammas['tavg_pow3']*clim_covar['tas'])
-    # betas['tas-poly-4'] = (gammas['beta0_pow4'] + gammas['gdp_pow4'] * gdp_covar['gdppc'] + gammas['tavg_pow4']*clim_covar['tas'])
 
     return betas
 
@@ -97,7 +87,7 @@ class Impact(gammas, weather, covariates):
                       gdp_covars,
                       clim_covars,
                       annual_weather_paths,
-                      min_max,boundaries
+                      min_max,boundaries,
                       baseline,
                       min_function=None,
                       min_write_path=None,
@@ -109,7 +99,7 @@ class Impact(gammas, weather, covariates):
 
     '''
     #Generate Betas
-    betas = self.compute_betas(gammas, spec, clim_covars, gdp_covars)
+    betas = self.compute_betas(gammas, clim_covars, gdp_covars)
 
     #Compute Raw Impact
     impact= impact_function(betas, self.annual_weather, spec)
@@ -127,10 +117,6 @@ class Impact(gammas, weather, covariates):
     impact_annual = (impact.sum(dim='time')  - baseline['baseline'])
 
     return impact_annual
-
-
-def find_mins(betas, min_max_boundaries):
-  raise NotImplementedError
 
 
   def postprocess_daily(impact):

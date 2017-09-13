@@ -74,7 +74,7 @@ class Gammas():
 		'''
 
 
-		return self._prep_gammas(self.data)
+		return self._prep_gammas()
 
 
 	def sample(self, seed=None):
@@ -131,7 +131,7 @@ class Gammas():
 	        g = mn.rvs(self.data['gamma'], self.data['gammavcv'])
 
 	    else: 
-	        g = data['gamma']
+	        g = self.data['gamma']
 
 
 	    ind = pd.MultiIndex.from_tuples(zip(self.data['outcome'], self.data['prednames'], self.data['covarnames']), 
