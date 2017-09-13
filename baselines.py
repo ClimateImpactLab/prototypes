@@ -233,7 +233,7 @@ def compute_m_tstar(betas, min_function=_findpolymins, min_max=[10,25], write_pa
     if not os.path.isfile(write_path):
 
         #Compute t_star according to min function
-        t_star = np.apply_along_axis(lambda x: min_function, 1, betas, min_max)
+        t_star = np.apply_along_axis(min_function, 1, betas, min_max)
 
         #Compute the weather dataset with t_star as base weather var
         t_star_poly = xr.Dataset()

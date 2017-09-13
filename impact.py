@@ -10,7 +10,6 @@ class Impact():
   def __init__(self, gammas):
     self.gammas = gammas
 
-
   def get_annual_weather(weather, preds):
     '''
     Constructs the annual weather dataset for a given years impact
