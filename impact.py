@@ -30,7 +30,7 @@ class Impact():
       Dataset
         :py:class `~xarray Dataset` with each weather variable as an `~xarray DataArray`
     '''
-    weather_files = [weather.format(pred=pred) for pred in preds]
+    weather_files = [self.annual_weather.format(pred=pred) for pred in preds]
 
     datasets = []
     for file in weather_files:
@@ -68,7 +68,7 @@ class Impact():
 
     
     covars = xr.merge(covars)
-    
+
     #add intercept for easy math
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
 
@@ -78,10 +78,8 @@ class Impact():
 
 
   def compute(self,  
-              spec, 
               gdp_covars,
               clim_covars,
-              baseline,
               min_function=None,
               min_max=None,
               min_write_path=None,
@@ -106,7 +104,7 @@ class Impact():
     betas = self.compute_betas(clim_covars, gdp_covars)
 
     #Compute Raw Impact
-    impact= self._impact_function(betas, self.annual_weather, spec)
+    impact= self._impact_function(betas, self.annual_weather)
 
     #Compute the min for flat curve adaptation
     if min_function:
@@ -120,7 +118,7 @@ class Impact():
       impact = postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
-    impact_annual = (impact.sum(dim='time')  - baseline['baseline'])
+    impact_annual = impact.sum(dim='time')  
 
     return impact_annual
 
