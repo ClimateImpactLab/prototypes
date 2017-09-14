@@ -1,6 +1,7 @@
+import os
+import numpy as np
 from impact import Impact
 from baselines import _findpolymin
-import os
 from toolz import memoize
 
 
