@@ -68,6 +68,7 @@ class Impact():
 
     betas = xr.Dataset()
 
+
     
     covars = xr.merge(covars)
 
@@ -80,12 +81,11 @@ class Impact():
 
 
   def compute(self,  
+              gammas, 
               gdp_covars,
               clim_covars,
-              min_function=None,
               min_max=None,
               min_write_path=None,
-              impact_function=None,
               postprocess_daily=False,
               postprocess_annual=False):
     '''
@@ -96,6 +96,8 @@ class Impact():
     Parameters
     ----------
 
+    gammas: py:class: `~xarray.Dataset`
+
 
     Returns
     -------
@@ -103,21 +105,21 @@ class Impact():
 
     '''
     #Generate Betas
-    betas = self.compute_betas(clim_covars, gdp_covars)
+    betas = self.compute_betas(gammas, [clim_covars,gdp_covars])
 
     #Compute Raw Impact
-    impact= self._impact_function(betas, self.annual_weather)
+    impact= self._impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
-    if min_function:
+    if min_max:
       m_star = self._compute_m_star(betas, min_max, min_write_path)
       #Compare values and evaluate a max
       impact = np.minimum(impact, m_star)
 
     if postprocess_daily:
-      impact = postprocess_daily(impact)
+      impact = self._postprocess_daily(impact)
     if postprocess_annual:
-      impact = postprocess_annual(impact)
+      impact = self._postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
     impact_annual = impact.sum(dim='time')  

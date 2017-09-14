@@ -9,7 +9,7 @@ class Mortality_Polynomial(Impact):
 	'''
 
 
-	def _impact_function(self, betas, annual_weather):
+	def _impact_function(self, betas, weather):
 		'''
 		computes the dot product of betas and annual weather by outcome group
 
@@ -18,10 +18,10 @@ class Mortality_Polynomial(Impact):
 		#sum((betas*annual_weather).data_vars.values()).sum(dim='prednames')
 		
 		#verbose
-		impact =  (betas['tas']*annual_weather['tas'] + 
-                betas['tas-poly-2']*annual_weather['tas-poly-2'] + 
-                betas['tas-poly-3']*annual_weather['tas-poly-3'] + 
-                betas['tas-poly-4']*annual_weather['tas-poly-4'])
+		impact =  (betas.sel(prednames='tas')*weather['tas'] + 
+                betas.sel(prednames='tas-poly-2')*weather['tas-poly-2'] + 
+                betas.sel(prednames='tas-poly-3')*weather['tas-poly-3'] + 
+                betas.sel(prednames='tas-poly-4')*weather['tas-poly-4'])
 
 		return impact
 
