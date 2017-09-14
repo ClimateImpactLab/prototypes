@@ -86,7 +86,7 @@ class Gammas():
 		Parameters
 		----------
 		seed: int
-			number to use to intialize randomization
+			number to intialize randomization
 
 
 		Returns: 

@@ -202,7 +202,7 @@ def _findpolymins(coeffs, min_max):
 
     return possibles[index]
 
-def compute_m_tstar(betas, min_function=_findpolymins, min_max=[10,25], write_path=None):
+def compute_m_star(betas, min_function=_findpolymins, min_max=[10,25], write_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -253,7 +253,7 @@ def compute_m_tstar(betas, min_function=_findpolymins, min_max=[10,25], write_pa
     t_star_poly = _get_t_star(write_path)
 
     #m_star = t_star_something*betas
-    return t_star_poly*betas
+    return sum((t_star_poly*betas).data_vars.values()).sum(dim='prednames')
 
 @memoize
 def _get_t_star(path):
