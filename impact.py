@@ -32,7 +32,7 @@ class Impact():
       Dataset
         :py:class `~xarray Dataset` with each weather variable as an `~xarray DataArray`
     '''
-    weather_files = [self.annual_weather_files.format(pred=pred) for pred in self.preds]
+    weather_files = [weather.format(pred=pred) for pred in self.preds]
 
     annual_weather = xr.Dataset()
     for file in weather_files:
