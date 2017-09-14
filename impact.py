@@ -9,20 +9,22 @@ class Impact():
 
   '''
   def __init__(self, weather, preds):
-    self.annual_weather = weather
-    self.preds = preds
-
-  def get_annual_weather(self, preds):
     '''
-    Constructs the annual weather dataset for a given years impact
-
     Parameters
     ----------
-    models_paths: list
-        unformatted string representing path to weather variables for that year
+    weather: str
+      String representation of the unformatted file paths for annual weather
 
-    preds: dict
-      describes how to format input file paths for weather files
+    preds: list
+      list of strings representing the values to complete formatting for annual weather
+
+    '''
+    self.preds = preds
+    self.weather = self.get_annual_weather(weather)
+
+  def get_annual_weather(self, weather):
+    '''
+    Constructs the annual weather dataset for a given years impact
 
     Returns
     -------
@@ -30,17 +32,17 @@ class Impact():
       Dataset
         :py:class `~xarray Dataset` with each weather variable as an `~xarray DataArray`
     '''
-    weather_files = [self.annual_weather.format(pred=pred) for pred in preds]
+    weather_files = [self.annual_weather_files.format(pred=pred) for pred in self.preds]
 
-    datasets = []
+    annual_weather = xr.Dataset()
     for file in weather_files:
       with xr.open_dataset(file) as ds:
           ds.load()
-          datasets.append(ds)
+      varname = ds.variable
+      annual_weather[varname] = ds[varname]
 
-    weather = xr.concat(datasets, pd.Index(preds, name='prednames'))
 
-    return weather
+    return annual_weather
 
   def compute_betas(self, covars):
     '''
