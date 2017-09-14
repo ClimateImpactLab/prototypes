@@ -88,8 +88,8 @@ class Impact(object):
               gammas, 
               gdp_covars,
               clim_covars,
-              min_max=None,
-              min_write_path=None,
+              min_max_boundary=None,
+              t_star_write_path=None,
               postprocess_daily=False,
               postprocess_annual=False):
     '''
@@ -116,7 +116,7 @@ class Impact(object):
 
     #Compute the min for flat curve adaptation
     if min_max:
-      m_star = self.compute_m_star(betas, min_function, min_max, min_write_path)
+      m_star = self.compute_m_star(betas, min_function, min_max_boundary, t_star_write_path)
       #Compare values and evaluate a max
       impact = np.minimum(impact, m_star)
 
@@ -136,7 +136,7 @@ class Impact(object):
       ds.load()
     return ds
 
-  def compute_m_star(self, betas, min_function=None, min_max=None, min_write_path=None):
+  def compute_m_star(self, betas, min_function=None, min_max_boundary=None, t_star_write_path=None):
       '''
       Computes m_star, the value of an impact function for a given set of betas given t_star. 
       t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -147,12 +147,12 @@ class Impact(object):
       betas: :py:class `~xarray.Dataset` 
           coefficients by hierid Dataset 
 
-      min_max: np.array
+      min_max_boundary: np.array
           values to evaluate min at 
 
       min_function: minimizing function to compute tstar
 
-      write_path: str
+      t_star_path: str
 
       Returns
       -------
@@ -167,30 +167,18 @@ class Impact(object):
       if not os.path.isfile(write_path):
 
           #Compute t_star according to min function
-          t_star = np.apply_along_axis(self.min_function, 1, betas, min_max)
-
-          #Compute the weather dataset with t_star as base weather var
-          data_arrays = []
-          for i, pred in enumerate(betas.prednames.values):
-              t_star_pred = xr.DataArray(t_star**(i+1), 
-                                              coords={'hierid': betas['hierid'], 'outcome': betas['outcome']}, 
-                                              dims=['outcome', 'hierid']
-                                              )
-              data_arrays.append(t_star_pred)
-
-
-          t_star_poly = xr.concat(data_arrays, pd.Index(betas.prednames.values, name='prednames'))
+          t_star = min_function(betas, min_max, t_star_write_path)
           #write to disk
-          if not os.path.isdir(os.path.dirname(write_path)):
-                  os.path.makedir(os.path.dirname(write_path))
+          if not os.path.isdir(os.path.dirname(t_star_write_path)):
+                  os.path.makedir(os.path.dirname(t_star_write_path))
 
-          t_star_poly.to_netcdf(write_path)
+          t_star.to_netcdf(t_star_write_path)
 
       #Read from disk
-      t_star_poly = _get_t_star(write_path)
+      t_star = _get_t_star(t_star_write_path)
 
       
-      return sum((t_star_poly*betas).data_vars.values()).sum(dim='prednames')
+      return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
 
   def impact_function(self, betas, annual_weather):
     raise NotImplementedError

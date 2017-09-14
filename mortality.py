@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from impact import Impact
-from baselines import _findpolymin
+from baselines import minimize_polynomial
 from toolz import memoize
 
 
@@ -10,7 +10,7 @@ class Mortality_Polynomial(Impact):
 	'''
 	Mortality specific 
 	'''
-	min_function = _findpolymin
+	min_function = minimize_polynomial
 
 	def impact_function(self, betas, weather):
 		'''
@@ -52,7 +52,7 @@ class Mortality_Polynomial(Impact):
 	    m_star Dataset
 	        :py:class`~xarray.Dataset` of impacts evaluated at tstar. 
 
-
+	
 	    .. note:: writes to disk and subsequent calls will read from disk. 
 	    '''
 	    #if file does not exist create it
@@ -82,7 +82,7 @@ class Mortality_Polynomial(Impact):
 	    return sum((t_star_poly*betas).data_vars.values()).sum(dim='prednames')
 
 	@memoize
-	def _get_t_star(self, path):
+	def _get_t_star(self,  path):
 	    '''
 	    Returns cached verison of t_star
 
