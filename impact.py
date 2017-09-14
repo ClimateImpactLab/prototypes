@@ -8,7 +8,7 @@ class Impact():
     Base class for computing an impact as specified by the Climate Impact Lab
 
   '''
-  def __init__(self, gammas ):
+  def __init__(self, gammas):
     self.gammas = gammas
 
   def get_annual_weather(self, weather, preds):
@@ -82,7 +82,6 @@ class Impact():
               spec, 
               gdp_covars,
               clim_covars,
-              annual_weather_paths,
               baseline,
               min_function=None,
               min_max=None,
@@ -108,11 +107,11 @@ class Impact():
     betas = self.compute_betas(clim_covars, gdp_covars)
 
     #Compute Raw Impact
-    impact= impact_function(betas, self.annual_weather, spec)
+    impact= self._impact_function(betas, self.annual_weather, spec)
 
     #Compute the min for flat curve adaptation
     if min_function:
-      m_star = self.compute_m_star(betas, min_max, min_write_path)
+      m_star = self._compute_m_star(betas, min_max, min_write_path)
       #Compare values and evaluate a max
       impact = np.minimum(impact, m_star)
 
@@ -125,6 +124,12 @@ class Impact():
     impact_annual = (impact.sum(dim='time')  - baseline['baseline'])
 
     return impact_annual
+
+  def _impact_function(self, betas, annual_weather):
+    raise NotImplementedError
+
+  def _compute_m_star(self, betas, min_max, min_write_path):
+    raise NotImplementedError
 
   def postprocess_daily(self, impact):
     raise NotImplementedError
