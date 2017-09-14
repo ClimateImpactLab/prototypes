@@ -1,13 +1,17 @@
 import xarray as xr
 import pandas as pd
 import numpy as np
+from toolz import memoize
 
 
-class Impact():
+class Impact(object):
   '''
     Base class for computing an impact as specified by the Climate Impact Lab
 
   '''
+
+  min_function = NotImplemented
+
   def __init__(self, weather, preds):
     '''
     Parameters
@@ -20,9 +24,9 @@ class Impact():
 
     '''
     self.preds = preds
-    self.weather = self.get_annual_weather(weather)
+    self.weather = self._get_annual_weather(weather)
 
-  def get_annual_weather(self, weather):
+  def _get_annual_weather(self, weather):
     '''
     Constructs the annual weather dataset for a given years impact
 
@@ -44,7 +48,7 @@ class Impact():
 
     return annual_weather
 
-  def compute_betas(self, gammas, covars):
+  def _compute_betas(self, gammas, covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -105,31 +109,90 @@ class Impact():
 
     '''
     #Generate Betas
-    betas = self.compute_betas(gammas, [clim_covars,gdp_covars])
+    betas = self._compute_betas(gammas, [clim_covars,gdp_covars])
 
     #Compute Raw Impact
-    impact= self._impact_function(betas, self.weather)
+    impact= self.impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
     if min_max:
-      m_star = self._compute_m_star(betas, min_max, min_write_path)
+      m_star = self.compute_m_star(betas, min_function, min_max, min_write_path)
       #Compare values and evaluate a max
       impact = np.minimum(impact, m_star)
 
     if postprocess_daily:
-      impact = self._postprocess_daily(impact)
+      impact = self.postprocess_daily(impact)
     if postprocess_annual:
-      impact = self._postprocess_annual(impact)
+      impact = self.postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
     impact_annual = impact.sum(dim='time')  
 
     return impact_annual
 
-  def _impact_function(self, betas, annual_weather):
-    raise NotImplementedError
+  @memoize
+  def _get_t_star(path):
+    with xr.open_dataset(path) as ds:
+      ds.load()
+    return ds
 
-  def _compute_m_star(self, betas, min_max, min_write_path):
+  def compute_m_star(self, betas, min_function=None, min_max=None, min_write_path=None):
+      '''
+      Computes m_star, the value of an impact function for a given set of betas given t_star. 
+      t_star, the value t at which an impact is minimized for a given hierid is precomputed 
+      and used to compute m_star.
+
+      Parameters
+      ----------
+      betas: :py:class `~xarray.Dataset` 
+          coefficients by hierid Dataset 
+
+      min_max: np.array
+          values to evaluate min at 
+
+      min_function: minimizing function to compute tstar
+
+      write_path: str
+
+      Returns
+      -------
+
+      m_star Dataset
+          :py:class`~xarray.Dataset` of impacts evaluated at tstar. 
+
+  
+      .. note:: writes to disk and subsequent calls will read from disk. 
+      '''
+      #if file does not exist create it
+      if not os.path.isfile(write_path):
+
+          #Compute t_star according to min function
+          t_star = np.apply_along_axis(self.min_function, 1, betas, min_max)
+
+          #Compute the weather dataset with t_star as base weather var
+          data_arrays = []
+          for i, pred in enumerate(betas.prednames.values):
+              t_star_pred = xr.DataArray(t_star**(i+1), 
+                                              coords={'hierid': betas['hierid'], 'outcome': betas['outcome']}, 
+                                              dims=['outcome', 'hierid']
+                                              )
+              data_arrays.append(t_star_pred)
+
+
+          t_star_poly = xr.concat(data_arrays, pd.Index(betas.prednames.values, name='prednames'))
+          #write to disk
+          if not os.path.isdir(os.path.dirname(write_path)):
+                  os.path.makedir(os.path.dirname(write_path))
+
+          t_star_poly.to_netcdf(write_path)
+
+      #Read from disk
+      t_star_poly = _get_t_star(write_path)
+
+      
+      return sum((t_star_poly*betas).data_vars.values()).sum(dim='prednames')
+
+  def impact_function(self, betas, annual_weather):
     raise NotImplementedError
 
   def postprocess_daily(self, impact):
@@ -137,3 +200,5 @@ class Impact():
 
   def postprocess_annual(self, impact):
     raise NotImplementedError
+
+  

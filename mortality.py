@@ -10,9 +10,9 @@ class Mortality_Polynomial(Impact):
 	'''
 	Mortality specific 
 	'''
+	min_function = _findpolymin
 
-
-	def _impact_function(self, betas, weather):
+	def impact_function(self, betas, weather):
 		'''
 		computes the dot product of betas and annual weather by outcome group
 
@@ -28,7 +28,7 @@ class Mortality_Polynomial(Impact):
 
 		return impact
 
-	def _compute_m_star(betas, min_function=_findpolymin, min_max=[10,25], write_path=None):
+	def compute_m_star(self, betas, min_max=None, write_path=None):
 	    '''
 	    Computes m_star, the value of an impact function for a given set of betas given t_star. 
 	    t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -59,7 +59,7 @@ class Mortality_Polynomial(Impact):
 	    if not os.path.isfile(write_path):
 
 	        #Compute t_star according to min function
-	        t_star = np.apply_along_axis(min_function, 1, betas, min_max)
+	        t_star = np.apply_along_axis(self.min_function, 1, betas, min_max)
 
 	        #Compute the weather dataset with t_star as base weather var
 	        t_star_poly = xr.Dataset()
@@ -82,7 +82,7 @@ class Mortality_Polynomial(Impact):
 	    return sum((t_star_poly*betas).data_vars.values()).sum(dim='prednames')
 
 	@memoize
-	def _get_t_star(path):
+	def _get_t_star(self, path):
 	    '''
 	    Returns cached verison of t_star
 
