@@ -202,6 +202,26 @@ def _findpolymin(coeffs, min_max):
 
     return possibles[index]
 
+def minimize_polynomial(da, dim='prednames', bounds=None):
+
+    t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da, min_max=bounds)
+
+    if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != da.get_axis_num(dim)]):
+        raise ValueError('_findpolymin returned an unexpected shape: {}'.format(t_star_values.shape))
+
+    t_star = xr.DataArray(
+        t_star_values,
+        dims=tuple([d for d in da.dims if d != dim]),
+        coords={c: da.coords[c] for c in da.coords.keys() if c != dim})
+
+    t_star = t_star.expand_dims(dim, axis=da.get_axis_num(dim))
+
+    # this is the only part I'm unsure of. Should the 0th term be included?
+    t_star_poly = xr.concat([t_star**i for i in range(1, len(da.coords[dim]))], dim=da.coords[dim])
+
+    return t_star_poly
+
+
 # def compute_m_star(betas, min_function=_findpolymins, min_max=[10,25], write_path=None):
 #     '''
 #     Computes m_star, the value of an impact function for a given set of betas given t_star. 
