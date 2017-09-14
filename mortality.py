@@ -25,7 +25,7 @@ class Mortality_Polynomial(Impact):
 
 		return impact
 
-	def _compute_m_star(betas, min_function=_findpolymins, min_max=[10,25], write_path=None):
+	def _compute_m_star(betas, min_function=_findpolymin, min_max=[10,25], write_path=None):
 	    '''
 	    Computes m_star, the value of an impact function for a given set of betas given t_star. 
 	    t_star, the value t at which an impact is minimized for a given hierid is precomputed 
