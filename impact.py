@@ -44,7 +44,7 @@ class Impact():
 
     return annual_weather
 
-  def compute_betas(self, covars):
+  def compute_betas(self, gammas, covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -74,7 +74,7 @@ class Impact():
     #add intercept for easy math
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
 
-    betas = sum((self.gammas*covars).data_vars.values())
+    betas = sum((gammas*covars).data_vars.values())
 
     return betas
 
