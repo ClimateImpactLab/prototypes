@@ -8,10 +8,11 @@ class Impact():
     Base class for computing an impact as specified by the Climate Impact Lab
 
   '''
-  def __init__(self, gammas):
-    self.gammas = gammas
+  def __init__(self, weather, preds):
+    self.annual_weather = weather
+    self.preds = preds
 
-  def get_annual_weather(self, weather, preds):
+  def get_annual_weather(self, preds):
     '''
     Constructs the annual weather dataset for a given years impact
 
@@ -41,7 +42,7 @@ class Impact():
 
     return weather
 
-  def compute_betas(self, clim_covars, gdp_covars):
+  def compute_betas(self, covars):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -53,11 +54,9 @@ class Impact():
     spec: 
       specifies the shape/structure of computation
 
-    clim_covars: :py:class `~xarray.Dataset`
+    covars: list of :py:class `~xarray.Dataset`
         covariates for each hierid
     
-    gpd_covars: :py:class `~xarray.Dataset`
-        covariates for each hierid
  
     Returns
     -------
@@ -68,8 +67,8 @@ class Impact():
     betas = xr.Dataset()
 
     
-    covars = xr.merge([clim_covars, gdp_covars])
-
+    covars = xr.merge(covars)
+    
     #add intercept for easy math
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
 
