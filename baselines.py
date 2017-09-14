@@ -148,7 +148,7 @@ def _get_baseline(base_path):
     return ds
 
 
-def _findpolymins(coeffs, min_max):
+def _findpolymin(coeffs, min_max):
     '''
     Computes the min value for a set of coefficients (gammas)
 
