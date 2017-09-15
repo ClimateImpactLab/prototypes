@@ -23,7 +23,7 @@ def test_this():
 
 	impact, m_star = m.compute(gammas, gdp, climtas, min_max_boundary=[10,25], t_star_write_path=t_star_path) 
 
-	return minned        
+	return impact, m_star       
 
 
 
