@@ -39,12 +39,14 @@ class Impact(object):
     '''
     weather_files = [weather.format(pred=pred) for pred in self.preds]
 
-    annual_weather = xr.Dataset()
+    weathers = []
     for file in weather_files:
       with xr.open_dataset(file) as ds:
           ds.load()
       varname = ds.variable
-      annual_weather[varname] = ds[varname]
+      weathers.append(ds[varname])
+
+    annual_weather = xr.concat(weathers, pd.Index(self.preds, name='prednames'))
 
 
     return annual_weather

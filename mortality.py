@@ -33,6 +33,7 @@ class Mortality_Polynomial(Impact):
 
 		return impact, a, betas, weather
 
+
 	# def compute_m_star(self, betas, min_max_boundary=None, t_star_write_path=None):
 	#     if not os.path.isfile(t_star_write_path):
 
