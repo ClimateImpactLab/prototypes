@@ -13,7 +13,7 @@ class Mortality_Polynomial(Impact):
 	
 	min_function = minimize_polynomial
 
-	def __init__(self):
+	def __init__(self, annual_weather, prednames):
 		Impact.__init__(self)
 
 
