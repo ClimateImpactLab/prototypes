@@ -12,6 +12,8 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 
+	Impact.minimize_function = minimize_polynomial
+
 
 	def impact_function(self, betas, weather):
 		'''
@@ -29,34 +31,34 @@ class Mortality_Polynomial(Impact):
 
 		return impact
 
-	def compute_m_star(self, betas, min_max_boundary=None, t_star_write_path=None):
-	    if not os.path.isfile(t_star_write_path):
+	# def compute_m_star(self, betas, min_max_boundary=None, t_star_write_path=None):
+	#     if not os.path.isfile(t_star_write_path):
 
-	      #Compute t_star according to min function
-	      	t_star = minimize_polynomial(betas, dim='prednames', bounds=min_max_boundary)
-	      #write to disk
-	    	if not os.path.isdir(os.path.dirname(t_star_write_path)):
-	              os.path.makedir(os.path.dirname(t_star_write_path))
+	#       #Compute t_star according to min function
+	#       	t_star = minimize_polynomial(betas, dim='prednames', bounds=min_max_boundary)
+	#       #write to disk
+	#     	if not os.path.isdir(os.path.dirname(t_star_write_path)):
+	#               os.path.makedir(os.path.dirname(t_star_write_path))
 
-	    	t_star.to_netcdf(t_star_write_path)
+	#     	t_star.to_netcdf(t_star_write_path)
 
-	  	#Read from disk
-	  	t_star = self._get_t_star(t_star_write_path)
-	  	print('t_star : {}'.format(t_star))
+	#   	#Read from disk
+	#   	t_star = self._get_t_star(t_star_write_path)
+	#   	print('t_star : {}'.format(t_star))
 
-	  	m_star = sum((t_star*betas).data_vars.values()).sum(dim='prednames')
-	  	print('m_star : {}'.format(m_star))
-
-
-	  	return m_star
+	#   	m_star = sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+	#   	print('m_star : {}'.format(m_star))
 
 
+	#   	return m_star
 
-	@memoize
-	def _get_t_star(self, path):
-		with xr.open_dataset(path) as ds:
-			ds.load()
-		return ds
+
+
+	# @memoize
+	# def _get_t_star(self, path):
+	# 	with xr.open_dataset(path) as ds:
+	# 		ds.load()
+	# 	return ds
   		
 
 
