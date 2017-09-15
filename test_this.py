@@ -30,7 +30,7 @@ def test_this():
 
 	print(t2-t1)
 
-	return        
+	return a, b, c, d, e   
 
 
 
