@@ -21,7 +21,7 @@ class Mortality_Polynomial(Impact):
 
 		'''
 		#slick
-		#sum((betas*annual_weather).data_vars.values()).sum(dim='prednames')
+		a = sum((betas*annual_weather).data_vars.values()).sum(dim='prednames')
 		
 		#verbose
 		impact =  (betas.sel(prednames='tas')*weather['tas'] + 
@@ -29,7 +29,7 @@ class Mortality_Polynomial(Impact):
                 betas.sel(prednames='tas-poly-3')*weather['tas-poly-3'] + 
                 betas.sel(prednames='tas-poly-4')*weather['tas-poly-4'])
 
-		return impact
+		return impact, a
 
 	# def compute_m_star(self, betas, min_max_boundary=None, t_star_write_path=None):
 	#     if not os.path.isfile(t_star_write_path):
