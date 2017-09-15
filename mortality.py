@@ -42,8 +42,15 @@ class Mortality_Polynomial(Impact):
 
 	  	#Read from disk
 	  	t_star = self._get_t_star(t_star_write_path)
+	  	print('t_star : {}'.format(t_star))
 
-	  	return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+	  	m_star = sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+	  	print('m_star : {}'.format(m_star))
+
+
+	  	return m_star
+
+
 
 	@memoize
 	def _get_t_star(self, path):
