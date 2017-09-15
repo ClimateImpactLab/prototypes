@@ -109,7 +109,7 @@ class Impact(object):
     betas = self._compute_betas(gammas, [clim_covars,gdp_covars])
 
     #Compute Raw Impact
-    impact, a = self.impact_function(betas, self.weather)
+    impact, b, c, d = self.impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
     m_star = self.compute_m_star(betas, min_max_boundary, t_star_write_path)
@@ -125,7 +125,7 @@ class Impact(object):
     #Sum to annual
     impact_annual = impact.sum(dim='time')  
 
-    return impact, a, impact_annual
+    return impact, b, c, d, impact_annual
 
   @memoize
   def _get_t_star(self, path):

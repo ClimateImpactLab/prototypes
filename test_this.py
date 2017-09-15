@@ -23,14 +23,14 @@ def test_this():
 
 	m = Mortality_Polynomial(path, gammas.prednames.values)
 
-	impact = m.compute(gammas, gdp, climtas, min_max_boundary=[10,25], t_star_write_path=t_star_path) 
+	a, b, c, d, e = m.compute(gammas, gdp, climtas, min_max_boundary=[10,25], t_star_write_path=t_star_path) 
 
 
 	t2 = time.time()
 
 	print(t2-t1)
 
-	return impact       
+	return        
 
 
 
