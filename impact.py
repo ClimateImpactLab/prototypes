@@ -112,9 +112,11 @@ class Impact(object):
 
     #Compute Raw Impact
     impact= self.impact_function(betas, self.weather)
+    print(impact)
 
     #Compute the min for flat curve adaptation
     m_star = self.compute_m_star(betas, min_max_boundary, t_star_write_path)
+    print(m_star)
       #Compare values and evaluate a max
     #impact = np.minimum(impact, m_star)
 
