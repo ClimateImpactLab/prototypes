@@ -11,8 +11,6 @@ class Impact(object):
 
   '''
 
-  min_function = NotImplemented
-
   def __init__(self, weather, preds):
     '''
     Parameters
@@ -89,6 +87,7 @@ class Impact(object):
               gammas, 
               gdp_covars,
               clim_covars,
+              min_function=None,
               min_max_boundary=None,
               t_star_write_path=None,
               postprocess_daily=False,
@@ -116,7 +115,7 @@ class Impact(object):
     impact= self.impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
-    m_star = self.compute_m_star(betas, self.min_function, min_max_boundary, t_star_write_path)
+    m_star = self.compute_m_star(betas, min_function, min_max_boundary, t_star_write_path)
       #Compare values and evaluate a max
     #impact = np.minimum(impact, m_star)
 
@@ -131,7 +130,7 @@ class Impact(object):
     return impact_annual, m_star
 
   @memoize
-  def _get_t_star(path):
+  def _get_t_star(self, path):
     with xr.open_dataset(path) as ds:
       ds.load()
     return ds
@@ -164,21 +163,22 @@ class Impact(object):
       .. note:: writes to disk and subsequent calls will read from disk. 
       '''
       #if file does not exist create it
-      if not os.path.isfile(t_star_write_path):
+      # if not os.path.isfile(t_star_write_path):
 
-          #Compute t_star according to min function
-          t_star = min_function(betas, min_max_boundary)
-          #write to disk
-          if not os.path.isdir(os.path.dirname(t_star_write_path)):
-                  os.path.makedir(os.path.dirname(t_star_write_path))
+      #     #Compute t_star according to min function
+      #     t_star = min_function(betas, min_max_boundary)
+      #     #write to disk
+      #     if not os.path.isdir(os.path.dirname(t_star_write_path)):
+      #             os.path.makedir(os.path.dirname(t_star_write_path))
 
-          t_star.to_netcdf(t_star_write_path)
+      #     t_star.to_netcdf(t_star_write_path)
 
-      #Read from disk
-      t_star = _get_t_star(t_star_write_path)
+      # #Read from disk
+      # t_star = _get_t_star(t_star_write_path)
 
       
-      return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+      # return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+      raise NotImplementedError
 
   def impact_function(self, betas, annual_weather):
     raise NotImplementedError
