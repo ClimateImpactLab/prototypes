@@ -841,6 +841,8 @@ def triangle_smooth(k):
 
   return smooth_array
 
+
+
 def compute_polynomial(annual_weather, clim_covar, gdp_covar, gammas):
     '''
     Implements polynomial specification for impact calculation

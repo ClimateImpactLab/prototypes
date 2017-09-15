@@ -121,11 +121,12 @@ class Impact(object):
 
     if postprocess_daily:
       impact = self.postprocess_daily(impact)
-    if postprocess_annual:
-      impact = self.postprocess_annual(impact)
 
     #Sum to annual
-    impact_annual = impact.sum(dim='time')  
+    impact_annual = impact.sum(dim='time') 
+
+    if postprocess_annual:
+      impact_annual = self.postprocess_annual(impact_annual) 
 
     return impact_annual
 

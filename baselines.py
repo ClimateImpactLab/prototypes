@@ -3,11 +3,11 @@ import numpy as np
 from toolz import memoize
 import warnings
 import os
+from impact import Impact
 
 
 
-def impact_baseline(gammas, 
-                      spec, 
+def impact_baseline(gammas,
                       weather, 
                       gdp_covar_path, 
                       climate_covar_path, 
@@ -47,6 +47,7 @@ def impact_baseline(gammas,
         returns a new `~xarray.Dataset` of baseline impacts
 
     '''
+    preds = gammas.prednames.values
 
     if os.path.isfile(write_path):
         return self._get_baseline(write_path)
@@ -203,6 +204,10 @@ def _findpolymin(coeffs, min_max):
     return possibles[index]
 
 def minimize_polynomial(da, dim='prednames', bounds=None):
+    '''
+
+
+    '''
 
     t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da, min_max=bounds)
 

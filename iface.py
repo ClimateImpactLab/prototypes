@@ -102,11 +102,9 @@ MODELS = list(map(lambda x: dict(model=x), [
     # 'NorESM1-M'
     ]))
 
-MINS = [dict(min_function='findpolymin')]
-
 PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
 
-SSP = [dict(ssp='SSP' + str(i)) for i in range(1,6)]
+SSP = [dict(ssp='SSP' + str(i)) for i in range(1,2)]
 
 ECONMODEL = [dict(econ_model='low'), dict(econ_model='high')]
 
@@ -116,15 +114,14 @@ JOB_SPEC = [PERIODS, MODELS, SSP, ECONMODEL]
 
 @slurm_runner(filepath=__file__, job_spec=JOB_SPEC)
 def impact_annual(
-                    metadata,
-                    econ_model, 
-                    model,
-                    scenario,
-                    ssp, 
-                    year,
-                    min_function=None,
-                    mc=False,
-                    interactive=False):
+                metadata,
+                econ_model, 
+                model,
+                scenario,
+                ssp, 
+                year,
+                mc=False,
+                interactive=False):
     '''
     Calculates the IR level daily/annual effect of temperature on Mortality Rates
 
@@ -154,8 +151,8 @@ def impact_annual(
     '''
     t_outer1 = time.time()
     import xarray as xr
-    from impact import Impact
     from csvv import Gammas
+    from mortality import Mortality_Polynomial as mp_impact
     from baselines import impact_baseline
 
 
@@ -205,31 +202,42 @@ def impact_annual(
     gammas = Gammas(GAMMAS_FILE)
     gammas_median = gammas.median()
 
-    impact= Impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values)
+    impact= mp_impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values)
 
     metadata['seed'] = 'median'
     metadata['year'] = 'baseline'
 
     t_star = T_STAR_PATH.format(**metadata)
 
-
-    #compute_baseline_median
+    ###########################
+    # compute_baseline_median #
+    ###########################
     baseline_median_path = WRITE_PATH.format(**metadata)
     baseline_median = impact_baseline(gammas_median, ANNUAL_WEATHER_FILE, gdp_covar_2015,clim_covar_2015, metadata, base_years, impact_function, baseline_median_path)
 
-    #No Adaptation
-    median_ds['no_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, , t_star) - baseline_median
+    #################
+    # No Adaptation #
+    #################
+    median_ds['no_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, t_star) - baseline_median
 
-    #Income Adaptation
+    #####################
+    # Income Adaptation #
+    #####################
     median_ds['income_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar_2015, t_star) - baseline_median
 
-    #No Income Adaptation
+    ########################
+    # No Income Adaptation #
+    ########################
     median_ds['no_income_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar, t_star) - baseline_median
 
-    #Full Adaptation
+    ###################
+    # Full Adaptation #
+    ###################
     median_ds['full_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar, t_star) - baseline_median
 
-    #Goodmoney 
+    #############
+    # Goodmoney #
+    #############
     median_ds['goodmoney'] = np.maximum(median_ds['full_adaptation'], median_ds['no_income_adaptation'])
 
     median_ds.attrs.update({k: str(v) for k,v in metadata.items()})
