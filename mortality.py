@@ -3,6 +3,7 @@ import numpy as np
 from impact import Impact
 from baselines import minimize_polynomial
 from toolz import memoize
+import xarray as xr
 
 
 
@@ -46,11 +47,11 @@ class Mortality_Polynomial(Impact):
 
 	  	return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
 
-
 	@memoize
-  	def _get_t_star(self, path):
-    	with xr.open_dataset(path) as ds:
-      		ds.load()
-    	return ds
+	def _get_t_star(self, path):
+		with xr.open_dataset(path) as ds:
+			ds.load()
+		return ds
+  		
 
 
