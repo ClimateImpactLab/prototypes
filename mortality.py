@@ -34,16 +34,23 @@ class Mortality_Polynomial(Impact):
 	    if not os.path.isfile(t_star_write_path):
 
 	      #Compute t_star according to min function
-	      t_star = min_function(betas, min_max_boundary)
+	      	t_star = min_function(betas, min_max_boundary)
 	      #write to disk
-	    if not os.path.isdir(os.path.dirname(t_star_write_path)):
+	    	if not os.path.isdir(os.path.dirname(t_star_write_path)):
 	              os.path.makedir(os.path.dirname(t_star_write_path))
 
-	    t_star.to_netcdf(t_star_write_path)
+	    	t_star.to_netcdf(t_star_write_path)
 
 	  	#Read from disk
-	  	t_star = _get_t_star(t_star_write_path)
+	  	t_star = self._get_t_star(t_star_write_path)
 
 	  	return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+
+
+	@memoize
+  	def _get_t_star(self, path):
+    	with xr.open_dataset(path) as ds:
+      		ds.load()
+    	return ds
 
 

@@ -129,11 +129,11 @@ class Impact(object):
 
     return impact_annual, m_star
 
-  @memoize
-  def _get_t_star(self, path):
-    with xr.open_dataset(path) as ds:
-      ds.load()
-    return ds
+  # @memoize
+  # def _get_t_star(self, path):
+  #   with xr.open_dataset(path) as ds:
+  #     ds.load()
+  #   return ds
 
   def compute_m_star(self, betas, min_function=None, min_max_boundary=None, t_star_write_path=None):
       '''
@@ -174,8 +174,7 @@ class Impact(object):
       #     t_star.to_netcdf(t_star_write_path)
 
       # #Read from disk
-      # t_star = _get_t_star(t_star_write_path)
-
+      # t_star = self._get_t_star(t_star_write_path)
       
       # return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
       raise NotImplementedError
