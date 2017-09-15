@@ -1,3 +1,4 @@
+import os
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -115,10 +116,9 @@ class Impact(object):
     impact= self.impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
-    if min_max:
-      m_star = self.compute_m_star(betas, min_function, min_max_boundary, t_star_write_path)
+    m_star = self.compute_m_star(betas, min_function, min_max_boundary, t_star_write_path)
       #Compare values and evaluate a max
-      impact = np.minimum(impact, m_star)
+    #impact = np.minimum(impact, m_star)
 
     if postprocess_daily:
       impact = self.postprocess_daily(impact)
@@ -128,7 +128,7 @@ class Impact(object):
     #Sum to annual, substract baseline, normalize 
     impact_annual = impact.sum(dim='time')  
 
-    return impact_annual
+    return impact_annual, m_star
 
   @memoize
   def _get_t_star(path):
