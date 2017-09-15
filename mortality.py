@@ -12,6 +12,7 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 	
+	min_function = minimize_polynomial
 
 
 
@@ -31,11 +32,11 @@ class Mortality_Polynomial(Impact):
 
 		return impact
 
-	def compute_m_star(self, betas, min_function=minimize_polynomial, min_max_boundary=None, t_star_write_path=None):
+	def compute_m_star(self, betas, min_max_boundary=None, t_star_write_path=None):
 	    if not os.path.isfile(t_star_write_path):
 
 	      #Compute t_star according to min function
-	      	t_star = min_function(betas, min_max_boundary)
+	      	t_star = self.min_function(betas, min_max_boundary)
 	      #write to disk
 	    	if not os.path.isdir(os.path.dirname(t_star_write_path)):
 	              os.path.makedir(os.path.dirname(t_star_write_path))
