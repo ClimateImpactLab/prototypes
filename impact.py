@@ -127,7 +127,7 @@ class Impact(object):
     #Sum to annual
     impact_annual = impact.sum(dim='time')  
 
-    return impact, b, c, d, impact_annual
+    return impact_annual
 
   @memoize
   def _get_t_star(self, path):

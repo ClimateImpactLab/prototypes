@@ -38,3 +38,10 @@ def test_this():
 
 if __name__=='__main__':
 	test_this()                                       
+
+
+
+a.sel(predname='tas')*b.sel(prednames='tas') + 
+a.sel(predname='tas-poly-2')*b.sel(prednames='tas-poly-2') + 
+a.sel(predname='tas-poly-3')*b.sel(prednames='tas-poly-3') + 
+a.sel(predname='tas-poly-4')*b.sel(prednames='tas-poly-4')
