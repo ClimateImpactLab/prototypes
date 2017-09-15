@@ -89,7 +89,6 @@ class Impact(object):
               gammas, 
               gdp_covars,
               clim_covars,
-              min_function=None,
               min_max_boundary=None,
               t_star_write_path=None,
               postprocess_daily=False,
@@ -118,10 +117,10 @@ class Impact(object):
     print(impact)
 
     #Compute the min for flat curve adaptation
-    m_star = self.compute_m_star(betas, min_function, min_max_boundary, t_star_write_path)
+    m_star = self.compute_m_star(betas, min_max_boundary, t_star_write_path)
     print(m_star)
       #Compare values and evaluate a max
-    #impact = np.minimum(impact, m_star)
+    impact = np.minimum(impact, m_star)
 
     if postprocess_daily:
       impact = self.postprocess_daily(impact)
@@ -129,7 +128,7 @@ class Impact(object):
       impact = self.postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
-    #impact_annual = impact.sum(dim='time')  
+    impact_annual = impact.sum(dim='time')  
 
     return impact, m_star
 
@@ -139,7 +138,7 @@ class Impact(object):
       ds.load()
     return ds
 
-  def compute_m_star(self, betas, min_function=None, min_max_boundary=None, t_star_write_path=None):
+  def compute_m_star(self, betas, min_max_boundary=None, t_star_write_path=None):
       '''
       Computes m_star, the value of an impact function for a given set of betas given t_star. 
       t_star, the value t at which an impact is minimized for a given hierid is precomputed 
