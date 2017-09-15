@@ -111,7 +111,7 @@ class Impact(object):
     betas = self._compute_betas(gammas, [clim_covars,gdp_covars])
 
     #Compute Raw Impact
-    impact, b, c, d = self.impact_function(betas, self.weather)
+    impact = self.impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
     m_star = self.compute_m_star(betas, min_max_boundary, t_star_write_path)
