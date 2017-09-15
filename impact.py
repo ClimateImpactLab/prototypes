@@ -87,7 +87,6 @@ class Impact(object):
               gammas, 
               gdp_covars,
               clim_covars,
-              min_function=None,
               min_max_boundary=None,
               t_star_write_path=None,
               postprocess_daily=False,
@@ -115,7 +114,7 @@ class Impact(object):
     impact= self.impact_function(betas, self.weather)
 
     #Compute the min for flat curve adaptation
-    m_star = self.compute_m_star(betas, min_function, min_max_boundary, t_star_write_path)
+    m_star = self.compute_m_star(betas, min_max_boundary, t_star_write_path)
       #Compare values and evaluate a max
     #impact = np.minimum(impact, m_star)
 
