@@ -202,7 +202,8 @@ def impact_annual(
     gammas = Gammas(GAMMAS_FILE)
     gammas_median = gammas.median()
 
-    impact= mp_impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values)
+
+    impact= mp_impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata)
 
     metadata['seed'] = 'median'
     metadata['year'] = 'baseline'

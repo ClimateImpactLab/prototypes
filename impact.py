@@ -13,7 +13,7 @@ class Impact(object):
 
   min_function = NotImplemented
 
-  def __init__(self, weather, preds):
+  def __init__(self, weather, preds, metadata):
     '''
     Parameters
     ----------
@@ -25,9 +25,9 @@ class Impact(object):
 
     '''
     self.preds = preds
-    self.weather = self._get_annual_weather(weather)
+    self.weather = self._get_annual_weather(weather, metadata)
 
-  def _get_annual_weather(self, weather):
+  def _get_annual_weather(self, weather, metadata):
     '''
     Constructs the annual weather dataset for a given years impact
 
@@ -37,7 +37,11 @@ class Impact(object):
       Dataset
         :py:class `~xarray Dataset` with each weather variable as an `~xarray DataArray`
     '''
-    weather_files = [weather.format(pred=pred) for pred in self.preds]
+
+    weather_files = [weather.format(scenario=metadata['scenario'], 
+                                    model=metadata['model'], 
+                                    year=metadata['year'], 
+                                    pred=pred) for pred in self.preds]
 
     weathers = []
     for file in weather_files:
