@@ -124,9 +124,9 @@ class Impact(object):
       impact = self.postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
-    impact_annual = impact.sum(dim='time')  
+    #impact_annual = impact.sum(dim='time')  
 
-    return impact_annual, m_star
+    return impact, m_star
 
   # @memoize
   # def _get_t_star(self, path):
