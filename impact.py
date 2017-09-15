@@ -120,7 +120,7 @@ class Impact(object):
     m_star = self.compute_m_star(betas, min_max_boundary, t_star_write_path)
     print(m_star)
       #Compare values and evaluate a max
-    impact = np.minimum(impact, m_star)
+    #impact = np.minimum(impact, m_star)
 
     if postprocess_daily:
       impact = self.postprocess_daily(impact)
@@ -128,7 +128,7 @@ class Impact(object):
       impact = self.postprocess_annual(impact)
 
     #Sum to annual, substract baseline, normalize 
-    impact_annual = impact.sum(dim='time')  
+    #impact_annual = impact.sum(dim='time')  
 
     return impact, m_star
 
