@@ -218,7 +218,7 @@ def impact_annual(
     # compute_baseline_median #
     ###########################
     baseline_median_path = BASE_WRITE_PATH.format(**metadata)
-    base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, BASE_YEARS, metadata, baseline_median_path)
+    base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata, BASE_YEARS,  baseline_median_path)
     baseline_median = base.compute(gammas_median, gdp_covar_2015, clim_covar_2015)
 
 
