@@ -9,7 +9,7 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 
-	def min_function(self):
+	def min_function(self, *args):
 		return minimize_polynomial
 
 
