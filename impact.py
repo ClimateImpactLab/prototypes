@@ -180,7 +180,7 @@ class Impact(object):
     #Read from disk
     t_star = self._get_t_star(t_star_path)
       
-    return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+    return self.impact_function(betas, t_star)
 
   def compute_t_star(self, betas, min_max_boundary):
     return self.min_function(betas, min_max_boundary)
