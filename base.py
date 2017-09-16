@@ -92,7 +92,7 @@ class BaseImpact(Impact):
             base_weather_pred.append(self._construct_baseline_weather(annual_weather_paths, self.metadata, self.base_years))
 
         ar = []
-        for i, pred in preds:
+        for i, pred in enumerate(preds):
             ar.append(base_weather_pred[i][pred])
 
 
