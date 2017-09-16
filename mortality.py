@@ -2,7 +2,7 @@ from impact import Impact
 from mins import minimize_polynomial
 import xarray as xr
 import numpy as np
-
+import os
 
 class Mortality_Polynomial(Impact):
 	'''
