@@ -46,6 +46,8 @@ def _findpolymin(coeffs, min_max):
 
     with warnings.catch_warnings(): # catch warning from using infs
         warnings.simplefilter("ignore")
+        print(possibles)
+        print(coeffs[::-1])
     
         values = np.polyval(coeffs[::-1], np.real_if_close(possibles))  
         
