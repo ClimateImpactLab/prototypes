@@ -3,6 +3,9 @@ import numpy as np
 from toolz import memoize
 import warnings
 import os
+from impact import Impact
+
+
 
 
 def _findpolymin(coeffs, min_max):
@@ -64,6 +67,10 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
 
 
     '''
+    print(da)
+
+    da = da.copy()
+
     print(da)
 
     t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da, min_max=bounds)
