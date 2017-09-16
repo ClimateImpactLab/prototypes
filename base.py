@@ -59,7 +59,7 @@ class BaseImpact(Impact):
             if year <= 2005:
                 read_rcp = 'historical'
             else: 
-                read_rcp = metadata['scenario']
+                read_rcp = 'rcp85'
 
             path = model_paths.format(scenario=read_rcp ,year=year)
             print(path)
