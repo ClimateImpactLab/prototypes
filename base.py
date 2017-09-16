@@ -137,7 +137,6 @@ class BaseImpact(Impact, base_path):
 
         impact_da.attrs.update(metadata)
 
-        if write_path:
         if not os.path.isdir(os.path.dirname(write_path)):
               os.makedirs(os.path.dirname(write_path))
         
