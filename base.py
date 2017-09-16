@@ -101,7 +101,7 @@ class BaseImpact(Impact):
             return self._get_baseline(self.base_path)
 
         if not self.weather_computed:
-            self.weather_computed = self.get_weather(self.weather, self.preds, self.metadata)
+            self.weather_computed = self.get_weather(self.weather_paths, self.preds, self.metadata)
 
 
         betas = self._compute_betas(gammas, [clim_covars, gdp_covars])
