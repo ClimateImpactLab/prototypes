@@ -140,8 +140,8 @@ class Impact(object):
       ds.load()
     return ds
 
-  @classmethod
-  def compute_m_star(cls, betas, min_max_boundary=None, t_star_path=None):
+  @staticmethod
+  def compute_m_star(betas, min_max_boundary=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
