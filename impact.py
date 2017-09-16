@@ -175,9 +175,10 @@ class Impact(object):
 
         #Compute t_star according to min function
         t_star = self.min_function(betas, min_max_boundary)
+        print(t_star)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
-                os.path.makedir(os.path.dirname(t_star_path))
+                os.mkdir(os.path.dirname(t_star_path))
 
         t_star.to_netcdf(t_star_path)
 

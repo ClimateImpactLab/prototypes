@@ -217,35 +217,55 @@ def impact_annual(
     ###########################
     # compute_baseline_median #
     ###########################
+    t1 = time.time()
     baseline_median_path = BASE_WRITE_PATH.format(**metadata)
     base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata, BASE_YEARS,  baseline_median_path)
     baseline_median = base.compute(gammas_median, gdp_covar_2015, clim_covar_2015)
-
+    t2 = time.time()
+    logger.debug('Computing median baseline impact for year {}: {}'.format(year, t2-t1))
 
     #################
     # No Adaptation #
     #################
+    t1 = time.time()
     median_ds['no_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, t_star_path=t_star) - baseline_median
+    t2 = time.time()
+    logger.debug('Computing median no adaptiation impact for year {}: {}'.format(year, t2-t1))
 
     #####################
     # Income Adaptation #
     #####################
+    t1 = time.time()
     median_ds['income_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar_2015, t_star_path=t_star) - baseline_median
+    t2 = time.time()
+    logger.debug('Computing median income adaptiation impact for year {}: {}'.format(year, t2-t1))
 
     ########################
     # No Income Adaptation #
     ########################
+    t1 = time.time()
     median_ds['no_income_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar, t_star_path=t_star) - baseline_median
+    t2 = time.time()
+    logger.debug('Computing median no income adaptiation impact for year {}: {}'.format(year, t2-t1))
+
 
     ###################
     # Full Adaptation #
     ###################
+    t1 = time.time()
     median_ds['full_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar, t_star_path=t_star) - baseline_median
+    t2 = time.time()
+    logger.debug('Computing median full adaptiation impact for year {}: {}'.format(year, t2-t1))
+
 
     #############
     # Goodmoney #
     #############
+    t1 = time.time()
     median_ds['goodmoney'] = np.maximum(median_ds['full_adaptation'], median_ds['no_income_adaptation'])
+    t2 = time.time()
+    logger.debug('Computing median goodmoney adaptiation impact for year {}: {}'.format(year, t2-t1))
+
 
     median_ds.attrs.update({k: str(v) for k,v in metadata.items()})
 
