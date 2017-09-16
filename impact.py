@@ -25,9 +25,9 @@ class Impact(object):
 
     '''
     self.preds = preds
-    self.weather = self._get_annual_weather(weather, metadata)
+    self.weather = self.get_weather(weather, metadata)
 
-  def _get_annual_weather(self, weather, metadata):
+  def get_weather(self, weather, metadata):
     '''
     Constructs the annual weather dataset for a given years impact
 

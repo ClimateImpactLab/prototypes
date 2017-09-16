@@ -52,6 +52,8 @@ T_STAR_PATH = ('/global/scratch/jsimcock/data/covars/t_star/{seed}/{scenario}/{e
 BASE_YEARS = [2000, 2010]
 
 WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/{year}/{version}.nc')
+BASE_WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/baseline/{version}.nc')
+
 
 
 description = '\n\n'.join(
@@ -152,8 +154,8 @@ def impact_annual(
     t_outer1 = time.time()
     import xarray as xr
     from csvv import Gammas
-    from mortality import Mortality_Polynomial as mp_impact
-    from baselines import impact_baseline
+    from mortality import Mortality_Polynomial as MP_impact
+    from base import BaseImpact
 
 
     metadata.update(ADDITIONAL_METADATA)
@@ -203,18 +205,22 @@ def impact_annual(
     gammas_median = gammas.median()
 
 
-    impact= mp_impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata)
+    #initialize the impact
+    impact = MP_impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata)
 
+    #set metadata
     metadata['seed'] = 'median'
-    metadata['year'] = 'baseline'
 
+    #set write path for t_star
     t_star = T_STAR_PATH.format(**metadata)
 
     ###########################
     # compute_baseline_median #
     ###########################
-    baseline_median_path = WRITE_PATH.format(**metadata)
-    baseline_median = impact_baseline(gammas_median, ANNUAL_WEATHER_FILE, gdp_covar_2015,clim_covar_2015, metadata, base_years, impact_function, baseline_median_path)
+    baseline_median_path = BASE_WRITE_PATH.format(**metadata)
+    base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, BASE_YEARS, metadata, baseline_median_path)
+    baseline_median = base.compute(gammas_median, gdp_covar_2015, clim_covar_2015)
+
 
     #################
     # No Adaptation #
@@ -271,11 +277,10 @@ def impact_annual(
             # compute_baseline #
             ####################
 
-            metadata['year'] = 'baseline'
-            base_seed_path = WRITE_PATH.format(**metadata)
+            base_seed_path = BASE_WRITE_PATH.format(**metadata)
 
             t_base1 = time.time()
-            baseline_seed = impact_baseline(gammas_sample, gdp_covar_2015, clim_covar_2015, base_seed_path)
+            baseline_seed = base.compute(gammas_sample, gdp_covar_2015, clim_covar_2015, base_seed_path)
 
             t_base2 = time.time()
             logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))

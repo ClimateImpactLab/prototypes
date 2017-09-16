@@ -1,10 +1,9 @@
-import os
-import numpy as np
 from impact import Impact
-from baselines import minimize_polynomial
-from toolz import memoize
-import xarray as xr
+from mins import minimize_polynomial
 
+
+import xarray as xr
+import numpy as np
 
 
 class Mortality_Polynomial(Impact):
