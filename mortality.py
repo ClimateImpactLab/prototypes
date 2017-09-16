@@ -27,22 +27,9 @@ class Mortality_Polynomial(Impact):
 
 		return impact
 
-	def compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
+	def compute_t_star(self, betas, min_max_boundary):
 
-
-		if not os.path.isfile(t_star_path):
-			t_star = minimize_polynomial(betas, min_max_boundary)
-
-		if not os.path.isdir(os.path.dirname(t_star_path)):
-			os.makedirs(os.path.dirname(t_star_path))
-
-		t_star.to_netcdf(t_star_path)
-
-		t_star = self._get_t_star(t_star_path)
-		print(t_star)
-		print(betas)
-
-		return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+		return minimize_polynomial(betas, min_max_boundary)
   		
 
 

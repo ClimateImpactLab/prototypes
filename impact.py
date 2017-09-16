@@ -139,7 +139,7 @@ class Impact(object):
       ds.load()
     return ds
 
-  def compute_m_star(self, betas, min_function=None, min_max_boundary=None, t_star_path=None):
+  def _compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -167,6 +167,22 @@ class Impact(object):
     .. note:: writes to disk and subsequent calls will read from disk. 
     '''
     # if file does not exist create it
+    if not os.path.isfile(t_star_path):
+
+        #Compute t_star according to min function
+        t_star = self.compute_t_star(betas, min_max_boundary)
+        #write to disk
+        if not os.path.isdir(os.path.dirname(t_star_path)):
+                os.makedirs(os.path.dirname(t_star_path))
+
+        t_star.to_netcdf(t_star_path)
+
+    #Read from disk
+    t_star = self._get_t_star(t_star_path)
+      
+    return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
+
+  def compute_t_star(self, betas, min_max_boundary):
     raise NotImplementedError
 
   def impact_function(self, betas, annual_weather):
