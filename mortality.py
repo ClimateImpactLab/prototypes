@@ -10,7 +10,7 @@ class Mortality_Polynomial(Impact):
 	'''
 
 	def min_function(self, betas, min_max):
-		return self.minimize_polynomial(betas, min_max)
+		return minimize_polynomial(betas, min_max)
 
 
 	def impact_function(self, betas, weather):
@@ -20,6 +20,7 @@ class Mortality_Polynomial(Impact):
 		'''
 		#slick
 		impact = (betas*weather).sum(dim='prednames')
+		print(impact)
 		
 		#verbose
 		# impact =  (betas.sel(prednames='tas')*weather['tas'] + 
