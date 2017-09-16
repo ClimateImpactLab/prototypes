@@ -62,6 +62,7 @@ class BaseImpact(Impact):
                 read_rcp = metadata['scenario']
 
             path = model_paths.format(scenario=read_rcp ,year=year)
+            print(path)
             with xr.open_dataset(path) as ds:
                 ds.load()
             ds = ds.mean(dim='time')
