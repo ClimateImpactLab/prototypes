@@ -6,7 +6,7 @@ from impact import Impact
 
 
 
-class BaseImpact(Impact, base_path):
+class BaseImpact(Impact):
     '''
     
     '''
