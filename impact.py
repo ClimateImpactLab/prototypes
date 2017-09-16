@@ -168,6 +168,7 @@ class Impact(object):
     .. note:: writes to disk and subsequent calls will read from disk. 
     '''
     # if file does not exist create it
+    print(t_star_write_path)
     if not os.path.isfile(t_star_write_path):
 
         #Compute t_star according to min function
