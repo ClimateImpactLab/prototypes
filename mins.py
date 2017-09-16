@@ -67,7 +67,7 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
 
 
     '''
-  
+    print(type(da))
     print da.shape
     print da.dims
     print da.values
