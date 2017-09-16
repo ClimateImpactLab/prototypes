@@ -173,7 +173,7 @@ class Impact(object):
     if not os.path.isfile(t_star_path):
 
         #Compute t_star according to min function
-        t_star = min_function(cls, betas, min_max_boundary)
+        t_star = self.min_function(cls, betas, min_max_boundary)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.path.makedir(os.path.dirname(t_star_path))
