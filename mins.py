@@ -32,7 +32,7 @@ def _findpolymin(coeffs, min_max):
     Example
     -------
     '''
-
+    print(coeffs)
     minx = np.asarray(min_max).min()
     maxx = np.asarray(min_max).max()
 
