@@ -10,7 +10,7 @@ class Mortality_Polynomial(Impact):
 	'''
 
 	def min_function(self, *args):
-		return minimize_polynomial
+		return minimize_polynomial(*args)
 
 
 	def impact_function(self, betas, weather):
