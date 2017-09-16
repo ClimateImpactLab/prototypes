@@ -1,7 +1,5 @@
 from impact import Impact
 from mins import minimize_polynomial
-
-
 import xarray as xr
 import numpy as np
 
@@ -11,7 +9,7 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 
-	min_function = staticmethod(minimize_polynomial)
+	min_function = classmethod(minimize_polynomial)
 
 
 	def impact_function(self, betas, weather):
