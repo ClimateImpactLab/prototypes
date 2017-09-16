@@ -67,8 +67,11 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
 
 
     '''
-    dims = da.dims
-    shape = da.shape
+  
+    print da.shape
+    print da.dims
+    print da.values
+
 
     t_star_values = np.apply_along_axis(_findpolymin, 1, da.values, min_max=bounds)
 
