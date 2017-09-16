@@ -11,7 +11,7 @@ class Impact(object):
 
   '''
 
-  min_function = None
+  classmethod(min_function) = NotImplemented
 
   def __init__(self, weather, preds, metadata):
     '''
