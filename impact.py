@@ -173,7 +173,7 @@ class Impact(object):
             min_function = cls.min_function
 
         #Compute t_star according to min function
-        t_star = min_function(betas, min_max_boundary)
+        t_star = min_function(cls, betas, min_max_boundary)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.makedirs(os.path.dirname(t_star_path))
