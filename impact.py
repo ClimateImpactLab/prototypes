@@ -11,7 +11,7 @@ class Impact(object):
 
   '''
 
-  min_function = NotImplemented
+  min_function = None
 
   def __init__(self, weather, preds, metadata):
     '''
@@ -140,7 +140,6 @@ class Impact(object):
       ds.load()
     return ds
 
-  @staticmethod
   def compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
