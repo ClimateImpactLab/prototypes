@@ -9,7 +9,7 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 	@staticmethod
-	def min_function(self, betas, min_max):
+	def min_function(betas, min_max):
 		return minimize_polynomial(betas, min_max)
 
 
