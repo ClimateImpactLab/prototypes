@@ -10,7 +10,7 @@ class Impact(object):
     Base class for computing an impact as specified by the Climate Impact Lab
 
   '''
-
+  min_function = NotImplementedError
 
   def __init__(self, weather, preds, metadata):
     '''
@@ -183,7 +183,7 @@ class Impact(object):
     return sum((t_star*betas).data_vars.values()).sum(dim='prednames')
 
   def compute_t_star(self, betas, min_max_boundary):
-    raise NotImplementedError
+    return self.min_function(betas, min_max_boundary)
 
   def impact_function(self, betas, annual_weather):
     raise NotImplementedError
