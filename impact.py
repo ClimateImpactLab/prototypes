@@ -11,10 +11,6 @@ class Impact(object):
 
   '''
 
-  @classmethod
-  def min_function(cls):
-    raise NotImplementedError
-
   def __init__(self, weather, preds, metadata):
     '''
     Parameters
@@ -141,6 +137,9 @@ class Impact(object):
     with xr.open_dataset(path) as ds:
       ds.load()
     return ds
+
+  def min_function(self, betas, min_max_boundary):
+    raise NotImplementedError
 
   def compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
     '''
