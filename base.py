@@ -72,7 +72,6 @@ class BaseImpact(Impact):
 
         ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
         ds_concat = ds_concat.mean(dim='year')
-        print(ds_concat.data_vars)
         return ds_concat
 
 
@@ -92,7 +91,12 @@ class BaseImpact(Impact):
 
             base_weather_pred.append(self._construct_baseline_weather(annual_weather_paths, self.metadata, self.base_years))
 
-        base_weather = xr.concat(base_weather_pred, pd.Index(preds, name='predname'))
+        ar = []
+        for i, pred in preds:
+            ar.append(base_weather_pred[i][pred])
+
+
+        base_weather = xr.concat(ar, pd.Index(preds, name='predname'))
 
         return base_weather
 
