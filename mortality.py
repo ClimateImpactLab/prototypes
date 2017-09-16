@@ -8,9 +8,9 @@ class Mortality_Polynomial(Impact):
 	'''
 	Mortality specific 
 	'''
-
-	def min_function(self, *args):
-		return minimize_polynomial(*args)
+	@staticmethod
+	def min_function(self, betas, min_max):
+		return minimize_polynomial(betas, min_max)
 
 
 	def impact_function(self, betas, weather):
