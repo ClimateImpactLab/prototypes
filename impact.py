@@ -11,7 +11,6 @@ class Impact(object):
 
   '''
 
-  min_function = NotImplemented
 
   def __init__(self, weather, preds, metadata):
     '''
@@ -141,7 +140,7 @@ class Impact(object):
     return ds
 
   @classmethod
-  def compute_m_star(self, betas, min_function=min_function, min_max_boundary=None, t_star_path=None):
+  def compute_m_star(cls, betas, min_function=None, min_max_boundary=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -170,9 +169,11 @@ class Impact(object):
     '''
     # if file does not exist create it
     if not os.path.isfile(t_star_path):
+        if min_function == None:
+            min_function = cls.min_function
 
         #Compute t_star according to min function
-        t_star = self.min_function(betas, min_max_boundary)
+        t_star = min_function(betas, min_max_boundary)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.makedirs(os.path.dirname(t_star_path))
