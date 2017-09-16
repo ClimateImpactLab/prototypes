@@ -72,8 +72,8 @@ class BaseImpact(Impact):
 
         ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
         ds_concat = ds_concat.mean(dim='year')
-        varname = ds_concat.variable
-        return ds_concat[varname]
+        print(ds_concat.data_vars)
+        return ds_concat
 
 
     def get_weather(self, weather, preds, metadata):
