@@ -126,7 +126,7 @@ class BaseImpact(Impact):
 
         impact = (betas*weather).sum(dim='prednames')
 
-        self._basline_to_netcdf(impact, self.metadata, self.write_path)
+        self._basline_to_netcdf(impact, self.metadata, self.base_path)
 
 
         return impact
@@ -139,7 +139,6 @@ class BaseImpact(Impact):
         '''
 
         metadata['baseline_years'] = str([self.base_years])
-        metadata['dependencies'] = str([weather_model_paths, gdp_covar_path, climate_covar_path, gammas])
         metadata['oneline'] = 'Baseline impact value for mortality'
         metadata['description'] = 'Baseline impact value for mortality. Values are annual expected damage resolved to GCP hierid level region.'
 
