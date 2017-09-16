@@ -178,7 +178,7 @@ class Impact(object):
         print(t_star)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
-                os.mkdir(os.path.dirname(t_star_path))
+                os.makedirs(os.path.dirname(t_star_path))
 
         t_star.to_netcdf(t_star_path)
 
