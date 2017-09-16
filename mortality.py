@@ -9,7 +9,7 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 
-	min_function = staticmethod(minimize_polynomial)
+	#min_function = staticmethod(minimize_polynomial)
 
 	def impact_function(self, betas, weather):
 		'''
@@ -27,9 +27,11 @@ class Mortality_Polynomial(Impact):
 
 		return impact
 
-	# def compute_t_star(self, betas, min_max_boundary):
 
-	# 	return minimize_polynomial(betas, min_max_boundary)
-  		
+	def compute_t_star(self, betas, min_max_boundary):
+		return minimize_polynomial(betas, min_max_boundary)
+
+
+
 
 
