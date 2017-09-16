@@ -169,12 +169,10 @@ class Impact(object):
     .. note:: writes to disk and subsequent calls will read from disk. 
     '''
     # if file does not exist create it
-    print(t_star_path)
     if not os.path.isfile(t_star_path):
 
         #Compute t_star according to min function
         t_star = self.min_function(betas, min_max_boundary)
-        print(t_star)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.makedirs(os.path.dirname(t_star_path))
