@@ -11,6 +11,8 @@ class Impact(object):
 
   '''
 
+  min_function = NotImplemented
+
   def __init__(self, weather, preds, metadata):
     '''
     Parameters
@@ -138,10 +140,8 @@ class Impact(object):
       ds.load()
     return ds
 
-  def min_function(self, betas, min_max_boundary):
-    raise NotImplementedError
-
-  def compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
+  @classmethod
+  def compute_m_star(self, betas, min_function=min_function, min_max_boundary=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
