@@ -82,9 +82,6 @@ class BaseImpact(Impact):
         '''
 
         base_weather_pred = []
-        print weather 
-        print preds
-        print metadata
         
         for pred in preds:
             annual_weather_paths = weather.format(scenario='{scenario}', 
@@ -93,6 +90,7 @@ class BaseImpact(Impact):
                                                             pred=pred)
 
             base_weather_pred.append(self._construct_baseline_weather(annual_weather_paths, self.metadata, self.base_years))
+            print base_weather_pred
 
         base_weather = xr.concat(base_weather_pred, pd.Index(preds, name='predname'))
 
