@@ -80,6 +80,10 @@ class BaseImpact(Impact):
         '''
 
         base_weather_pred = []
+        print weather 
+        print preds
+        print metadata
+        
         for pred in preds:
             annual_weather_paths = weather.format(scenario='{scenario}', 
                                                             year='{year}', 
