@@ -11,7 +11,7 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 
-	min_function = static_method(minimize_polynomial)
+	min_function = staticmethod(minimize_polynomial)
 
 
 	def impact_function(self, betas, weather):
