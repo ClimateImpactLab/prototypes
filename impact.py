@@ -140,7 +140,8 @@ class Impact(object):
       ds.load()
     return ds
 
-  def compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
+  @classmethod
+  def compute_m_star(cls, betas, min_max_boundary=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -172,7 +173,7 @@ class Impact(object):
     if not os.path.isfile(t_star_path):
 
         #Compute t_star according to min function
-        t_star = self.min_function(betas, min_max_boundary)
+        t_star = cls.min_function(betas, min_max_boundary)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.path.makedir(os.path.dirname(t_star_path))
