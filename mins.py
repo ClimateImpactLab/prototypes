@@ -8,7 +8,7 @@ from impact import Impact
 
 
 
-def _findpolymin(coeffs, min_max=None):
+def _findpolymin(coeffs, min_max=[10,25]):
     '''
     Computes the min value for a set of coefficients (gammas)
 
@@ -33,7 +33,6 @@ def _findpolymin(coeffs, min_max=None):
     -------
     '''
    
-    print(min_max)
     minx = np.asarray(min_max).min()
     maxx = np.asarray(min_max).max()
 
