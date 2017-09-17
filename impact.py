@@ -51,6 +51,7 @@ class Impact(object):
 
     annual_weather = xr.concat(weathers, pd.Index(self.preds, name='prednames'))
 
+    print('getting weather')
 
     return annual_weather
 
@@ -83,6 +84,8 @@ class Impact(object):
     covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
 
     betas = sum((gammas*covars).data_vars.values())
+
+    print('computing betas ')
 
     return betas
 
@@ -179,6 +182,8 @@ class Impact(object):
 
     #Read from disk
     t_star = self._get_t_star(t_star_path)
+
+    print('computing m star')
       
     return self.impact_function(betas, t_star)
 

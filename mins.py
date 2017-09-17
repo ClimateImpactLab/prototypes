@@ -67,8 +67,7 @@ def minimize_polynomial(da, dim='prednames', bounds=[10,25]):
 
 
     '''
-
-    print(bounds)
+    print(da.dims)
     t_star_values = np.apply_along_axis(_findpolymin, 1, da, min_max=bounds)
 
     if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != 1]):
@@ -76,8 +75,8 @@ def minimize_polynomial(da, dim='prednames', bounds=[10,25]):
 
     t_star = xr.DataArray(
         t_star_values,
-        dims=tuple([d for d in da.dims if d != dim]),
-        coords={c: da.coords[c] for c in da.coords.keys() if c != dim})
+        dims=tuple(['hierid']),
+        coords={'hierid': da.hierid})
 
     t_star = t_star.expand_dims(dim, axis=1)
 
