@@ -8,7 +8,7 @@ from impact import Impact
 
 
 
-def _findpolymin(coeffs, min_max):
+def _findpolymin(coeffs, min_max=None):
     '''
     Computes the min value for a set of coefficients (gammas)
 

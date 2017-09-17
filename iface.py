@@ -217,12 +217,12 @@ def impact_annual(
     ###########################
     # compute_baseline_median #
     ###########################
-    t1 = time.time()
-    baseline_median_path = BASE_WRITE_PATH.format(**metadata)
-    base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata, BASE_YEARS,  baseline_median_path)
-    baseline_median = base.compute(gammas_median, gdp_covar_2015, clim_covar_2015)
-    t2 = time.time()
-    logger.debug('Computing median baseline impact for year {}: {}'.format(year, t2-t1))
+    # t1 = time.time()
+    # baseline_median_path = BASE_WRITE_PATH.format(**metadata)
+    # base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata, BASE_YEARS,  baseline_median_path)
+    # baseline_median = base.compute(gammas_median, gdp_covar_2015, clim_covar_2015)
+    # t2 = time.time()
+    # logger.debug('Computing median baseline impact for year {}: {}'.format(year, t2-t1))
 
     #################
     # No Adaptation #
