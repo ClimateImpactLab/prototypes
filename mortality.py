@@ -29,6 +29,7 @@ class Mortality_Polynomial(Impact):
 
 
 	def compute_t_star(self, betas, min_max_boundary=[10,25]):
+		print(min_max_boundary, betas)
 		return minimize_polynomial(betas, min_max_boundary)
 
 
