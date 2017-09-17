@@ -75,8 +75,8 @@ def minimize_polynomial(da, dim='prednames', bounds=[10,25]):
 
     t_star = xr.DataArray(
         t_star_values,
-        dims=tuple(['hierid']),
-        coords={'hierid': da.hierid})
+        dims=tuple(['outcome', 'hierid']),
+        coords={'outcome': da.outcome, 'hierid': da.hierid})
 
     t_star = t_star.expand_dims(dim, axis=1)
 
