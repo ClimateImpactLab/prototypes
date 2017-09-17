@@ -8,7 +8,7 @@ from impact import Impact
 
 
 
-def _findpolymin(coeffs, min_max=[10,25]):
+def _findpolymin(coeffs, min_max):
     '''
     Computes the min value for a set of coefficients (gammas)
 
@@ -68,6 +68,7 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
 
     '''
 
+    print(bounds)
     t_star_values = np.apply_along_axis(_findpolymin, 1, da, min_max=bounds)
 
     if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != da.get_axis_num(dim)]):
