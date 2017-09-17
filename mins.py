@@ -62,7 +62,7 @@ def _findpolymin(coeffs, min_max):
 
     return possibles[index]
 
-def minimize_polynomial(da, dim='prednames', bounds=None):
+def minimize_polynomial(da, dim='prednames', bounds=[10,25]):
     '''
 
 
