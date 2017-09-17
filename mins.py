@@ -68,6 +68,7 @@ def minimize_polynomial(da, dim='prednames', bounds=[10,25]):
 
     '''
     print(da.dims)
+    vals = da.prednames.values
     t_star_values = np.apply_along_axis(_findpolymin, 1, da, min_max=bounds)
 
     if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != 1]):
@@ -81,6 +82,6 @@ def minimize_polynomial(da, dim='prednames', bounds=[10,25]):
     t_star = t_star.expand_dims(dim, axis=1)
 
     # this is the only part I'm unsure of. Should the 0th term be included?
-    t_star_poly = xr.concat([t_star**i for i in range(len(da.coords[dim]))], dim=da.coords[dim])
+    t_star_poly = xr.concat([t_star**i for i in range(len(vals))], pd.Index(vals, name=dim))
 
     return t_star_poly
