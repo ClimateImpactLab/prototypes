@@ -25,6 +25,7 @@ class Mortality_Polynomial(Impact):
   #               betas.sel(prednames='tas-poly-3')*weather['tas-poly-3'] + 
   #               betas.sel(prednames='tas-poly-4')*weather['tas-poly-4'])
 
+
 		return impact
 
 

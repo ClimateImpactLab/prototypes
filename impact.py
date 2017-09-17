@@ -115,21 +115,26 @@ class Impact(object):
     '''
     #Generate Betas
     betas = self._compute_betas(gammas, [clim_covars,gdp_covars])
+    print('computing betas')
 
     #Compute Raw Impact
     impact = self.impact_function(betas, self.weather)
+    print('computing impact')
 
     #Compute the min for flat curve adaptation
     m_star = self._compute_m_star(betas, min_max_boundary, t_star_path)
+    print('computing m_star')
 
     #Compare values and evaluate a max
     impact = xr.ufuncs.minimum(impact, m_star)
+    print('taking min')
 
     if postprocess_daily:
       impact = self.postprocess_daily(impact)
 
     #Sum to annual
     impact_annual = impact.sum(dim='time') 
+    print('annual sum')
 
     if postprocess_annual:
       impact_annual = self.postprocess_annual(impact_annual) 
@@ -182,9 +187,7 @@ class Impact(object):
 
     #Read from disk
     t_star = self._get_t_star(t_star_path)
-
-    print('computing m star')
-      
+          
     return self.impact_function(betas, t_star)
 
   def compute_t_star(self, betas, min_max_boundary):
