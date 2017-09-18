@@ -28,7 +28,7 @@ class BaseImpact(Impact):
         Returns the cached version of the baseline impact
 
         '''
-        with xr.open_dataset(base_path) as ds: 
+        with xr.open_dataarray(base_path) as ds: 
           ds.load()
 
         return ds
@@ -127,7 +127,7 @@ class BaseImpact(Impact):
 
         self._basline_to_netcdf(impact, self.metadata, self.base_path)
 
-        impact_read = xr.open_dataset(self.base_path)
+        impact_read = xr.open_dataarray(self.base_path)
 
         return impact_read
 
