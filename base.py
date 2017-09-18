@@ -136,8 +136,6 @@ class BaseImpact(Impact):
         Updates metadata and writes baseline to disk
 
         '''
-        print(impact_da)
-
 
         metadata['baseline_years'] = str(self.base_years)
         metadata['oneline'] = 'Baseline impact value for mortality'

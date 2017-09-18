@@ -228,7 +228,10 @@ def impact_annual(
     # No Adaptation #
     #################
     t1 = time.time()
-    median_ds['no_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, bounds = [10,25], t_star_path=t_star) - baseline_median
+    a = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, bounds = [10,25], t_star_path=t_star)
+    print(a)
+    print(baseline_median)
+    median_ds['no_adaptation'] =  a - baseline_median
     t2 = time.time()
     logger.debug('Computing median no adaptiation impact for year {}: {}'.format(year, t2-t1))
 
