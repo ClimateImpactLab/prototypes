@@ -32,7 +32,7 @@ def _findpolymin(coeffs, min_max):
     Example
     -------
     '''
-    print(min_max)
+    print('_findpolymin {}:'.format(min_max))
     minx = np.asarray(min_max).min()
     maxx = np.asarray(min_max).max()
 
@@ -68,7 +68,7 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
 
     '''
 
-    print(bounds)
+    print('minimize_polynomial: {}'.format(bounds))
     t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da.values, min_max=bounds)
 
     if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != da.get_axis_num(dim)]):
