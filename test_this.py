@@ -26,8 +26,8 @@ def test_this():
 				'model': 'ACCESS1-0',
 				'year': 2015
 				}
-
-    base_path = '/global/scratch/jsimcock/data_files/covars/base_median.nc'
+	
+	base_path = '/global/scratch/jsimcock/data_files/covars/base_median.nc'
 	base = BaseImpact(path, gammas.prednames.values, metadata, [2000, 2010], base_path)
 	base_median = base.compute(gammas, gdp, climtas)
 
