@@ -127,7 +127,7 @@ class Impact(object):
     print('computing impact {}'.format(t3-t2))
 
     #Compute the min for flat curve adaptation
-    m_star = self._compute_m_star(betas, min_max_boundary, t_star_path)
+    m_star = self._compute_m_star(betas, bounds=bounds, t_star_path=t_star_path)
     t4 = time.time()
     print('computing m_star {}'.format(t4-t3))
 
@@ -155,7 +155,7 @@ class Impact(object):
       ds.load()
     return ds
 
-  def _compute_m_star(self, betas, min_max_boundary=None, t_star_path=None):
+  def _compute_m_star(self, betas, bounds=None, t_star_path=None):
     '''
     Computes m_star, the value of an impact function for a given set of betas given t_star. 
     t_star, the value t at which an impact is minimized for a given hierid is precomputed 
@@ -186,7 +186,7 @@ class Impact(object):
     if not os.path.isfile(t_star_path):
 
         #Compute t_star according to min function
-        t_star = self.compute_t_star(betas, min_max_boundary)
+        t_star = self.compute_t_star(betas, bounds=bounds)
         #write to disk
         if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.makedirs(os.path.dirname(t_star_path))
@@ -200,8 +200,8 @@ class Impact(object):
 
     return self.impact_function(betas, t_star)
 
-  def compute_t_star(self, betas, min_max_boundary=None):
-    return self.min_function(betas, min_max_boundary=min_max_boundary)
+  def compute_t_star(self, betas, bounds=None):
+    return self.min_function(betas, bounds=bounds)
 
   def impact_function(self, betas, annual_weather):
     raise NotImplementedError
