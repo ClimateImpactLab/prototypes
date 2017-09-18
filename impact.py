@@ -200,8 +200,8 @@ class Impact(object):
 
     return self.impact_function(betas, t_star)
 
-  def compute_t_star(self, betas, min_max_boundary):
-    return self.min_function(betas, min_max_boundary)
+  def compute_t_star(self, betas, min_max_boundary=None):
+    return self.min_function(betas, min_max_boundary=min_max_boundary)
 
   def impact_function(self, betas, annual_weather):
     raise NotImplementedError
