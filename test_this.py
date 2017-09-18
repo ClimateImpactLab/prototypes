@@ -16,12 +16,16 @@ def test_this():
 	climtas = climtas.rename({'tas':'climtas'})
 
 
-	path = '/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/{pred}/rcp85/ACCESS1-0/2015/1.5.nc4'
+	path = '/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/{pred}/{scenario}/{model}/{year}/1.5.nc4'
 	t_star_path = '/global/scratch/jsimcock/data_files/covars/t_star_median.nc'
 
 	gammas = g.median()
+	metadata = {'scenario': 'rcp85', 
+				'model': 'ACCESS1-0',
+				'year': 2015
+				}
 
-	m = Mortality_Polynomial(path, gammas.prednames.values)
+	m = Mortality_Polynomial(path, gammas.prednames.values, metadata)
 	# betas = m._compute_betas(gammas, [gdp, climtas])
 
 
