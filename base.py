@@ -137,6 +137,9 @@ class BaseImpact(Impact):
 
         '''
 
+        baseline =xr.Dataset()
+        baseline['baseline'] = impact_da
+
         metadata['baseline_years'] = str(self.base_years)
         metadata['oneline'] = 'Baseline impact value for mortality'
         metadata['description'] = 'Baseline impact value for mortality. Values are annual expected damage resolved to GCP hierid level region.'
