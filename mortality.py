@@ -9,7 +9,9 @@ class Mortality_Polynomial(Impact):
 	Mortality specific 
 	'''
 
-	min_function = staticmethod(minimize_polynomial)
+	@staticmethod
+	def min_function(*args, minmax_bounds=[10,25],  **kwargs):
+		return minimize_polynomial(*args, minmax_bounds=minmax_bounds, **kwargs)
 
 	def impact_function(self, betas, weather):
 		'''

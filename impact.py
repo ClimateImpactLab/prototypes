@@ -3,6 +3,7 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 from toolz import memoize
+import time
 
 
 class Impact(object):
@@ -113,28 +114,35 @@ class Impact(object):
       :py:class `~xarray.Dataset` of impacts by hierid by outcome group 
 
     '''
+    t1 = time.time()
     #Generate Betas
     betas = self._compute_betas(gammas, [clim_covars,gdp_covars])
-    print('computing betas')
+    t2 = time.time()
+
+    print('computing betas {}'.format(t2-t1))
 
     #Compute Raw Impact
     impact = self.impact_function(betas, self.weather)
-    print('computing impact')
+    t3 = time.time()
+    print('computing impact {}'.format(t3-t2))
 
     #Compute the min for flat curve adaptation
     m_star = self._compute_m_star(betas, min_max_boundary, t_star_path)
-    print('computing m_star')
+    t4 = time.time()
+    print('computing m_star {}'.format(t4-t3))
 
     #Compare values and evaluate a max
     impact = xr.ufuncs.minimum(impact, m_star)
-    print('taking min')
+    t5 =time.time()
+    print('taking min {}'.format(t5-t4))
 
     if postprocess_daily:
       impact = self.postprocess_daily(impact)
 
     #Sum to annual
-    impact_annual = impact.sum(dim='time') 
-    print('annual sum')
+    impact_annual = impact.sum(dim='time')
+    t6 = time.time() 
+    print('annual sum {}'.format(t6 -t5))
 
     if postprocess_annual:
       impact_annual = self.postprocess_annual(impact_annual) 
@@ -185,9 +193,11 @@ class Impact(object):
 
         t_star.to_netcdf(t_star_path)
 
-    #Read from disk
-    t_star = self._get_t_star(t_star_path)
-          
+    else:
+
+        #Read from disk
+        t_star = self._get_t_star(t_star_path)
+
     return self.impact_function(betas, t_star)
 
   def compute_t_star(self, betas, min_max_boundary):
