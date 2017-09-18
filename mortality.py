@@ -10,8 +10,8 @@ class Mortality_Polynomial(Impact):
 	'''
 
 	@staticmethod
-	def min_function(betas, minmax_bounds=[10,25]):
-		return minimize_polynomial(betas, bounds=minmax_bounds)
+	def min_function(betas, min_max_boundary=[10,25]):
+		return minimize_polynomial(betas, bounds=min_max_boundary)
 
 	def impact_function(self, betas, weather):
 		'''
