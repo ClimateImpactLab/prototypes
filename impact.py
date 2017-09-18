@@ -145,12 +145,8 @@ class Impact(object):
     if postprocess_annual:
       impact = self.postprocess_annual(impact_annual) 
 
-    impact_annual = xr.DataArray(impact, 
-                                  coords =impact.coords, 
-                                  dims=impact.dims,
-                                  name='impact_annual')
 
-    return impact_annaul
+    return impact
 
   @memoize
   def _get_t_star(self, path):
