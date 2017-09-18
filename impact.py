@@ -146,7 +146,7 @@ class Impact(object):
       impact = self.postprocess_annual(impact_annual) 
 
     impact_annual = xr.DataArray(impact, 
-                                  coords ={c: impact.coords(c) for c in impact.coords.keys()}, 
+                                  coords ={c: impact.coords[c] for c in impact.coords.keys()}, 
                                   dims=tuple([d for d in impact.dims]),
                                   name='impact_annual')
 
