@@ -136,11 +136,15 @@ class BaseImpact(Impact):
         Updates metadata and writes baseline to disk
 
         '''
-        metadata['baseline_years'] = str([self.base_years])
+        impact_da.rename({'__xarray_dataarray_variable__': 'baseline'})
+
+
+        metadata['baseline_years'] = str(self.base_years)
         metadata['oneline'] = 'Baseline impact value for mortality'
         metadata['description'] = 'Baseline impact value for mortality. Values are annual expected damage resolved to GCP hierid level region.'
 
         impact_da.attrs.update(metadata)
+
 
         if not os.path.isdir(os.path.dirname(write_path)):
               os.makedirs(os.path.dirname(write_path))
