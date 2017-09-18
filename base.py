@@ -136,7 +136,7 @@ class BaseImpact(Impact):
         Updates metadata and writes baseline to disk
 
         '''
-        impact_da.rename({'__xarray_dataarray_variable__': 'baseline'})
+        print(impact_da)
 
 
         metadata['baseline_years'] = str(self.base_years)
