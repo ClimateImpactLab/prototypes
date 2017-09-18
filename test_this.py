@@ -29,7 +29,7 @@ def test_this():
 	# betas = m._compute_betas(gammas, [gdp, climtas])
 
 
-	impact  = m.compute(gammas, gdp, climtas, bounds=[10,25], t_star_path=t_star_path) 
+	impact = m.compute(gammas, gdp, climtas, bounds=[10,25], t_star_path=t_star_path) 
 	baseline = xr.open_dataset('/global/scratch/jsimcock/gcp/impacts/mortality-daily/median/historical/low/SSP1/ACCESS1-0/baseline/0.1.1.nc')
 
 
@@ -37,7 +37,7 @@ def test_this():
 
 	print(t2-t1)
 
-	return impact, baseline
+	return impact
 
 
 

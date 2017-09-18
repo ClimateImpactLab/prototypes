@@ -52,7 +52,6 @@ class Impact(object):
 
     annual_weather = xr.concat(weathers, pd.Index(self.preds, name='prednames'))
 
-    print('getting weather')
 
     return annual_weather
 
@@ -86,7 +85,6 @@ class Impact(object):
 
     betas = sum((gammas*covars).data_vars.values())
 
-    print('computing betas ')
 
     return betas
 

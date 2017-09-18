@@ -95,7 +95,7 @@ class BaseImpact(Impact):
             ar.append(base_weather_pred[i][pred])
 
 
-        base_weather = xr.concat(ar, pd.Index(preds, name='predname'))
+        base_weather = xr.concat(ar, pd.Index(preds, name='prednames'))
 
         return base_weather
 
@@ -114,9 +114,9 @@ class BaseImpact(Impact):
         betas = self._compute_betas(gammas, [clim_covars, gdp_covars])
 
         #Compute Raw Impact
-        impact = self.impact_function(betas, self.weather_computed)
+        impact= self.impact_function(betas, self.weather_computed)
 
-        return impact
+        return impact 
 
 
 
