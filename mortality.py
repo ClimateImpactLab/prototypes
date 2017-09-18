@@ -19,7 +19,7 @@ class Mortality_Polynomial(Impact):
 		'''
 		#slick
 		impact = (betas*weather).sum(dim='prednames')
-		
+
 		#verbose
 		# impact =  (betas.sel(prednames='tas')*weather['tas'] + 
   #               betas.sel(prednames='tas-poly-2')*weather['tas-poly-2'] + 

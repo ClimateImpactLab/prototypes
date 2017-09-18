@@ -138,14 +138,19 @@ class Impact(object):
       impact = self.postprocess_daily(impact)
 
     #Sum to annual
-    impact_annual = impact.sum(dim='time')
+    impact = impact.sum(dim='time')
     t6 = time.time() 
     print('annual sum {}'.format(t6 -t5))
 
     if postprocess_annual:
-      impact_annual = self.postprocess_annual(impact_annual) 
+      impact = self.postprocess_annual(impact_annual) 
 
-    return impact_annual
+    impact_annual = xr.DataArray(impact, 
+                                  coords ={c: impact.coords(c) for c in impact.coords.keys()}, 
+                                  dims=tuple([d for d in impact.dims]),
+                                  name='impact_annual')
+
+    return impact_annaul
 
   @memoize
   def _get_t_star(self, path):
