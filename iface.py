@@ -231,7 +231,13 @@ def impact_annual(
     a = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, bounds = [10,25], t_star_path=t_star)
     print(a)
     print(baseline_median)
-    median_ds['no_adaptation'] =  a - baseline_median
+    res = a - baseline_median
+    try:
+        median_ds['no_adaptation'] =  res
+    except Exception as e:
+        print('nope. trying one more time...')
+        median_ds['no_adaptation'] =  res.data_vars.values()[0]
+        print('I finally got through!!!')
     t2 = time.time()
     logger.debug('Computing median no adaptiation impact for year {}: {}'.format(year, t2-t1))
 
