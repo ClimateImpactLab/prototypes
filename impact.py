@@ -94,7 +94,7 @@ class Impact(object):
               gammas, 
               gdp_covars,
               clim_covars,
-              min_max_boundary=None,
+              bounds=None,
               t_star_path=None,
               postprocess_daily=False,
               postprocess_annual=False):

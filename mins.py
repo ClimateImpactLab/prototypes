@@ -69,7 +69,7 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
     '''
 
     print('minimize_polynomial: {}'.format(bounds))
-    t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da.values, min_max = [10,25])
+    t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da.values, min_max = bounds)
 
     if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != da.get_axis_num(dim)]):
         raise ValueError('_findpolymin returned an unexpected shape: {}'.format(t_star_values.shape))
