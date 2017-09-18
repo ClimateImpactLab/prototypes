@@ -127,8 +127,9 @@ class BaseImpact(Impact):
 
         self._basline_to_netcdf(impact, self.metadata, self.base_path)
 
+        impact_read = xr.open_dataset(self.base_path)
 
-        return impact
+        return impact_read
 
 
     def _basline_to_netcdf(self, impact_da, metadata, write_path):
