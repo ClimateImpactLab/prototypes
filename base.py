@@ -144,13 +144,13 @@ class BaseImpact(Impact):
         metadata['oneline'] = 'Baseline impact value for mortality'
         metadata['description'] = 'Baseline impact value for mortality. Values are annual expected damage resolved to GCP hierid level region.'
 
-        impact_da.attrs.update(metadata)
-
+        varattrs = {k:str(v) for k,v in metadata.items()}
+        baseline.attrs.update(varattrs)
 
         if not os.path.isdir(os.path.dirname(write_path)):
               os.makedirs(os.path.dirname(write_path))
         
-        impact_da.to_netcdf(write_path)
+        baseline.to_netcdf(write_path)
 
     ##############
     # Deprecated #
