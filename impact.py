@@ -90,8 +90,8 @@ class Impact(object):
 
   def compute(self,  
               gammas, 
-              gdp_covars,
-              clim_covars,
+              gdp_covar,
+              clim_covar,
               bounds=None,
               t_star_path=None,
               postprocess_daily=False,
@@ -114,7 +114,7 @@ class Impact(object):
     '''
     t1 = time.time()
     #Generate Betas
-    betas = self._compute_betas(gammas, gdp_covars, clim_covar)
+    betas = self._compute_betas(gammas, gdp_covar, clim_covar)
     t2 = time.time()
 
     print('computing betas {}'.format(t2-t1))
