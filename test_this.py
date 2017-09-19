@@ -39,7 +39,7 @@ def test_this():
 	#impact = m.compute(gammas, gdp, climtas, base_median, bounds=[10,25], t_star_path=t_star_path) 
 	betas =m._compute_betas(gamas, gdp, climtas)
 	impact = m.impact_function(betas, m.weather)
-	m_star = m._compute_m_star(betas, bounds = [10,25], t_star_path)
+	m_star = m._compute_m_star(betas, bounds = [10,25], t_star_path=t_star_path)
 	impact_minned = xr.ufuncs.minimum(impact, m_star)
 	summed = impact_minned.sum(dim='time')
 
