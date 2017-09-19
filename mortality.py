@@ -18,6 +18,8 @@ class Mortality_Polynomial(Impact):
 
 		'''
 		#slick
+		print('betas', betas)
+		print('weather', weather)
 		impact = (betas*weather).sum(dim='prednames')
 
 		#verbose
