@@ -174,7 +174,7 @@ def impact_annual(
 
 
     #Load data for baseline and clipping computations
-    with xr.open_datarray(climate_covar_2015_path) as clim_covar_2015:
+    with xr.open_dataarray(climate_covar_2015_path) as clim_covar_2015:
         clim_covar_2015.load()
 
 
