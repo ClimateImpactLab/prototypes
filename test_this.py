@@ -40,7 +40,9 @@ def test_this():
 	betas =m._compute_betas(gamas, gdp, climtas)
 	impact = m.impact_function(betas, m.weather)
 	m_star = m._compute_m_star(betas, bounds = [10,25], t_star_path)
-    impact_minned = xr.ufuncs.minimum(impact, m_star)
+	impact_minned = xr.ufuncs.minimum(impact, m_star)
+	summed = impact_minned.sum(dim='time')
+
 
 
 
@@ -49,7 +51,7 @@ def test_this():
 
 	print(t2-t1)
 
-	return impact, base_median
+	return impact, base_median, betas, m_star, impact_minned, summed
 
 
 
