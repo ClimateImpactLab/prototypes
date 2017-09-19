@@ -130,7 +130,7 @@ class Impact(object):
     #Generate Betas
     betas = self._compute_betas(gammas, gdp_covar, clim_covar)
     t2 = time.time()
-    print(betas)
+    print('betas', betas)
 
     print('computing betas {}'.format(t2-t1))
 
@@ -138,17 +138,17 @@ class Impact(object):
     impact = self.impact_function(betas, self.weather)
     t3 = time.time()
     print('computing impact {}'.format(t3-t2))
-    print(impact)
+    print('impact', impact)
 
     #Compute the min for flat curve adaptation
     m_star = self._compute_m_star(betas, bounds=bounds, t_star_path=t_star_path)
-    print(m_star)
+    print('m_star', m_star)
     t4 = time.time()
     print('computing m_star {}'.format(t4-t3))
 
     #Compare values and evaluate a max
     impact = xr.ufuncs.minimum(impact, m_star)
-    print(impact)
+    print('impact_minned', impact)
     t5 =time.time()
     print('taking min {}'.format(t5-t4))
 
@@ -162,7 +162,7 @@ class Impact(object):
 
 
 
-    print('impact', impact)
+    print('impact summed', impact)
     print('baseline', baseline)
     impact_annual = impact - baseline
     print('rebased', impact_annual)
