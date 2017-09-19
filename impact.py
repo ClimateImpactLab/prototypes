@@ -173,8 +173,8 @@ class Impact(object):
     if postprocess_annual:
       impact_annual= self.postprocess_annual(impact_annual) 
 
-
-    return impact_annual
+    impact_annual = impact_annual.rename('rebased')
+    return impact_annual.rebased
 
   @memoize
   def _get_t_star(self, path):
