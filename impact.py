@@ -77,7 +77,7 @@ class Impact(object):
 
     '''
     
-    ones = [xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covars.hierid}, dims=['hierid'], name='1')]
+    ones = xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covar.hierid}, dims=['hierid'], name='1')
     covars = xr.concat([ones, clim_covar, gdp_covar], pd.Index(gammas.data_vars.keys(), name='covarnames'))
 
 
