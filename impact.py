@@ -142,13 +142,19 @@ class Impact(object):
     #Sum to annual
     impact = impact.sum(dim='time')
     t6 = time.time() 
+
+    print('impact', impact)
+    print('baseline', baseline)
+    impact_annual = impact - baseline
+    print('rebased', impact_annual)
+
     print('annual sum {}'.format(t6 -t5))
 
     if postprocess_annual:
-      impact = self.postprocess_annual(impact_annual) 
+      impact_annual= self.postprocess_annual(impact_annual) 
 
 
-    return impact
+    return impact_rebased
 
   @memoize
   def _get_t_star(self, path):
