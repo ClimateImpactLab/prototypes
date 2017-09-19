@@ -142,13 +142,17 @@ class Impact(object):
     #Sum to annual
     impact = impact.sum(dim='time')
     t6 = time.time() 
+    print('annual sum {}'.format(t6 -t5))
+
+
 
     print('impact', impact)
     print('baseline', baseline)
     impact_annual = impact - baseline
     print('rebased', impact_annual)
+    t7 = time.time()
+    print('rebased {}'.format(t7 -t6))
 
-    print('annual sum {}'.format(t6 -t5))
 
     if postprocess_annual:
       impact_annual= self.postprocess_annual(impact_annual) 
