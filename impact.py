@@ -55,19 +55,17 @@ class Impact(object):
 
     return annual_weather
 
-  def _construct_covars(self, gammas, gdp_covar, clim_covar):
+  def _construct_covars(self, gdp_covar, clim_covar):
     '''
 
     '''
 
     gdp_covar = gdp_covar.drop('iso')
-
-    # gdp_covar.rename({'gdppc': 'loggdppc'})
-
-    # clim_covar.rename({'tas': 'climtas'})
-
+    gdp_covar.rename('loggdppc')
+    clim_covar.rename('climtas')
+    cv = [ones, gdp_covar, clim_covar]
     ones = xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covar.hierid}, dims=['hierid'], name='1')
-    covars = xr.concat([ones.data_vars, clim_covar.data_vars, gdp_covar.data_vars], pd.Index(gammas.data_vars.keys(), name='covarnames'))
+    covars = xr.concat(cv, pd.Index([i.name for i in cv], name='covarnames'))
     return covars
 
   def _compute_betas(self, gammas, gdp_covar, clim_covar):
@@ -91,7 +89,7 @@ class Impact(object):
       :py:class `~xarray.Dataset` values for each predname beta
 
     '''
-    covars = self._construct_covars(gammas, gdp_covar, clim_covar)
+    covars = self._construct_covars(gdp_covar, clim_covar)
     
 
 
