@@ -93,6 +93,7 @@ class Impact(object):
               gammas, 
               gdp_covar,
               clim_covar,
+              baseline,
               bounds=None,
               t_star_path=None,
               postprocess_daily=False,

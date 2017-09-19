@@ -228,7 +228,7 @@ def impact_annual(
     # No Adaptation #
     #################
     t1 = time.time()
-    median_ds['no_adaptation'] =  impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, bounds = [10,25], t_star_path=t_star)- baseline_median
+    median_ds['no_adaptation'] =  impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, baseline_median, bounds = [10,25], t_star_path=t_star)
     t2 = time.time()
     logger.debug('Computing median no adaptiation impact for year {}: {}'.format(year, t2-t1))
 
@@ -236,7 +236,7 @@ def impact_annual(
     # Income Adaptation #
     #####################
     t1 = time.time()
-    median_ds['income_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar_2015, bounds = [10,25],  t_star_path=t_star) - baseline_median
+    median_ds['income_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar_2015, baseline_median, bounds = [10,25],  t_star_path=t_star) 
     t2 = time.time()
     logger.debug('Computing median income adaptiation impact for year {}: {}'.format(year, t2-t1))
 
@@ -244,7 +244,7 @@ def impact_annual(
     # No Income Adaptation #
     ########################
     t1 = time.time()
-    median_ds['no_income_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar,  bounds = [10,25], t_star_path=t_star) - baseline_median
+    median_ds['no_income_adaptation'] = impact.compute(gammas_median, gdp_covar_2015, clim_covar, baseline_median, bounds = [10,25], t_star_path=t_star) 
     t2 = time.time()
     logger.debug('Computing median no income adaptiation impact for year {}: {}'.format(year, t2-t1))
 
@@ -253,7 +253,7 @@ def impact_annual(
     # Full Adaptation #
     ###################
     t1 = time.time()
-    median_ds['full_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar, bounds = [10,25],  t_star_path=t_star) - baseline_median
+    median_ds['full_adaptation'] = impact.compute(gammas_median, gdp_covar, clim_covar, baseline_median, bounds = [10,25], t_star_path=t_star) 
     t2 = time.time()
     logger.debug('Computing median full adaptiation impact for year {}: {}'.format(year, t2-t1))
 
@@ -312,7 +312,7 @@ def impact_annual(
 
             t_noadp1 = time.time()
 
-            ds_mc['no_adaptation']  = impact.compute(gammas_sample, clim_covar_2015, gdp_covar_2015,  bounds = [10,25], t_star_path=t_star) - baseline_seed
+            ds_mc['no_adaptation']  = impact.compute(gammas_sample, clim_covar_2015, gdp_covar_2015, baseline_seed, bounds = [10,25], t_star_path=t_star) 
 
             t_noadp2 = time.time()
             logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
@@ -323,7 +323,7 @@ def impact_annual(
 
             t_incadp1 = time.time()
 
-            ds_mc['income_adaptation'] = impact.compute(gammas_sample, clim_covar_2015, gdp_covar,  bounds = [10,25], t_star_path=t_star) - baseline_seed
+            ds_mc['income_adaptation'] = impact.compute(gammas_sample, clim_covar_2015, gdp_covar, baseline_seed, bounds = [10,25], t_star_path=t_star) 
 
             t_incadp2 = time.time()
             logger.debug('Computing income only adaptiaion for {}: {}'.format(year, t_incadp2 - t_incadp1))
@@ -334,7 +334,7 @@ def impact_annual(
 
             t_full1 = time.time()
 
-            ds_mc['mortality_full_adaptation'] = impact.compute(gammas_sample, clim_covar, gdp_covar,  bounds = [10,25], t_star_path=t_star) - baseline_seed
+            ds_mc['mortality_full_adaptation'] = impact.compute(gammas_sample, clim_covar, gdp_covar, baseline_seed,  bounds = [10,25], t_star_path=t_star) 
 
             t_full2 = time.time()
             logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))
@@ -345,7 +345,7 @@ def impact_annual(
 
             t_noincome1 = time.time()
 
-            ds_mc['no_income_adaptation'] = impact.compute(gammas_sample, clim_covar, gdp_covar_2015,  bounds = [10,25], t_star_path=t_star) - baseline_seed
+            ds_mc['no_income_adaptation'] = impact.compute(gammas_sample, clim_covar, gdp_covar_2015, baseline_seed, bounds = [10,25], t_star_path=t_star) 
 
             t_noincome2 = time.time()
             logger.debug('Computing no income adaptiaion for {}: {}'.format(year, t_noincome2 - t_noincome1))
