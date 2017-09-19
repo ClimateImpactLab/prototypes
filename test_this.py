@@ -42,16 +42,14 @@ def test_this():
 	m_star = m._compute_m_star(betas, bounds = [10,25], t_star_path=t_star_path)
 	impact_minned = xr.ufuncs.minimum(impact, m_star)
 	summed = impact_minned.sum(dim='time')
-
-
-
+	rebased = summed - base_median
 
 
 	t2 = time.time()
 
 	print(t2-t1)
 
-	return impact, base_median, betas, m_star, impact_minned, summed
+	return rebased 
 
 
 
