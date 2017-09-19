@@ -102,7 +102,7 @@ class BaseImpact(Impact):
 
 
 
-    def compute(self, gammas, covars):
+    def compute(self, gammas, gdp_covars, clim_covars):
 
 
 
