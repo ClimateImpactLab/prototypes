@@ -55,6 +55,19 @@ class Impact(object):
 
     return annual_weather
 
+  def _construct_covars(self, gammas, gdp_covar, clim_covar):
+    '''
+
+    '''
+
+    gdp_covar = gdp_covar.drop('iso')
+    gdp_covar.rename({'gdpppc': 'logddpc'})
+    clim_covar.rename({'tas': 'climtas'})
+
+    ones = xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covar.hierid}, dims=['hierid'], name='1')
+    covars = xr.concat([ones, clim_covar.climtas, gdp_covar.logddpc], pd.Index(gammas.data_vars.keys(), name='covarnames'))
+    return covars
+
   def _compute_betas(self, gammas, gdp_covar, clim_covar):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
@@ -76,10 +89,8 @@ class Impact(object):
       :py:class `~xarray.Dataset` values for each predname beta
 
     '''
+    covars = self._construct_covars(gammas, gdp_covar, clim_covar)
     
-    gdp_covar = gdp_covar.drop('iso')
-    ones = xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covar.hierid}, dims=['hierid'], name='1')
-    covars = xr.concat([ones, clim_covar, gdp_covar], pd.Index(gammas.data_vars.keys(), name='covarnames'))
 
 
     betas = (gammas*covars).sum(dim='covarnames')
