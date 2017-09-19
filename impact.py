@@ -55,7 +55,7 @@ class Impact(object):
 
     return annual_weather
 
-  def _compute_betas(self, gammas, covars):
+  def _compute_betas(self, gammas, gdp_covar, clim_covar):
     '''
     Computes the matrices beta*gamma x IR for each covariates 
     
@@ -77,16 +77,8 @@ class Impact(object):
 
     '''
     
-    cv_set = [xr.DataArray(np.ones(len(covars[0].hierid)), coords={'hierid': covars[0].hierid}, dims=['hierid'], name='hierid')]
-    cv_name = ['1']
-    for ds in covars:
-      key = ds.data_vars.keys()[0]
-      cv_set.append(ds[key])
-      cv_name.append(key)
-
-    covars = xr.concat(cv_set, pd.Index(cv_name, name='covarnames'))
-
-
+    ones = [xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covars.hierid}, dims=['hierid'], name='1')]
+    covars = xr.concat([ones, clim_covar, gdp_covar], pd.Index(gammas.data_vars.keys(), name='covarnames'))
 
 
     betas = (gammas*covars).sum(dim='covarnames')
@@ -122,7 +114,7 @@ class Impact(object):
     '''
     t1 = time.time()
     #Generate Betas
-    betas = self._compute_betas(gammas, [clim_covars,gdp_covars])
+    betas = self._compute_betas(gammas, gdp_covars, clim_covar)
     t2 = time.time()
 
     print('computing betas {}'.format(t2-t1))

@@ -174,11 +174,11 @@ def impact_annual(
 
 
     #Load data for baseline and clipping computations
-    with xr.open_dataset(climate_covar_2015_path) as clim_covar_2015:
+    with xr.open_datarray(climate_covar_2015_path) as clim_covar_2015:
         clim_covar_2015.load()
 
 
-    with xr.open_dataset(gdp_covar_2015_path) as gdp_covar_2015:
+    with xr.open_dataarray(gdp_covar_2015_path) as gdp_covar_2015:
         gdp_covar_2015.load()
 
 
@@ -187,11 +187,11 @@ def impact_annual(
         clim_covar = clim_covar_2015
 
     else: 
-        with xr.open_dataset(gdp_covar_current_path,autoclose=True) as gdp_covar:
+        with xr.open_dataarray(gdp_covar_current_path,autoclose=True) as gdp_covar:
             gdp_covar.load()
         logger.debug('reading covariate data from {}'.format(gdp_covar_current_path))
 
-        with xr.open_dataset(climate_covar_current_path, autoclose=True) as clim_covar:
+        with xr.open_dataarray(climate_covar_current_path, autoclose=True) as clim_covar:
             clim_covar.load()
         logger.debug('reading covariate data from {}'.format(climate_covar_current_path))
 
