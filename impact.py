@@ -173,7 +173,7 @@ class Impact(object):
     if postprocess_annual:
       impact_annual= self.postprocess_annual(impact_annual) 
 
-    impact_annual = impact_annual.rename('rebased')
+    impact_annual = impact_annual.rename({'__xarray_dataarray_variable__': 'rebased'})
     return impact_annual.rebased
 
   @memoize
