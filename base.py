@@ -51,8 +51,8 @@ class BaseImpact(Impact):
 
         Returns
         -------
-
-        `xarray.DataSet`
+            DataArray
+            :py:class:`~xarray.DataArray` of predname by hierid
         '''
         years = []
         datasets = []
@@ -76,7 +76,27 @@ class BaseImpact(Impact):
 
     def get_weather(self, weather, preds, metadata):
         '''
-            
+        Constructs the baseline weather by predname for computing baseline impact during base period
+
+        .. note: overrides base Impact class `get_weather` method
+
+        Parameters
+        ----------
+        weather: str
+            unformatted path str for weather for baseline period scenario
+
+        preds: list
+            names of preds to build weather from
+
+        metadata: dict
+            used in constructing paths for weather io
+
+        Returns
+        -------
+         DataArray
+            :py:class:`~xarray.DataArray` of predname by hierid
+         
+        .. note:: overrides base Impact class `get_weather` method
 
         '''
 
@@ -103,9 +123,30 @@ class BaseImpact(Impact):
 
 
     def compute(self, gammas, gdp_covars, clim_covars):
+        '''
+        Computes the baseline impact for a given hierid over the baseline period
+
+        Parameters
+        ----------
+        gammas: Dataset
+            :py:class:`~xarray.Dataset` of covarname by outcome by predname
+
+        gdp_covar: Dataarray
+            :py:class:`~xarray.Dataarray` of gdp covariates by 
 
 
+        clim_covar: Dataarray
+            :py:class:`~xarray.Dataarray` of clim covariates by hierid
 
+
+        Returns
+        -------
+        Dataset
+            :py:class:`~xarray.Dataset` of impact by hierid by outcome for baseline period
+
+        .. note:: overrides base Impact class `compute` method
+    
+        '''
         if os.path.isfile(self.base_path):
             return self._get_baseline(self.base_path)
 
@@ -123,7 +164,28 @@ class BaseImpact(Impact):
 
 
     def impact_function(self, betas, weather):
+        '''
+        Computes the dot product of betas and annual weather by outcome group.
 
+        Writes dataset to disk for access by other years in the model spec run 
+
+        Parameters
+        ----------
+
+        betas: DataArray
+            :py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+        weather: DataArray
+            :py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+        Returns
+        -------
+        Dataset
+            :py:class:`~xarray.Dataset` of impact by hierid by outcome group for baseline period
+        
+        .. note:: overrides base Impact class `impact_function` method
+
+        '''
 
         impact = (betas*weather).sum(dim='prednames')
 
@@ -134,14 +196,27 @@ class BaseImpact(Impact):
         return impact_read
 
 
-    def _basline_to_netcdf(self, impact_da, metadata, write_path):
+    def _basline_to_netcdf(self, betas, metadata, write_path):
         '''
-        Updates metadata and writes baseline to disk
+        Helper function to update metadata and write baseline to disk
+
+        betas: DataArray
+            :py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+        metadata: dict
+            values to populate Dataset metadata attrs
+
+        write_path: str
+            place to save precomputed dataset
+
+        Returns
+        -------
+        None
 
         '''
 
         baseline =xr.Dataset()
-        baseline['baseline'] = impact_da
+        baseline['baseline'] = betas
 
         metadata['baseline_years'] = str(self.base_years)
         metadata['oneline'] = 'Baseline impact value for mortality'
@@ -154,97 +229,5 @@ class BaseImpact(Impact):
               os.makedirs(os.path.dirname(write_path))
         
         baseline.to_netcdf(write_path)
-
-    ##############
-    # Deprecated #
-    ##############
-    # def impact_baseline(gammas,
-    #                       weather, 
-    #                       gdp_covar_path, 
-    #                       climate_covar_path, 
-    #                       metadata, 
-    #                       base_years,
-    #                       impact_function=None,
-    #                       write_path=None):
-    #     '''
-    #     precomputes the baseline impact from beginning year to end year
-
-    #     Parameters
-    #     ----------
-    #     weather_model_paths: str
-    #         unformatted str variable for paths to annual weather
-
-    #     gdp_covar_path: str
-    #         baseline gdp path
-
-    #     climate_covar_path: str
-    #         baseline tavg climate path
-
-    #     gammas: :py:class:`~xarray.Dataset` of gammas 
-
-    #     metadata: dict
-
-    #     begin: int 
-    #         year to begin baseline calculation
-
-    #     end: int
-    #         year to end baseline calculation
-
-
-    #     Returns
-    #     -------
-
-    #     Dataset
-    #         returns a new `~xarray.Dataset` of baseline impacts
-
-    #     '''
-    #     preds = gammas.prednames.values
-
-    #     if os.path.isfile(write_path):
-    #         return self._get_baseline(write_path)
-
-
-    #     #Construct Multi-year avg climate values
-    #     base_weather= xr.Dataset()
-    #     annual_weather_paths_tas = weather.format(scenario='{scenario}', 
-    #                                                             year='{year}', 
-    #                                                             model=metadata['model'], 
-    #                                                             poly='')
-    #     base_weather['tas'] = _construct_baseline_weather(annual_weather_paths_tas, metadata, begin, end)['tas']
-
-    #     for p in range(2, poly + 1):
-    #         annual_weather_paths_poly_tas = weather.format(scenario='{scenario}', 
-    #                                                                     year='{year}', 
-    #                                                                     model=metadata['model'], 
-    #                                                                     poly='-poly-{}'.format(p))
-
-    #         base_weather['tas-poly-{}'.format(p)] = _construct_baseline_weather(annual_weather_paths_poly_tas, metadata, begin, end)['tas-poly-{}'.format(p)]
-
-    #     #Load Covars
-    #     with xr.open_dataset(gdp_covar_path) as gdp_covar:
-    #         gdp_covar.load()
-
-    #     with xr.open_dataset(climate_covar_path) as clim_covar:
-    #         clim_covar.load()
-
-    #     #compute impacts
-    #     base_impact = xr.Dataset()
-
-    #     base_impact['baseline'] =  impact_function(base_weather, clim_covar, gdp_covar, gammas)
-
-    #     #update metadata
-    #     metadata['baseline_years'] = str([begin, end])
-    #     metadata['oneline'] = 'Baseline impact '
-    #     metadata['description'] = 'Baseline impact value. Values are annual expected damage resolved to GCP hierid level region.'
-
-    #     base_impact.attrs.update(metadata)
-
-    #     if write_path:
-    #         if not os.path.isdir(os.path.dirname(write_path)):
-    #               os.makedirs(os.path.dirname(write_path))
-    #         base_impact.to_netcdf(write_path)
-
-    #     return base_impact
-
 
 

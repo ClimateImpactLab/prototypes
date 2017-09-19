@@ -23,19 +23,33 @@ class Impact(object):
     preds: list
       list of strings representing the values to complete formatting for annual weather
 
+    metadata: dict
+      metadata for this impact run
+
+    Returns
+    -------
+    None
     '''
+
     self.preds = preds
     self.weather = self.get_weather(weather, metadata)
 
   def get_weather(self, weather, metadata):
     '''
-    Constructs the annual weather dataset for a given years impact
+    Constructs the annual weather dataarray for a given years impact
+
+    Parameters
+    ----------
+    weather: str representation of unformatted file paths
+
+    metadata: dict
+      values to populate file string
 
     Returns
     -------
 
-      Dataset
-        :py:class `~xarray Dataset` with each weather variable as an `~xarray DataArray`
+      Dataarray
+        :py:class `~xarray Datarray` with each weather variable as an `coord`
     '''
 
     weather_files = [weather.format(scenario=metadata['scenario'], 
@@ -55,14 +69,30 @@ class Impact(object):
 
     return annual_weather
 
+  ####################
+  # to be deprecated #
+  ####################  
   def _construct_covars(self, gdp_covar, clim_covar):
     '''
+    Helper function to construct the covariates dataarray
 
+    Parameters
+    -----------
+    gdp_covar: :py:class:`~xarray.DataArray`
+      hierid by gdp dataarray
+
+    clim_covar: :py:class:`~xarray.DataArray`
+      hierid by clim dataarray
+
+    Returns
+    -------
+      Dataarray
+        heirid by covars (1, gdp, clim) :py:class:`~xarray.DataArray`
     '''
 
     gdp_covar = gdp_covar.drop('iso')
     gdp = gdp_covar.rename('loggdppc')
-    
+
     climtas = clim_covar.rename('climtas')
     ones = xr.DataArray(np.ones(len(gdp.hierid)), coords={'hierid': gdp.hierid}, dims=['hierid'], name='1')
     cv = [ones, gdp, climtas]
@@ -78,27 +108,22 @@ class Impact(object):
     gammas: :py:class `~xarray.Dataset`
         Coefficients for pred/covar combo
 
-    spec: 
-      specifies the shape/structure of computation
+    gdp_covar: :py:class:`~xarray.DataArray`
+      hierid by gdp dataarray
 
-    covars: list of :py:class `~xarray.Dataset`
-        covariates for each hierid
-    
+    clim_covar: :py:class:`~xarray.DataArray`
+      hierid by clim dataarray    
  
     Returns
     -------
-      :py:class `~xarray.Dataset` values for each predname beta
-
+      Dataarray
+      hierid by outcome and predname :py:class `~xarray.Dataarray` 
     '''
     covars = self._construct_covars(gdp_covar, clim_covar)
     
-
-
     beta_vars = (gammas*covars).sum(dim='covarnames')
 
     betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
-
-
 
     return betas
 
@@ -113,13 +138,36 @@ class Impact(object):
               postprocess_annual=False):
     '''
     Computes an impact for a unique set of gdp, climate, weather and gamma coefficient inputs.
-    For each set of these, we take the analytic minimum value between two points and 
+    For each set of these, we take the analytic minimum value between two points, 
+    save t_star to disk and compute analytical min for function m_star for a givene covariate set
+    This operation is called for every adaptation scenario specified in the run script
     
-
     Parameters
     ----------
 
-    gammas: py:class: `~xarray.Dataset`
+    gammas: 
+      covarname by outcome py:class: `~xarray.Dataset`
+
+    gdp_covar: :py:class:`~xarray.DataArray`
+      hierid by gdp dataarray
+
+    clim_covar: :py:class:`~xarray.DataArray`
+      hierid by clim dataarray 
+
+    baseline: :py:class:`~xarray.Dataset`
+      precomputed avg baseline impact for impacts between base years
+
+    bounds: list
+      list of values to compute mins for computing m-star
+
+    t_star_path: str
+      unformatted string path to designate read/write location for t_star
+    
+    postprocess_daily: bool
+      If true execute additional functions in subclasses
+  
+    postprocess_annual: bool
+      If true execute additional functions in subclasses
 
 
     Returns
@@ -170,6 +218,15 @@ class Impact(object):
 
   @memoize
   def _get_t_star(self, path):
+    '''
+    Read precomputed t_star
+
+    Parameters
+    ----------
+    path: str
+      place to load t-star from 
+
+    '''
     with xr.open_dataset(path) as ds:
       ds.load()
     return ds
@@ -185,10 +242,8 @@ class Impact(object):
     betas: :py:class `~xarray.Dataset` 
         coefficients by hierid Dataset 
 
-    min_max_boundary: np.array
+    bounds: list
         values to evaluate min at 
-
-    min_function: minimizing function to compute tstar
 
     t_star_path: str
 

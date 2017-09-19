@@ -16,6 +16,19 @@ class Gammas():
 
 
 	def __init__(self, csvv_path):
+		'''	
+		Constructor for gammas object
+
+		Parameters
+		----------
+		csvv_path: str
+			path to gammas file
+
+		Returns
+		-------
+		Gammas Object
+
+		'''
 		self.csvv_path = csvv_path
 		self.data = self._read_csvv(self.csvv_path)
 

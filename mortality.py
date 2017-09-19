@@ -6,15 +6,41 @@ import os
 
 class Mortality_Polynomial(Impact):
 	'''
-	Mortality specific 
+	Mortality specific Impact spec
 	'''
 	@staticmethod
 	def min_function(*args, **kwargs):
+		'''
+		helper function to call minimization function for given mortality polynomial spec
+		mortality_polynomial implements findpolymin through `np.apply_along_axis`
+
+		Parameters
+		----------
+
+		betas: DataArray
+			:py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+		dim: str
+			dimension to apply minimization to
+
+		bounds: list
+			values between which to search for t_star
+
+		Returns
+		-------
+			:py:class:`~xarray.DataArray` of hierid by predname by outcome
+		'''
 		return minimize_polynomial(*args, **kwargs)
 
 	def impact_function(self, betas, weather):
 		'''
 		computes the dot product of betas and annual weather by outcome group
+
+		betas: DataArray
+			:py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+		weather: DataArray
+			:py:class:`~xarray.DataArray` of hierid by predname by outcome
 
 		'''
 		#slick
