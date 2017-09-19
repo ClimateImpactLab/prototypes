@@ -1,8 +1,7 @@
+import os
 import xarray as xr
 import numpy as np
-from toolz import memoize
 import warnings
-import os
 from impact import Impact
 
 
@@ -10,7 +9,8 @@ from impact import Impact
 
 def _findpolymin(coeffs, min_max):
     '''
-    Computes the min value for a set of coefficients (gammas)
+    Computes the min value `t_star` for a set of coefficients (gammas)
+    for a polynomial damage function
 
 
     Parameters
@@ -21,16 +21,10 @@ def _findpolymin(coeffs, min_max):
     min_max: list
        min and max temp values to evaluate derivative at
 
-    gammas_min_path: str
-        path to save/read data
-
     Returns
     -------
-        Dataset
-            :py:class `~xarray.DatArray` min temp by hierid
+        int: t_star
 
-    Example
-    -------
     '''
     minx = np.asarray(min_max).min()
     maxx = np.asarray(min_max).max()
@@ -63,10 +57,26 @@ def _findpolymin(coeffs, min_max):
 
 def minimize_polynomial(da, dim='prednames', bounds=None):
     '''
+    Constructs the t_star-based weather data array by applying `np.apply_along_axis`
+    to each predictor dimension and construcing data variables up to the order specified in `prednames`
 
+    Parameters
+    ----------
+    da: DataArray
+        :py:class:`~xarray.DataArray` of betas by hierid by predname by outcome
+
+    dim: str
+        dimension to evaluate the coefficients at
+
+    bounds: list
+        values to evaluate between
+
+    Returns
+    -------
+    DataArray
+        :py:class:`~xarray.DataArray` of reconstructed weather at t_star
 
     '''
-
     t_star_values = np.apply_along_axis(_findpolymin, da.get_axis_num(dim), da.values, min_max = bounds)
 
     if t_star_values.shape != tuple([s for i, s in enumerate(da.shape) if i != da.get_axis_num(dim)]):

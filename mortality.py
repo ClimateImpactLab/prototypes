@@ -29,6 +29,8 @@ class Mortality_Polynomial(Impact):
 		Returns
 		-------
 			:py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+		.. note:: overides `min_function` in Impact base class
 		'''
 		return minimize_polynomial(*args, **kwargs)
 
@@ -36,11 +38,21 @@ class Mortality_Polynomial(Impact):
 		'''
 		computes the dot product of betas and annual weather by outcome group
 
+		Parameters
+		----------
+
 		betas: DataArray
 			:py:class:`~xarray.DataArray` of hierid by predname by outcome
 
 		weather: DataArray
 			:py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+		Returns
+		-------
+		DataArray
+			:py:class:`~xarray.DataArray` of impact by outcome by hierid
+
+		.. note:: overrides `impact_function` method in Impact base class
 
 		'''
 		#slick
