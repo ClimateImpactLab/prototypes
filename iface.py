@@ -366,7 +366,7 @@ def impact_annual(
             t_full1 = time.time()
 
             full_adaptation = impact.compute(gammas_sample, clim_covar, gdp_covar, baseline_seed,  bounds = [10,25], t_star_path=t_star) 
-            ds_mc['mortality_full_adaptation'] = 
+            ds_mc['mortality_full_adaptation'] = full_adaptation
 
             t_full2 = time.time()
             logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))
