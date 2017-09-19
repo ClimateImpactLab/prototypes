@@ -62,6 +62,7 @@ class Impact(object):
 
     gdp_covar = gdp_covar.drop('iso')
     gdp = gdp_covar.rename('loggdppc')
+    
     climtas = clim_covar.rename('climtas')
     ones = xr.DataArray(np.ones(len(gdp.hierid)), coords={'hierid': gdp.hierid}, dims=['hierid'], name='1')
     cv = [ones, gdp, climtas]
@@ -130,25 +131,20 @@ class Impact(object):
     #Generate Betas
     betas = self._compute_betas(gammas, gdp_covar, clim_covar)
     t2 = time.time()
-    print('betas', betas)
-
     print('computing betas {}'.format(t2-t1))
 
     #Compute Raw Impact
     impact = self.impact_function(betas, self.weather)
     t3 = time.time()
     print('computing impact {}'.format(t3-t2))
-    print('impact', impact)
 
     #Compute the min for flat curve adaptation
     m_star = self._compute_m_star(betas, bounds=bounds, t_star_path=t_star_path)
-    print('m_star', m_star)
     t4 = time.time()
     print('computing m_star {}'.format(t4-t3))
 
     #Compare values and evaluate a max
     impact = xr.ufuncs.minimum(impact, m_star)
-    print('impact_minned', impact)
     t5 =time.time()
     print('taking min {}'.format(t5-t4))
 
@@ -160,12 +156,7 @@ class Impact(object):
     t6 = time.time() 
     print('annual sum {}'.format(t6 -t5))
 
-
-
-    print('impact summed', impact)
-    print('baseline', baseline)
     impact_annual = impact - baseline
-    print('rebased', impact_annual)
     t7 = time.time()
     print('rebased {}'.format(t7 -t6))
 
@@ -174,6 +165,7 @@ class Impact(object):
       impact_annual= self.postprocess_annual(impact_annual) 
 
     impact_annual = impact_annual.rename({'__xarray_dataarray_variable__': 'rebased'})
+
     return impact_annual.rebased
 
   @memoize

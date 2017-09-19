@@ -13,8 +13,8 @@ def test_this():
 	g = Gammas('/global/scratch/jsimcock/data_files/covars/global_interaction_Tmean-POLY-4-AgeSpec.csvv')
 	gdp = xr.open_dataarray('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/SSP1/high/2015/0.1.0.nc')
 	climtas = xr.open_dataarray('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/rcp85/ACCESS1-0/2015/0.1.1.nc4')
-	gdp = gdp.rename({'gdppc': 'loggdppc'})
-	climtas = climtas.rename({'tas':'climtas'})
+	# gdp = gdp.rename({'gdppc': 'loggdppc'})
+	# climtas = climtas.rename({'tas':'climtas'})
 
 
 
@@ -36,7 +36,7 @@ def test_this():
 	# betas = m._compute_betas(gammas, [gdp, climtas])
 
 
-	#impact = m.compute(gammas, gdp, climtas, base_median, bounds=[10,25], t_star_path=t_star_path) 
+	impact = m.compute(gammas, gdp, climtas, base_median, bounds=[10,25], t_star_path=t_star_path) 
 	betas =m._compute_betas(gammas, gdp, climtas)
 	impact = m.impact_function(betas, m.weather)
 	m_star = m._compute_m_star(betas, bounds = [10,25], t_star_path=t_star_path)
