@@ -95,7 +95,7 @@ class Impact(object):
 
     beta_vars = (gammas*covars).sum(dim='covarnames')
 
-    betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['logddpc']
+    betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
 
 
 
