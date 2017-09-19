@@ -102,7 +102,9 @@ class BaseImpact(Impact):
 
 
 
-    def compute(self, gammas, gdp_covars, clim_covars):
+    def compute(self, gammas, covars):
+
+
 
         if os.path.isfile(self.base_path):
             return self._get_baseline(self.base_path)

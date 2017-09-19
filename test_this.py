@@ -12,7 +12,7 @@ def test_this():
 	t1  = time.time()
 	g = Gammas('/global/scratch/jsimcock/data_files/covars/global_interaction_Tmean-POLY-4-AgeSpec.csvv')
 	gdp = xr.open_dataset('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/SSP1/high/2015/0.1.0.nc')
-	climtas = xr.open_dataset('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/rcp45/ACCESS1-0/2015/0.1.1.nc4')
+	climtas = xr.open_dataset('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/rcp85/ACCESS1-0/2015/0.1.1.nc4')
 	gdp = gdp.rename({'gdppc': 'loggdppc'})
 	climtas = climtas.rename({'tas':'climtas'})
 

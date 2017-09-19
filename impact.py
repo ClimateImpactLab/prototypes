@@ -76,14 +76,26 @@ class Impact(object):
       :py:class `~xarray.Dataset` values for each predname beta
 
     '''
-    betas = xr.Dataset()
     
-    covars = xr.merge(covars)
+    cv_set = []
+    cv_name = []
+    for ds in covars:
+      key = ds.data_vars.keys()[0]
+      cv_set.append(ds[key])
+      cv_name.append(key)
 
-    #add intercept for easy math
-    covars['1'] = ('hierid', ), np.ones(len(covars.hierid))
+    ones = np.ones(len(covars[0].hierid))
+    cv_set.append(ones)
+    cv_name.append('1')
 
-    betas = sum((gammas*covars).data_vars.values())
+    covars = xr.concat(cv_set, pd.Index(cv_name, name='covars'))
+
+
+
+
+    betas = (gammas*covars).sum(dim='covars')
+
+
 
 
     return betas

@@ -181,6 +181,10 @@ def impact_annual(
     with xr.open_dataset(gdp_covar_2015_path) as gdp_covar_2015:
         gdp_covar_2015.load()
 
+    one = xr.DataArray(np.ones(gdp_covar_2015.gdp.shape), dims=gdp_covar_2015.gdp.dims, coords=gdp_covar_2015.gdp.coords)
+
+    covars = xr.concat([clim_covar_2015.tas, gdp_covar_2015.gdppc, one], dim=pd.Index(['climtas', 'lngdppc', '1'], name='covar'))
+
 
     if year < 2015:
         gdp_covar = gdp_covar_2015
@@ -228,16 +232,7 @@ def impact_annual(
     # No Adaptation #
     #################
     t1 = time.time()
-    a = impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, bounds = [10,25], t_star_path=t_star)
-    print(a)
-    print(baseline_median)
-    res = a - baseline_median
-    try:
-        median_ds['no_adaptation'] =  res
-    except Exception as e:
-        print('nope. trying one more time...')
-        median_ds['no_adaptation'] =  res.data_vars.values()[0]
-        print('I finally got through!!!')
+    median_ds['no_adaptation'] =  impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, bounds = [10,25], t_star_path=t_star)- baseline_median
     t2 = time.time()
     logger.debug('Computing median no adaptiation impact for year {}: {}'.format(year, t2-t1))
 
