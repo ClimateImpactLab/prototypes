@@ -77,16 +77,12 @@ class Impact(object):
 
     '''
     
-    cv_set = []
-    cv_name = []
+    cv_set = [xr.DataArray(np.ones(len(covar[0].hierid)), coords={'hierid': covar[0].hierid}, dims=['hierid'], name='hierid')]
+    cv_name = ['1']
     for ds in covars:
       key = ds.data_vars.keys()[0]
       cv_set.append(ds[key])
       cv_name.append(key)
-
-    ones = np.ones(len(covars[0].hierid))
-    cv_set.append(ones)
-    cv_name.append('1')
 
     covars = xr.concat(cv_set, pd.Index(cv_name, name='covarnames'))
 
