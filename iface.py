@@ -181,10 +181,6 @@ def impact_annual(
     with xr.open_dataset(gdp_covar_2015_path) as gdp_covar_2015:
         gdp_covar_2015.load()
 
-    one = xr.DataArray(np.ones(gdp_covar_2015.gdp.shape), dims=gdp_covar_2015.gdp.dims, coords=gdp_covar_2015.gdp.coords)
-
-    covars = xr.concat([clim_covar_2015.tas, gdp_covar_2015.gdppc, one], dim=pd.Index(['climtas', 'lngdppc', '1'], name='covar'))
-
 
     if year < 2015:
         gdp_covar = gdp_covar_2015

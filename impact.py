@@ -88,12 +88,12 @@ class Impact(object):
     cv_set.append(ones)
     cv_name.append('1')
 
-    covars = xr.concat(cv_set, pd.Index(cv_name, name='covars'))
+    covars = xr.concat(cv_set, pd.Index(cv_name, name='covarnames'))
 
 
 
 
-    betas = (gammas*covars).sum(dim='covars')
+    betas = (gammas*covars).sum(dim='covarnames')
 
 
 
