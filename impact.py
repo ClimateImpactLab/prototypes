@@ -93,7 +93,9 @@ class Impact(object):
     
 
 
-    betas = (gammas*covars).sum(dim='covarnames')
+    beta_vars = (gammas*covars).sum(dim='covarnames')
+
+    betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['logddpc']
 
 
 
@@ -208,6 +210,7 @@ class Impact(object):
     .. note:: writes to disk and subsequent calls will read from disk. 
     '''
     # if file does not exist create it
+    print(betas)
     if not os.path.isfile(t_star_path):
 
         #Compute t_star according to min function
@@ -223,6 +226,7 @@ class Impact(object):
         #Read from disk
         t_star = self._get_t_star(t_star_path)
 
+    print(t_star)
     return self.impact_function(betas, t_star)
 
   def compute_t_star(self, betas, bounds=None):
