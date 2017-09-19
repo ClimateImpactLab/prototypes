@@ -61,10 +61,10 @@ class Impact(object):
     '''
 
     gdp_covar = gdp_covar.drop('iso')
-    gdp_covar.rename('loggdppc')
-    clim_covar.rename('climtas')
-    cv = [ones, gdp_covar, clim_covar]
-    ones = xr.DataArray(np.ones(len(gdp_covar.hierid)), coords={'hierid': gdp_covar.hierid}, dims=['hierid'], name='1')
+    gdp = gdp_covar.rename('loggdppc')
+    climtas = clim_covar.rename('climtas')
+    cv = [ones, gdp, climtas]
+    ones = xr.DataArray(np.ones(len(gdp.hierid)), coords={'hierid': gdp.hierid}, dims=['hierid'], name='1')
     covars = xr.concat(cv, pd.Index([i.name for i in cv], name='covarnames'))
     return covars
 
