@@ -77,7 +77,7 @@ class Impact(object):
 
     '''
     
-    cv_set = [xr.DataArray(np.ones(len(covar[0].hierid)), coords={'hierid': covar[0].hierid}, dims=['hierid'], name='hierid')]
+    cv_set = [xr.DataArray(np.ones(len(covars[0].hierid)), coords={'hierid': covars[0].hierid}, dims=['hierid'], name='hierid')]
     cv_name = ['1']
     for ds in covars:
       key = ds.data_vars.keys()[0]
