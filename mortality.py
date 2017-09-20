@@ -32,6 +32,7 @@ class Mortality_Polynomial(Impact):
 
 		.. note:: overides `min_function` in Impact base class
 		'''
+
 		return minimize_polynomial(*args, **kwargs)
 
 	def impact_function(self, betas, weather):
@@ -53,8 +54,8 @@ class Mortality_Polynomial(Impact):
 			:py:class:`~xarray.DataArray` of impact by outcome by hierid
 
 		.. note:: overrides `impact_function` method in Impact base class
-
 		'''
+		
 		#slick
 		impact = (betas*weather).sum(dim='prednames')
 
@@ -63,7 +64,6 @@ class Mortality_Polynomial(Impact):
   #               betas.sel(prednames='tas-poly-2')*weather['tas-poly-2'] + 
   #               betas.sel(prednames='tas-poly-3')*weather['tas-poly-3'] + 
   #               betas.sel(prednames='tas-poly-4')*weather['tas-poly-4'])
-
 
 		return impact
 
