@@ -33,7 +33,7 @@ metadata = {'scenario': 'rcp85',
 				}
 
 
-def demo_run_median_2015_ACCESS10():
+def demo_run():
 	'''
 	Demonstration of an atomic impact compute operation. All operations are parametrized with 
 	variables like rcp scenario, ssp, econ_model, year, etc. This allows us to simplify the entire process
