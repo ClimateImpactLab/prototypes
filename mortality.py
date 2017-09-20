@@ -68,6 +68,69 @@ class Mortality_Polynomial(Impact):
 		return impact
 
 
+ 	####################
+ 	# to be deprecated #
+ 	####################  
+ 	def _construct_covars(self, gdp_covar, clim_covar):
+    	'''
+    	Helper function to construct the covariates dataarray
+
+    	Parameters
+    	-----------
+    	gdp_covar: :py:class:`~xarray.DataArray`
+    	  hierid by gdp dataarray
+
+    	clim_covar: :py:class:`~xarray.DataArray`
+    	  hierid by clim dataarray
+	
+    	Returns
+    	-------
+    	  Dataarray
+	     	   heirid by covars (1, gdp, clim) :py:class:`~xarray.DataArray`
+	    '''
+
+    	#this will change once we generalize
+    	gdp_covar = gdp_covar.drop('iso')
+    	gdp = gdp_covar.rename('loggdppc')
+    	climtas = clim_covar.rename('climtas')
+
+
+    	ones = xr.DataArray(np.ones(len(gdp.hierid)), coords={'hierid': gdp.hierid}, dims=['hierid'], name='1')
+    	cv = [ones, gdp, climtas]
+    	covars = xr.concat(cv, pd.Index([i.name for i in cv], name='covarnames'))
+    	return covars
+
+	####################
+ 	# to be deprecated #
+ 	####################  
+	def compute_betas(self, gammas, gdp_covar, clim_covar):
+    	'''
+    	Computes the matrices beta*gamma x IR for each covariates 
+    
+    	Parameters
+    	----------
+    	gammas: :py:class `~xarray.Dataset`
+        	Coefficients for pred/covar combo
+
+    	gdp_covar: :py:class:`~xarray.DataArray`
+      		hierid by gdp dataarray
+
+    	clim_covar: :py:class:`~xarray.DataArray`
+      		hierid by clim dataarray    
+ 
+    	Returns
+    	-------
+      	Dataarray
+        	hierid by outcome and predname :py:class `~xarray.Dataarray` 
+    	'''
+    	covars = self._construct_covars(gdp_covar, clim_covar)
+    
+    	betas = (gammas*covars).sum(dim='covarnames')
+
+    	betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
+
+    	return betas
+
 
 
 
