@@ -30,7 +30,6 @@ class Impact(object):
     -------
     None
     '''
-
     self.preds = preds
     self.weather = self.get_weather(weather, metadata)
 
@@ -70,7 +69,7 @@ class Impact(object):
     return annual_weather
 
   ####################
-  # to be deprecated #
+  # to be refactored #
   ####################  
   def _construct_covars(self, gdp_covar, clim_covar):
     '''
@@ -90,10 +89,12 @@ class Impact(object):
         heirid by covars (1, gdp, clim) :py:class:`~xarray.DataArray`
     '''
 
+    #this will change once we generalize
     gdp_covar = gdp_covar.drop('iso')
     gdp = gdp_covar.rename('loggdppc')
-
     climtas = clim_covar.rename('climtas')
+
+
     ones = xr.DataArray(np.ones(len(gdp.hierid)), coords={'hierid': gdp.hierid}, dims=['hierid'], name='1')
     cv = [ones, gdp, climtas]
     covars = xr.concat(cv, pd.Index([i.name for i in cv], name='covarnames'))
@@ -117,7 +118,7 @@ class Impact(object):
     Returns
     -------
       Dataarray
-      hierid by outcome and predname :py:class `~xarray.Dataarray` 
+        hierid by outcome and predname :py:class `~xarray.Dataarray` 
     '''
     covars = self._construct_covars(gdp_covar, clim_covar)
     
