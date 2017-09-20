@@ -87,7 +87,7 @@ def demo_run():
 	m = Mortality_Polynomial(weather_path, gammas.prednames.values, metadata)
 
 	#Compute betas
-	betas = m._compute_betas(gammas, gdp, climtas)
+	betas = m.compute_betas(gammas, gdp, climtas)
 
 	#we have our weather already so we can compute our impact as specified in the module
 	#in this case impact_function is (betas*m.weather).sum(dim='prednames')
