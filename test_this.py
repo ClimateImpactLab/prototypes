@@ -33,7 +33,7 @@ metadata = {'scenario': 'rcp85',
 				}
 
 
-def demo_run_median_2015_ACCESS10(metadata):
+def demo_run_median_2015_ACCESS10():
 	'''
 	Demonstration of an atomic impact compute operation. All operations are parametrized with 
 	variables like rcp scenario, ssp, econ_model, year, etc. This allows us to simplify the entire process
@@ -71,7 +71,7 @@ def demo_run_median_2015_ACCESS10(metadata):
 	g = Gammas(gammas_path)
 
 	#initialize covars
-	gdp = xr.open_dataarray(gdp_covar_path.format(**metadata))
+	gdp = xr.open_dataarray(gdp_covar_path.format(metadata['year']))
 	climtas = xr.open_dataarray(**metadata)
 	
 	#take a median draw from dist
@@ -98,15 +98,22 @@ def demo_run_median_2015_ACCESS10(metadata):
 
 	#we then compute the min of m_star and impact
 	impact_minned = xr.ufuncs.minimum(impact, m_star)
+
+	#sum to annual
 	summed = impact_minned.sum(dim='time')
+
+	#rebase
 	rebased = summed - base_median
-
-
-	impact = m.compute(gammas, gdp, climtas, base_median, bounds=[10,25], t_star_path=t_star_path) 
-
 	t2 = time.time()
+	print('snippets: {}'.format(t2-t1))
 
-	print(t2-t1)
+
+
+	#now all at once
+	impact = m.compute(gammas, gdp, climtas, base_median, bounds=[10,25], t_star_path=t_star_path) 
+	t3 = time.time()
+	print('all at once: {}'.format(t3 - t1))
+
 
 	return rebased, impact
 
