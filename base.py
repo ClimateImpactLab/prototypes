@@ -215,7 +215,7 @@ class BaseImpact(Impact):
 
         '''
 
-        baseline =xr.Dataset()
+        baseline = xr.Dataset()
         baseline['baseline'] = betas
 
         metadata['baseline_years'] = str(self.base_years)
