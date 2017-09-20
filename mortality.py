@@ -126,7 +126,7 @@ class Mortality_Polynomial(Impact):
 		'''
 		covars = self._construct_covars(gdp_covar, clim_covar)
 
-		betas = (gammas*covars).sum(dim='covarnames')
+		betas_vars = (gammas*covars).sum(dim='covarnames')
 
 		betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
 
