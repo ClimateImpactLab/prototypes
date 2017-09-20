@@ -71,7 +71,7 @@ def demo_run_median_2015_ACCESS10():
 	g = Gammas(gammas_path)
 
 	#initialize covars
-	gdp = xr.open_dataarray(gdp_covar_path.format(metadata['year']))
+	gdp = xr.open_dataarray(gdp_covar_path.format(year=metadata['year']))
 	climtas = xr.open_dataarray(**metadata)
 	
 	#take a median draw from dist
