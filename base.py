@@ -60,7 +60,7 @@ class BaseImpact(Impact):
             if year <= 2005:
                 read_rcp = 'historical'
             else: 
-                read_rcp = 'rcp85'
+                read_rcp = metadata.get('scenario', 'rcp85')
 
             path = model_paths.format(scenario=read_rcp ,year=year)
             with xr.open_dataset(path) as ds:
