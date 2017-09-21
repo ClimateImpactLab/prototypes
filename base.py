@@ -196,11 +196,11 @@ class BaseImpact(Impact):
         return impact_read
 
 
-    def _basline_to_netcdf(self, betas, metadata, write_path):
+    def _basline_to_netcdf(self, impact, metadata, write_path):
         '''
         Helper function to update metadata and write baseline to disk
 
-        betas: DataArray
+        impact: DataArray
             :py:class:`~xarray.DataArray` of hierid by predname by outcome
 
         metadata: dict
@@ -216,7 +216,7 @@ class BaseImpact(Impact):
         '''
 
         baseline = xr.Dataset()
-        baseline['baseline'] = betas
+        baseline['baseline'] = impact
 
         metadata['baseline_years'] = str(self.base_years)
         metadata['oneline'] = 'Baseline impact value for mortality'
