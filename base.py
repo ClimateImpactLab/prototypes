@@ -154,7 +154,7 @@ class BaseImpact(Impact):
             self.weather_computed = self.get_weather(self.weather_paths, self.preds, self.metadata)
 
 
-        betas = self._compute_betas(gammas, gdp_covars, clim_covars)
+        betas = self.compute_betas(gammas, gdp_covars, clim_covars)
 
         #Compute Raw Impact
         impact= self.impact_function(betas, self.weather_computed)

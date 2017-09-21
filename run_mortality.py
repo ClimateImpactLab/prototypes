@@ -218,6 +218,7 @@ def impact_annual(
         metadata['seed'] = 'median'
         write_path = WRITE_PATH.format(**metadata)
         if os.path.isfile(write_path):
+            print('file {} already exists moving to next job'.format(write_path))
             return
 
         #take your median draw
