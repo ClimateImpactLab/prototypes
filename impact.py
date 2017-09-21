@@ -32,7 +32,6 @@ class Impact(object):
     '''
     self.preds = preds
     self.weather = self.get_weather(weather, metadata)
-    self.metadata = metadata
 
   def get_weather(self, weather, metadata):
     '''

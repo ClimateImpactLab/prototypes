@@ -78,13 +78,13 @@ def demo_run():
 	gammas = g.median()
 	
 	#initialize baseline impact with weather, gammas, and base_years
-	base = BaseImpact(weather_path, gammas.prednames.values, metadata, base_years, base_path)
+	base = BaseImpact(weather_path, g.prednames, metadata, base_years, base_path)
 
 	#compute baseline for median run
 	base_median = base.compute(gammas, gdp, climtas)
 
 	#Initialize the Current impact function. Weather is constructed
-	m = MortalityPolynomial(weather_path, gammas.prednames.values, metadata)
+	m = MortalityPolynomial(weather_path, g.prednames, metadata)
 
 	#Compute betas
 	betas = m.compute_betas(gammas, gdp, climtas)
