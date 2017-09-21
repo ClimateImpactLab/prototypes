@@ -95,30 +95,79 @@ class Impact(object):
     
         return (betas*weather).sum(dim='prednames')
 
+
+    ####################
+    # to be deprecated #
+    ####################  
+    def _construct_covars(self, gdp_covar, clim_covar):
+        '''
+        Helper function to construct the covariates dataarray
+
+        Parameters
+        -----------
+        gdp_covar: :py:class:`~xarray.DataArray`
+          hierid by gdp dataarray
+
+        clim_covar: :py:class:`~xarray.DataArray`
+          hierid by clim dataarray
+
+        Returns
+        -------
+          Dataarray
+               heirid by covars (1, gdp, clim) :py:class:`~xarray.DataArray`
+        '''
+
+        #this will change once we generalize
+        for varname in ['iso']:
+            if varname in gdp_covar:
+                gdp_covar = gdp_covar.drop(varname)
+
+        gdp = gdp_covar.rename('loggdppc')
+        climtas = clim_covar.rename('climtas')
+
+        ones = xr.DataArray(
+            np.ones(len(gdp.hierid)),
+            coords={'hierid': gdp.hierid},
+            dims=['hierid'], name='1')
+
+        cv = [ones, gdp, climtas]
+        covars = xr.concat(
+            cv,
+            pd.Index([i.name for i in cv], name='covarnames'))
+
+        return covars
+
+    ####################
+    # to be deprecated #
+    ####################  
     def compute_betas(self, gammas, gdp_covar, clim_covar):
         '''
         Computes the matrices beta*gamma x IR for each covariates 
-        
+
         Parameters
         ----------
         gammas: :py:class `~xarray.Dataset`
             Coefficients for pred/covar combo
 
         gdp_covar: :py:class:`~xarray.DataArray`
-          hierid by gdp dataarray
+            hierid by gdp dataarray
 
         clim_covar: :py:class:`~xarray.DataArray`
-          hierid by clim dataarray    
-     
+            hierid by clim dataarray    
+
         Returns
         -------
-          Dataarray
+        Dataarray
             hierid by outcome and predname :py:class `~xarray.Dataarray` 
         '''
-        
-        betas = (gammas*covars).sum(dim='covarnames')
+        covars = self._construct_covars(gdp_covar, clim_covar)
+
+        beta_vars = (gammas*covars).sum(dim='covarnames')
+
+        betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
 
         return betas
+
 
     def compute(self,  
             gammas, 
@@ -271,9 +320,6 @@ class Impact(object):
     def compute_t_star(self, betas, bounds=None):
         return self.min_function(betas, bounds=bounds)
 
-    def impact_function(self, betas, annual_weather):
-        raise NotImplementedError
-
     def postprocess_daily(self, impact):
         raise NotImplementedError
 
@@ -313,72 +359,3 @@ class PolynomialImpact(Impact):
         return minimize_polynomial(*args, **kwargs)
 
 
-    ####################
-    # to be deprecated #
-    ####################  
-    def _construct_covars(self, gdp_covar, clim_covar):
-        '''
-        Helper function to construct the covariates dataarray
-
-        Parameters
-        -----------
-        gdp_covar: :py:class:`~xarray.DataArray`
-          hierid by gdp dataarray
-
-        clim_covar: :py:class:`~xarray.DataArray`
-          hierid by clim dataarray
-
-        Returns
-        -------
-          Dataarray
-               heirid by covars (1, gdp, clim) :py:class:`~xarray.DataArray`
-        '''
-
-        #this will change once we generalize
-        gdp_covar = gdp_covar.drop('iso')
-        gdp = gdp_covar.rename('loggdppc')
-        climtas = clim_covar.rename('climtas')
-
-
-        ones = xr.DataArray(
-            np.ones(len(gdp.hierid)),
-            coords={'hierid': gdp.hierid},
-            dims=['hierid'], name='1')
-
-        cv = [ones, gdp, climtas]
-        covars = xr.concat(
-            cv,
-            pd.Index([i.name for i in cv], name='covarnames'))
-
-        return covars
-
-    ####################
-    # to be deprecated #
-    ####################  
-    def compute_betas(self, gammas, gdp_covar, clim_covar):
-        '''
-        Computes the matrices beta*gamma x IR for each covariates 
-
-        Parameters
-        ----------
-        gammas: :py:class `~xarray.Dataset`
-            Coefficients for pred/covar combo
-
-        gdp_covar: :py:class:`~xarray.DataArray`
-            hierid by gdp dataarray
-
-        clim_covar: :py:class:`~xarray.DataArray`
-            hierid by clim dataarray    
-
-        Returns
-        -------
-        Dataarray
-            hierid by outcome and predname :py:class `~xarray.Dataarray` 
-        '''
-        covars = self._construct_covars(gdp_covar, clim_covar)
-
-        beta_vars = (gammas*covars).sum(dim='covarnames')
-
-        betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
-
-        return betas
