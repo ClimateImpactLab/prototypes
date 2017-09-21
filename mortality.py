@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 
-class Mortality_Polynomial(Impact):
+class MortalityPolynomial(Impact):
 	'''
 	Mortality specific Impact spec
 	'''
@@ -134,6 +134,9 @@ class Mortality_Polynomial(Impact):
 
 
 
-
+class MortalitySplines(Impact):
+	'''
+	base class for running mortality spline
+	'''
 
 

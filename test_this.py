@@ -1,5 +1,5 @@
 import xarray as xr, pandas as pd, numpy as np
-from mortality import Mortality_Polynomial
+from mortality import MortalityPolynomial
 from csvv import Gammas
 from impact import Impact
 from base import BaseImpact
@@ -84,7 +84,7 @@ def demo_run():
 	base_median = base.compute(gammas, gdp, climtas)
 
 	#Initialize the Current impact function. Weather is constructed
-	m = Mortality_Polynomial(weather_path, gammas.prednames.values, metadata)
+	m = MortalityPolynomial(weather_path, gammas.prednames.values, metadata)
 
 	#Compute betas
 	betas = m.compute_betas(gammas, gdp, climtas)

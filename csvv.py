@@ -31,6 +31,7 @@ class Gammas():
 		'''
 		self.csvv_path = csvv_path
 		self.data = self._read_csvv(self.csvv_path)
+		self.prednames = sorted(list(set(self.data['prednames'])))
 
 
 
