@@ -152,6 +152,6 @@ class Gammas():
 
 	    gammas = pd.Series(g, index=ind)
 
-	    gammas = xr.Dataset.from_dataframe(gammas.unstack('covarnames'))
+	    gammas = xr.DataArray.from_series(gammas)
 
 	    return gammas
