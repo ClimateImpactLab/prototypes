@@ -162,9 +162,7 @@ class Impact(object):
         '''
         covars = self._construct_covars(gdp_covar, clim_covar)
 
-        beta_vars = (gammas*covars).sum(dim='covarnames')
-
-        betas = beta_vars['1'] + beta_vars['climtas'] + beta_vars['loggdppc']
+        betas = (gammas*covars).sum(dim='covarnames')
 
         return betas
 
@@ -254,11 +252,8 @@ class Impact(object):
         if postprocess_annual:
           impact_annual= self.postprocess_annual(impact_annual) 
 
-        impact_annual = impact_annual.rename({'__xarray_dataarray_variable__': 'rebased'})
-
         return impact_annual.rebased
 
-    @memoize
     def _get_t_star(self, path):
         '''
         Read precomputed t_star
