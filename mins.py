@@ -89,7 +89,7 @@ def minimize_polynomial(da, dim='prednames', bounds=None):
 
     t_star = t_star.expand_dims(dim, axis=da.get_axis_num(dim))
 
-    # this is the only part I'm unsure of. Should the 0th term be included?
-    t_star_poly = xr.concat([t_star**i for i in range(len(da.coords[dim]))], dim=da.coords[dim])
+    # RPolynomial of length 4 should return terms t, t^2, t^3, t^4.
+    t_star_poly = xr.concat([t_star**i for i in range(1, len(da.coords[dim])+1)], dim=da.coords[dim])
 
     return t_star_poly
