@@ -6,6 +6,7 @@ import numpy as np
 from toolz import memoize
 from scipy.stats import multivariate_normal as mn
 
+
 class Gammas():
 	'''
 	Base class for reading csvv files. 
@@ -13,7 +14,6 @@ class Gammas():
 	2. Draws samples for monte carlo
 	3. Enables specification for impact function
 	'''
-
 
 	def __init__(self, csvv_path):
 		'''	
@@ -32,9 +32,6 @@ class Gammas():
 		self.csvv_path = csvv_path
 		self.data = self._read_csvv(self.csvv_path)
 
-
-
-	@memoize
 	def _read_csvv(self, csvv_path):
 	    '''
 	    Returns the gammas and covariance matrix 
@@ -71,7 +68,6 @@ class Gammas():
 
 	    return data
 
-
 	def median(self):
 		'''
 		Returns the values in the array of gammas organized according to specification
@@ -88,7 +84,6 @@ class Gammas():
 
 
 		return self._prep_gammas()
-
 
 	def sample(self, seed=None):
 		'''
@@ -109,9 +104,6 @@ class Gammas():
 
 
 		return self._prep_gammas(seed=seed)
-
-
-
 
 	def _prep_gammas(self, seed=None):
 	    '''
@@ -152,6 +144,6 @@ class Gammas():
 
 	    gammas = pd.Series(g, index=ind)
 
-	    gammas = xr.Dataset.from_dataframe(gammas.unstack('covarnames'))
+	    gammas = xr.DataArray.from_series(gammas)
 
 	    return gammas
