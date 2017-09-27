@@ -2,9 +2,6 @@ import os
 import xarray as xr
 import numpy as np
 import warnings
-from impact import Impact
-
-
 
 
 def _findpolymin(coeffs, min_max):

@@ -60,7 +60,7 @@ class BaseImpact(Impact):
             if year <= 2005:
                 read_rcp = 'historical'
             else: 
-                read_rcp = 'rcp85'
+                read_rcp = metadata.get('scenario', 'rcp85')
 
             path = model_paths.format(scenario=read_rcp ,year=year)
             with xr.open_dataset(path) as ds:
@@ -150,11 +150,12 @@ class BaseImpact(Impact):
         if os.path.isfile(self.base_path):
             return self._get_baseline(self.base_path)
 
-        if not self.weather_computed:
-            self.weather_computed = self.get_weather(self.weather_paths, self.preds, self.metadata)
+        if self.weather_computed is None:
+            self.weather_computed = self.get_weather(
+                self.weather_paths, self.preds, self.metadata)
 
 
-        betas = self._compute_betas(gammas, gdp_covars, clim_covars)
+        betas = self.compute_betas(gammas, gdp_covars, clim_covars)
 
         #Compute Raw Impact
         impact= self.impact_function(betas, self.weather_computed)
