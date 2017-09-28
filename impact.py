@@ -7,6 +7,35 @@ from prototypes.mins import minimize_polynomial
 import time
 
 
+def construct_weather(paths, prednames, metadata):
+    '''
+    Helper function to build out weather dataarray
+
+    Parameters
+    ----------
+    path: str
+        unformatted path strings to weather files
+
+    prednames: list
+        list of preds for specification
+
+    metadata: dict
+        used to complete file path construction
+
+
+
+    '''
+    weather_data = {}
+
+    for pred in prednames:
+        with xr.open_dataset(paths.format(pred=pred, **metadata)) as ds:
+            weather_data[pred] = ds[pred].load()
+
+    return weather_data
+        
+
+
+
 class Impact(object):
     '''
     Base class for computing an impact as specified by the Climate Impact Lab
