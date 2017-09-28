@@ -40,7 +40,7 @@ def construct_weather(paths, prednames, metadata):
 
 
 
-    return _combine_dataarrays('prednames', weather_data)
+    return Impact._combine_dataarrays('prednames', weather_data)
         
 
 
@@ -89,25 +89,6 @@ class Impact(object):
         return xr.concat(
             array_values,
             pd.Index(array_names, name=name))
-    
-    # def combine_weather(cls, **weather):
-    #     '''
-    #     Helper function to construct the covariates dataarray
-
-    #     Parameters
-    #     -----------
-    #     weather: keyword arguments of DataArrays
-    #       weather :py:class:`~xarray.DataArray`s
-
-    #     Returns
-    #     -------
-    #     combined: DataArray
-    #         Combined :py:class:`~xarray.DataArray` of weather
-    #         variables, with variables concatenated along the
-    #         new `prednames` dimension
-    #     '''
-        
-    #     return self._combine_dataarrays(name='prednames', **weather)
 
     def combine_covars(self, add_constant=True, **covars):
         '''
@@ -136,7 +117,7 @@ class Impact(object):
                 dims=covars.values()[0].dims)
             covars['1'] = ones
             
-        return self._combine_dataarrays(name='covarnames', **covars)
+        return _combine_dataarrays(name='covarnames', **covars)
 
     def compute(self,
             weather,
