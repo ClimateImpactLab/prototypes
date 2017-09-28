@@ -7,6 +7,7 @@ from prototypes.mins import minimize_polynomial
 import time
 
 
+@staticmethod
 def construct_weather(paths, prednames, metadata):
     '''
     Helper function to build out weather dataarray
@@ -22,6 +23,12 @@ def construct_weather(paths, prednames, metadata):
     metadata: dict
         used to complete file path construction
 
+    Returns
+    -------
+    combined: DataArray
+            Combined :py:class:`~xarray.DataArray` of weather
+            variables, with variables concatenated along the
+            new `prednames` dimension
 
 
     '''
@@ -31,7 +38,9 @@ def construct_weather(paths, prednames, metadata):
         with xr.open_dataset(paths.format(pred=pred, **metadata)) as ds:
             weather_data[pred] = ds[pred].load()
 
-    return weather_data
+
+
+    return _combine_dataarrays('prednames', weather_data)
         
 
 
@@ -71,7 +80,8 @@ class Impact(object):
     
         return (betas*weather).sum(dim='prednames')
     
-    def _combine_dataarrays(self, name, **arrays):
+    @staticmethod
+    def _combine_dataarrays(name, **arrays):
         
         array_names = arrays.keys()
         array_values = [arrays[k] for k in array_names]
@@ -80,24 +90,24 @@ class Impact(object):
             array_values,
             pd.Index(array_names, name=name))
     
-    def combine_weather(self, **weather):
-        '''
-        Helper function to construct the covariates dataarray
+    # def combine_weather(cls, **weather):
+    #     '''
+    #     Helper function to construct the covariates dataarray
 
-        Parameters
-        -----------
-        weather: keyword arguments of DataArrays
-          weather :py:class:`~xarray.DataArray`s
+    #     Parameters
+    #     -----------
+    #     weather: keyword arguments of DataArrays
+    #       weather :py:class:`~xarray.DataArray`s
 
-        Returns
-        -------
-        combined: DataArray
-            Combined :py:class:`~xarray.DataArray` of weather
-            variables, with variables concatenated along the
-            new `prednames` dimension
-        '''
+    #     Returns
+    #     -------
+    #     combined: DataArray
+    #         Combined :py:class:`~xarray.DataArray` of weather
+    #         variables, with variables concatenated along the
+    #         new `prednames` dimension
+    #     '''
         
-        return self._combine_dataarrays(name='prednames', **weather)
+    #     return self._combine_dataarrays(name='prednames', **weather)
 
     def combine_covars(self, add_constant=True, **covars):
         '''
