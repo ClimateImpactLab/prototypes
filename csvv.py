@@ -54,7 +54,6 @@ class Gammas(object):
 	Base class for reading csvv files. 
 	1. Constructs data structure representing covar/predname coefficients
 	2. Draws samples for monte carlo
-	3. Enables specification for impact function
 	'''
 
 	def __init__(self, gammas, gammavcv, index):
@@ -63,8 +62,17 @@ class Gammas(object):
 
 		Parameters
 		----------
-		data: dict
-			dictionary specifying covarnames, prednames, gammas, cov matrix etc.
+		gammas: array 
+			:py:class:`~numpy.array`
+			point estimates of median values for multivariate distribution
+		
+		gammavcv: array
+			:py:class:`~numpy.array`
+			covariance matrix for point estimates of median values for multivariate distribution
+
+		index: MultiIndex
+			:py:class:`~pandas.MultiIndex` of prednames, covarnames and outcomes
+
 
 		Returns
 		-------
@@ -87,7 +95,7 @@ class Gammas(object):
 		Returns
 		-------
 
-			:py:class `~xarray.Dataset` of gamma coefficients organized by covar and pred
+			:py:class `~xarray.DataArray` of gamma coefficients organized by covar and pred
 		'''
 
 		return self._prep_gammas()
@@ -104,33 +112,26 @@ class Gammas(object):
 			number to intialize randomization
 
 
-		Returns: 
+		Returns: array
+			:py:class:`~numpy.array` of gamma coefficients
 
-			:py:class `~xarray.Dataset` of gamma coefficients organized by covar and pred
 		'''
 
 		return self._prep_gammas(seed=seed)
 
 	def _prep_gammas(self, seed=None):
 	    '''
-		Constructs the data structure to organize the functional spec of impact computation. 
-		If seed is provided a random sample is drawn from the multivariate distribution. 
-
-
+	    Produces the gammas data structure
+	
 	    Parameters
-	    ----------
-	    path: str
-	        path to file 
-
-	    power: int
-	      for polynomial specifications
-
+	    ----------	  
 	    seed: int
 	        seed for random draw
 
 	    Returns
 	    -------
-	    Xarray Dataset
+			:py:class `~xarray.DataArray` of gamma coefficients organized by covar and pred
+	    
 	    '''
 
 	    if seed:
