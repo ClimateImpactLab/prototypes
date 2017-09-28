@@ -3,7 +3,7 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 from toolz import memoize
-from prototypes.mins import minimize_polynomial
+from mins import minimize_polynomial
 import time
 
 
