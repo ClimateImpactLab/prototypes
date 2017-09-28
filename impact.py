@@ -7,51 +7,15 @@ from prototypes.mins import minimize_polynomial
 import time
 
 
-
-@staticmethod
-def _combine_dataarrays(name, **arrays):
-    '''
-    Concats dataarrays along new `name` dimension 
-
-    Parameters
-    ----------
-    name: str
-        dim to concat along
-
-    arrays: dict
-        dictionary of :py:class:`~xarray.DataArray` objects
-
-
-    Returns
-    -------
-    combined: DataArray
-            Combined :py:class:`~xarray.DataArray` of array
-            variables, with variables concatenated along the
-            new `name` dimension
-    '''
-        
-    array_names = arrays.keys()
-    array_values = [arrays[k] for k in array_names]
-
-    return xr.concat(
-        array_values,
-        pd.Index(array_names, name=name))
-
-@staticmethod
-def construct_weather(paths, prednames, metadata):
+def construct_weather(**weather):
     '''
     Helper function to build out weather dataarray
 
     Parameters
     ----------
-    path: str
-        unformatted path strings to weather files
 
-    prednames: list
-        list of preds for specification
-
-    metadata: dict
-        used to complete file path construction
+    weather: dict
+        dictionary of prednames and file paths for each predname
 
     Returns
     -------
@@ -62,15 +26,49 @@ def construct_weather(paths, prednames, metadata):
 
 
     '''
-    weather_data = {}
-
+    prednames = weather.keys()
+    weather_data = []
     for pred in prednames:
-        with xr.open_dataset(paths.format(pred=pred, **metadata)) as ds:
-            weather_data[pred] = ds[pred].load()
+        with xr.open_dataset(weather[pred]) as ds:
+            weather_data.append(ds[pred].load())
 
+    return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
 
+def construct_covars(add_constant=True, **covars):
+    '''
+    Helper function to construct the covariates dataarray
 
-    return _combine_dataarrays('prednames', weather_data)
+    Parameters
+    -----------
+    add_constant : bool
+        flag indicating whether a constant term should be added. The constant term will have the
+        same shape as the other covariate DataArrays
+    
+    covars: keyword arguments of DataArrays
+      covariate :py:class:`~xarray.DataArray`s
+
+    Returns
+    -------
+    combined: DataArray
+        Combined :py:class:`~xarray.DataArray` of covariate
+        variables, with variables concatenated along the
+        new `covarnames` dimension
+    '''
+
+    covarnames = covars.keys()
+    covar_data = []
+    for covar in covarnames:
+        with xr.open_dataset(covars[covar]) as ds:
+            covar_data.append(ds[covar].load())
+
+    if add_constant:
+        ones = xr.DataArray(np.ones(shape=covar_data[0].shape),
+            coords=covar_data[0].coords,
+            dims=covar_data[0].dims)
+        covarnames.append('1')
+        covar_data.append(ones)
+        
+    return xr.concat(covar_data, pd.Index(covarnames, name='covarnames'))
         
 
 class Impact(object):
@@ -108,35 +106,6 @@ class Impact(object):
     
         return (betas*weather).sum(dim='prednames')
     
-
-    def combine_covars(self, add_constant=True, **covars):
-        '''
-        Helper function to construct the covariates dataarray
-
-        Parameters
-        -----------
-        add_constant : bool
-            flag indicating whether a constant term should be added. The constant term will have the
-            same shape as the other covariate DataArrays
-        
-        covars: keyword arguments of DataArrays
-          covariate :py:class:`~xarray.DataArray`s
-
-        Returns
-        -------
-        combined: DataArray
-            Combined :py:class:`~xarray.DataArray` of covariate
-            variables, with variables concatenated along the
-            new `covarnames` dimension
-        '''
-
-        if add_constant:
-            ones = xr.DataArray(np.ones(shape=covars.values()[0].shape),
-                coords=covars.values()[0].coords,
-                dims=covars.values()[0].dims)
-            covars['1'] = ones
-            
-        return _combine_dataarrays(name='covarnames', **covars)
 
     def compute(self,
             weather,

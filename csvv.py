@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import multivariate_normal as mn
 
 
-def read_csvv(csvv_path):
+def get_gammas(csvv_path):
     '''
     Returns the gammas and covariance matrix 
     
@@ -40,7 +40,12 @@ def read_csvv(csvv_path):
             if row[0] == 'outcome': 
             	data['outcome'] =[cv.strip() for cv in reader.next()]
 
-    return data
+    index = pd.MultiIndex.from_tuples(zip(data['outcome'], data['prednames'], data['covarnames']), 
+	    									names=['outcome', 'prednames', 'covarnames'])
+
+    g = Gammas(data['gamma'], data['gammavcv'], index)
+
+    return g 
 
 
 
@@ -52,7 +57,7 @@ class Gammas(object):
 	3. Enables specification for impact function
 	'''
 
-	def __init__(self, data):
+	def __init__(self, gammas, gammavcv, index):
 		'''	
 		Constructor for gammas object
 
@@ -67,7 +72,9 @@ class Gammas(object):
 			:py:class `~xarray.DataArray`  
 
 		'''
-		self.data = data
+		self.gammas = gammas
+		self.gammavcv = gammavcv
+		self.index = index
 
 	def median(self):
 		'''
@@ -128,17 +135,10 @@ class Gammas(object):
 
 	    if seed:
 	        np.random.seed(seed)
-	        g = mn.rvs(self.data['gamma'], self.data['gammavcv'])
+	        g = mn.rvs(self.gammas, self.gammavcv)
 
 	    else: 
-	        g = self.data['gamma']
+	        g = self.gammas
 
 
-	    ind = pd.MultiIndex.from_tuples(zip(self.data['outcome'], self.data['prednames'], self.data['covarnames']), 
-	    									names=['outcome', 'prednames', 'covarnames'])
-
-	    gammas = pd.Series(g, index=ind)
-
-	    gammas = xr.DataArray.from_series(gammas)
-
-	    return gammas
+	    return pd.Series(g, index=self.index).to_xarray()
