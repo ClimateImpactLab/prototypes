@@ -7,6 +7,36 @@ from prototypes.mins import minimize_polynomial
 import time
 
 
+
+@staticmethod
+def _combine_dataarrays(name, **arrays):
+    '''
+    Concats dataarrays along new `name` dimension 
+
+    Parameters
+    ----------
+    name: str
+        dim to concat along
+
+    arrays: dict
+        dictionary of :py:class:`~xarray.DataArray` objects
+
+
+    Returns
+    -------
+    combined: DataArray
+            Combined :py:class:`~xarray.DataArray` of array
+            variables, with variables concatenated along the
+            new `name` dimension
+    '''
+        
+    array_names = arrays.keys()
+    array_values = [arrays[k] for k in array_names]
+
+    return xr.concat(
+        array_values,
+        pd.Index(array_names, name=name))
+
 @staticmethod
 def construct_weather(paths, prednames, metadata):
     '''
@@ -40,10 +70,8 @@ def construct_weather(paths, prednames, metadata):
 
 
 
-    return Impact._combine_dataarrays('prednames', weather_data)
+    return _combine_dataarrays('prednames', weather_data)
         
-
-
 
 class Impact(object):
     '''
@@ -80,15 +108,6 @@ class Impact(object):
     
         return (betas*weather).sum(dim='prednames')
     
-    @staticmethod
-    def _combine_dataarrays(name, **arrays):
-        
-        array_names = arrays.keys()
-        array_values = [arrays[k] for k in array_names]
-
-        return xr.concat(
-            array_values,
-            pd.Index(array_names, name=name))
 
     def combine_covars(self, add_constant=True, **covars):
         '''
