@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 from toolz import memoize
-from impact import Impact
+from impact import Impact, construct_covars, construct_weather
 
 
 
@@ -11,17 +11,6 @@ class BaseImpact(Impact):
     '''
     
     '''
-
-    def __init__(self, weather_paths, preds, metadata, base_years, base_path):
-        self.weather_paths = weather_paths
-        self.preds = preds
-        self.metadata  = metadata
-        self.base_years = base_years
-        self.base_path = base_path
-        self.weather_computed = None
-
-
-
     @memoize
     def _get_baseline(self, base_path):
         '''
@@ -62,7 +51,7 @@ class BaseImpact(Impact):
             else: 
                 read_rcp = metadata.get('scenario', 'rcp85')
 
-            path = model_paths.format(scenario=read_rcp ,year=year)
+            path = model_paths.format(scenario=read_rcp ,year=year, **metadata)
             with xr.open_dataset(path) as ds:
                 ds.load()
             ds = ds.mean(dim='time')
