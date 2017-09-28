@@ -114,7 +114,7 @@ class Impact(object):
             baseline=0,
             bounds=None,
             clip_flat_curve=True,
-            t_star=None):
+            t_star_path=None):
         '''
         Computes an impact for a unique set of gdp, climate, weather and gamma coefficient inputs.
         For each set of these, we take the analytic minimum value between two points, 
@@ -164,6 +164,7 @@ class Impact(object):
 
         if clip_flat_curve:
 
+            t_star = self.get_t_star(betas, bounds, t_star_path)
             #Compute the min for flat curve adaptation
             impact_flatcurve = self.impact_function(betas, t_star)
 
@@ -181,19 +182,26 @@ class Impact(object):
 
         return impact_annual
 
-    def get_t_star(self, path):
+    def get_t_star(self, betas, bounds, path):
         '''
         Read precomputed t_star
 
         Parameters
         ----------
+
+        betas: DataArray
+            :py:class:`~xarray.DataArray` of betas as prednames by hierid
+
+        bounds: list
+            values between which to evaluate function
+
         path: str
           place to load t-star from 
 
         '''
         
         try:
-            with xr.open_dataset(t_star_path) as t_star:
+            with xr.open_dataset(path) as t_star:
                 return t_star.load()
 
         except OSError:
@@ -201,7 +209,7 @@ class Impact(object):
 
         except (IOError, ValueError):
             try:
-                os.remove(t_star_path)
+                os.remove(path)
             except:
                 pass
 
@@ -209,10 +217,10 @@ class Impact(object):
         t_star = self.compute_t_star(betas, bounds=bounds)
 
         #write to disk
-        if not os.path.isdir(os.path.dirname(t_star_path)):
-            os.makedirs(os.path.dirname(t_star_path))
+        if not os.path.isdir(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
 
-        t_star.to_netcdf(t_star_path)
+        t_star.to_netcdf(path)
 
         return t_star
 
