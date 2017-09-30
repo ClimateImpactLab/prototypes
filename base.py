@@ -41,8 +41,7 @@ def _construct_baseline_weather(pred, pred_path, metadata, base_years):
         path = pred_path.format(scenario=read_rcp ,year=year, model=metadata['model'])
         with xr.open_dataset(path) as ds:
             da = ds[pred].load()
-        da = da.mean(dim='time')
-        das.append(da)
+        das.append(da.mean(dim='time'))
         years.append(year)
 
     das_concat = xr.concat(das, pd.Index(years, name='year')) 
@@ -100,7 +99,7 @@ class BaseImpact(Impact):
 
 
 
-    def compute(self, gammas, gdp_covars, clim_covars):
+    def compute(self, weather gammas, covars):
         '''
         Computes the baseline impact for a given hierid over the baseline period
 

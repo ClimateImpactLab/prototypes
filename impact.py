@@ -7,7 +7,49 @@ from mins import minimize_polynomial
 import time
 
 
-def construct_weather(**weather):
+def construct_baseline_weather(pred, pred_path, metadata, base_years):
+    '''
+    Constructs Tavg for baseline period for each of the climate variables
+
+    Parameters
+    ----------
+
+    pred: str
+        key for pred values
+
+    pred_paths: str
+        unformatted string for paths
+
+    metadata: dict
+        args for this spec including: ssp, model, econ_model, scenario, seed, etc
+
+    base_years: list
+        list of ints of base years
+
+    Returns
+    -------
+        DataArray
+        :py:class:`~xarray.DataArray` of predname by hierid
+    '''
+    years = []
+    das = []
+    for year in range(base_years[0], base_years[1]+1):
+        if year <= 2005:
+            read_rcp = 'historical'
+        else: 
+            read_rcp = metadata.get('scenario', 'rcp85')
+
+        path = pred_path.format(scenario=read_rcp ,year=year, model=metadata['model'])
+        with xr.open_dataset(path) as ds:
+            da = ds[pred].load()
+        das.append(da.mean(dim='time'))
+        years.append(year)
+
+    das_concat = xr.concat(das, pd.Index(years, name='year')) 
+    
+    return das_concat.mean(dim='year')
+
+def construct_weather(*args, **weather, baseline=False):
     '''
     Helper function to build out weather dataarray
 
@@ -26,11 +68,16 @@ def construct_weather(**weather):
 
 
     '''
-    prednames = weather.keys()
+    prednames = []
     weather_data = []
-    for pred in prednames:
-        with xr.open_dataset(weather[pred]) as ds:
-            weather_data.append(ds[pred].load())
+    for pred, path in weather.items():
+        if baseline:
+            weather_data.append(construct_baseline_weather(pred, path, args))
+
+        else:
+            with xr.open_dataset(path) as ds:
+                weather_data.append(ds[pred].load())
+        prednames.append(pred)
 
     return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
 
@@ -69,6 +116,46 @@ def construct_covars(add_constant=True, **covars):
         covar_data.append(ones)
         
     return xr.concat(covar_data, pd.Index(covarnames, name='covarnames'))
+
+
+def basline_to_netcdf(betas, base_years, metadata, write_path):
+    '''
+    Helper function to update metadata and write baseline to disk
+
+    baseline: DataArray
+        :py:class:`~xarray.DataArray` of hierid by predname by outcome
+
+    base_years: list
+        begin and end 
+
+    metadata: dict
+        values to populate Dataset metadata attrs
+
+    write_path: str
+        place to save precomputed dataset
+
+
+
+    Returns
+    -------
+    None
+
+    '''
+
+    baseline_ds= xr.Dataset()
+    baseline_ds['baseline'] = baseline
+
+    metadata['baseline_years'] = str(base_years)
+    metadata['oneline'] = 'Baseline impact value for {variable}'.format(variable= metadata['variable'])
+    metadata['description'] = 'Baseline impact value for {variable}. Values are annual expected damage resolved to GCP hierid level region.'.format(variable=metadata['variable'])
+
+    varattrs = {k:str(v) for k,v in metadata.items()}
+    baseline_ds.attrs.update(varattrs)
+
+    if not os.path.isdir(os.path.dirname(write_path)):
+          os.makedirs(os.path.dirname(write_path))
+    
+    baseline_ds.to_netcdf(write_path)
         
 
 class Impact(object):
@@ -111,7 +198,7 @@ class Impact(object):
             weather,
             gammas, 
             covars,
-            baseline=0,
+            baseline=None,
             bounds=None,
             clip_flat_curve=True,
             t_star_path=None):
@@ -172,6 +259,9 @@ class Impact(object):
             impact = xr.ufuncs.minimum(impact, impact_flatcurve)
 
         impact = self.postprocess_daily(impact)
+
+        if baseline is None:
+            return impact
 
         #Sum to annual
         impact = impact.sum(dim='time')
