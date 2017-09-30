@@ -71,10 +71,8 @@ def construct_weather(weather, baseline=True, metadata=None, base_years=None):
     prednames = []
     weather_data = []
     for pred, path in weather.items():
-        print(baseline)
         if baseline:
             weather_data.append(construct_baseline_weather(pred, path, metadata, base_years))
-            print(weather_data)
         else:
             with xr.open_dataset(path.format(**metadata)) as ds:
                 weather_data.append(ds[pred].load())
