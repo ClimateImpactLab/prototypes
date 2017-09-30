@@ -6,6 +6,81 @@ from toolz import memoize
 from impact import Impact, construct_covars, construct_weather
 
 
+def _construct_baseline_weather(pred, pred_path, metadata, base_years):
+    '''
+    Constructs Tavg for baseline period for each of the climate variables
+
+    Parameters
+    ----------
+
+    pred: str
+        key for pred values
+
+    pred_paths: str
+        unformatted string for paths
+
+    metadata: dict
+        args for this spec including: ssp, model, econ_model, scenario, seed, etc
+
+    base_years: list
+        list of ints of base years
+
+    Returns
+    -------
+        DataArray
+        :py:class:`~xarray.DataArray` of predname by hierid
+    '''
+    years = []
+    das = []
+    for year in range(base_years[0], base_years[1]+1):
+        if year <= 2005:
+            read_rcp = 'historical'
+        else: 
+            read_rcp = metadata.get('scenario', 'rcp85')
+
+        path = pred_path.format(scenario=read_rcp ,year=year, model=metadata['model'])
+        with xr.open_dataset(path) as ds:
+            da = ds[pred].load()
+        da = da.mean(dim='time')
+        das.append(da)
+        years.append(year)
+
+    das_concat = xr.concat(das, pd.Index(years, name='year')) 
+    
+    return das_concat.mean(dim='year')
+
+def construct_weather(weather, metadata, base_years):
+    '''
+    Constructs the baseline weather by predname for computing baseline impact during base period
+
+    .. note: overrides base Impact class `get_weather` method
+
+    Parameters
+    ----------
+    weather: dict
+        preds and unformatted path str for weather for baseline period scenario
+
+    metadata: dict
+        used in constructing paths for weather io
+
+    base_years: list
+        list of ints indicating begin and end of period
+
+    Returns
+    -------
+     DataArray
+        :py:class:`~xarray.DataArray` of predname by hierid
+     
+    '''
+
+    base_weather_pred = []
+    preds = []
+    for pred,pred_path in weather.items():
+        base_weather_pred.append(_construct_baseline_weather(pred, pred_path, metadata, base_years))
+        preds.append(pred)
+    
+    return xr.concat(base_weather_pred, pd.Index(preds, name='prednames'))
+
 
 class BaseImpact(Impact):
     '''
@@ -21,92 +96,6 @@ class BaseImpact(Impact):
           ds.load()
 
         return ds
-
-    def _construct_baseline_weather(self, model_paths, metadata, base_years):
-        '''
-        Constructs Tavg for baseline period for each of the climate variables
-
-        Parameters
-        ----------
-
-        model_paths: str
-            unformatted string for paths
-
-        metadata: dict
-            args for this spec including: ssp, model, econ_model, scenario, seed, etc
-
-        base_years: list
-            list of ints of base years
-
-        Returns
-        -------
-            DataArray
-            :py:class:`~xarray.DataArray` of predname by hierid
-        '''
-        years = []
-        datasets = []
-        for year in range(base_years[0], base_years[1]+1):
-            if year <= 2005:
-                read_rcp = 'historical'
-            else: 
-                read_rcp = metadata.get('scenario', 'rcp85')
-
-            path = model_paths.format(scenario=read_rcp ,year=year, **metadata)
-            with xr.open_dataset(path) as ds:
-                ds.load()
-            ds = ds.mean(dim='time')
-            datasets.append(ds)
-            years.append(year)
-
-        ds_concat = xr.concat(datasets, pd.Index(years, name='year')) 
-        ds_concat = ds_concat.mean(dim='year')
-        return ds_concat
-
-
-    def get_weather(self, weather, preds, metadata):
-        '''
-        Constructs the baseline weather by predname for computing baseline impact during base period
-
-        .. note: overrides base Impact class `get_weather` method
-
-        Parameters
-        ----------
-        weather: str
-            unformatted path str for weather for baseline period scenario
-
-        preds: list
-            names of preds to build weather from
-
-        metadata: dict
-            used in constructing paths for weather io
-
-        Returns
-        -------
-         DataArray
-            :py:class:`~xarray.DataArray` of predname by hierid
-         
-        .. note:: overrides base Impact class `get_weather` method
-
-        '''
-
-        base_weather_pred = []
-        
-        for pred in preds:
-            annual_weather_paths = weather.format(scenario='{scenario}', 
-                                                            year='{year}', 
-                                                            model=self.metadata['model'], 
-                                                            pred=pred)
-
-            base_weather_pred.append(self._construct_baseline_weather(annual_weather_paths, self.metadata, self.base_years))
-
-        ar = []
-        for i, pred in enumerate(preds):
-            ar.append(base_weather_pred[i][pred])
-
-
-        base_weather = xr.concat(ar, pd.Index(preds, name='prednames'))
-
-        return base_weather
 
 
 
@@ -141,7 +130,7 @@ class BaseImpact(Impact):
 
         if self.weather_computed is None:
             self.weather_computed = self.get_weather(
-                self.weather_paths, self.preds, self.metadata)
+                self.weather_paths, self.metadata)
 
 
         betas = self.compute_betas(gammas, gdp_covars, clim_covars)
@@ -150,7 +139,6 @@ class BaseImpact(Impact):
         impact= self.impact_function(betas, self.weather_computed)
 
         return impact 
-
 
 
     def impact_function(self, betas, weather):
