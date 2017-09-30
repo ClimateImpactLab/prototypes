@@ -49,7 +49,7 @@ def construct_baseline_weather(pred, pred_path, metadata, base_years):
     
     return das_concat.mean(dim='year')
 
-def construct_weather(baseline=False, *args, **weather):
+def construct_weather(baseline=False, metadata=None, base_years=None, **weather):
     '''
     Helper function to build out weather dataarray
 
@@ -72,7 +72,7 @@ def construct_weather(baseline=False, *args, **weather):
     weather_data = []
     for pred, path in weather.items():
         if baseline:
-            weather_data.append(construct_baseline_weather(pred, path, args))
+            weather_data.append(construct_baseline_weather(pred, path, metadata, base_years))
 
         else:
             with xr.open_dataset(path) as ds:
