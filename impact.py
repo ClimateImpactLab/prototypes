@@ -80,7 +80,7 @@ def construct_weather(weather, baseline=True, metadata=None, base_years=None):
 
     return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
 
-def construct_covars(covars, add_constant=True):
+def construct_covars(covars, metadata, add_constant=True):
     '''
     Helper function to construct the covariates dataarray
 
@@ -103,8 +103,11 @@ def construct_covars(covars, add_constant=True):
     covarnames = []
     covar_data = []
     for covar, path  in covars.items():
-        print(path)
-        with xr.open_dataset(path) as ds:
+        if metadata['year'] <= 2005:
+            read_rcp = 'historical'
+        else:
+            read_rcp = metadata.get('scenario')
+        with xr.open_dataset(path.format(scenario=read_rcp)) as ds:
             covar_data.append(ds[covar].load())
             covarnames.append(covar)
 
