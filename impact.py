@@ -80,7 +80,7 @@ def construct_weather(weather, baseline=True, metadata=None, base_years=None):
 
     return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
 
-def construct_covars(add_constant=True, covars):
+def construct_covars(covars, add_constant=True):
     '''
     Helper function to construct the covariates dataarray
 
