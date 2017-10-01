@@ -155,7 +155,6 @@ def impact_annual(
 
 
     metadata.update(ADDITIONAL_METADATA)
-    metadata['year'] = year
     metadata['scenario'] = scenario
     metadata['econ_model'] = econ_model
     metadata['model'] = model
@@ -173,6 +172,8 @@ def impact_annual(
     no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR, **metadata)})
     #full_adaptation_covars
     full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata)})
+    
+    metadata['year'] = year
 
     #initialize gamma object
     gammas = Gammas(GAMMAS_FILE)
