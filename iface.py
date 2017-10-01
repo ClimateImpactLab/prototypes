@@ -151,7 +151,7 @@ def impact_annual(
     t_outer1 = time.time()
     import xarray as xr
     from csvv import Gammas
-    from impact import MortalityPolynomial, construct_weather, construct_covars, baseline_to_netcdf
+    from impact import PolynomialImpact, construct_weather, construct_covars, baseline_to_netcdf
 
 
     metadata.update(ADDITIONAL_METADATA)
@@ -183,17 +183,13 @@ def impact_annual(
     annual_weather = construct_weather(weathers_paths, metadata, baseline=False)
 
     #initialize the impact
-    impact = MortalityPolynomial()
+    impact = PolynomialImpact()
 
     ##################
     # Compute Median #
     ##################
 
     median_ds = xr.Dataset()
-
-
-
-   
     
     #set metadata
     metadata['seed'] = 'median'
