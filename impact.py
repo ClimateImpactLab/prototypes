@@ -100,12 +100,13 @@ def construct_covars(covars, add_constant=True):
         variables, with variables concatenated along the
         new `covarnames` dimension
     '''
-
-    covarnames = covars.keys()
+    covarnames = []
     covar_data = []
-    for covar in covarnames:
-        with xr.open_dataset(covars[covar]) as ds:
+    for covar, path  in covars.items():
+        print(path)
+        with xr.open_dataset(path) as ds:
             covar_data.append(ds[covar].load())
+            covarnames.append(covar)
 
     if add_constant:
         ones = xr.DataArray(np.ones(shape=covar_data[0].shape),
