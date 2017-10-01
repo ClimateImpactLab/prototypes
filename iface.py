@@ -165,8 +165,10 @@ def impact_annual(
     #Setup Run args
 
     #covar_setup
-    #base and no_adap_covars
-    base_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)})
+    #baseline
+    base_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario='{scenario}', model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)})
+    #no adaptation
+    no_adap_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)})
     #inconme only adaptation covars
     inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(**metadata) })
     #climate only no income adaptation
@@ -219,7 +221,7 @@ def impact_annual(
     #################
     t1 = time.time()
 
-    no_adaptation= impact.compute(annual_weather, gammas_median, base_covars, baseline=baseline_median, bounds = [10,25], t_star_path=t_star)
+    no_adaptation= impact.compute(annual_weather, gammas_median, no_adap_covars, baseline=baseline_median, bounds = [10,25], t_star_path=t_star)
     median_ds['no_adaptation'] =  no_adaptation
 
     t2 = time.time()
@@ -327,7 +329,7 @@ def impact_annual(
 
             t_noadp1 = time.time()
 
-            no_adaptation= impact.compute(annual_weather, gammas_sample, base_covars, baseline=baseline_seed, bounds = [10,25], t_star_path=t_star)
+            no_adaptation= impact.compute(annual_weather, gammas_sample, no_adap_covars, baseline=baseline_seed, bounds = [10,25], t_star_path=t_star)
 
             ds_mc['no_adaptation']  = no_adaptation
 
