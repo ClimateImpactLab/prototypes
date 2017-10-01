@@ -39,7 +39,7 @@ def construct_baseline_weather(pred, pred_path, metadata, base_years):
         else: 
             read_rcp = metadata.get('scenario', 'rcp85')
 
-        path = pred_path.format(scenario=read_rcp ,year=year, model=metadata['model'])
+        path = pred_path.format(scenario=read_rcp ,year=year, pred=pred, model=metadata['model'])
         with xr.open_dataset(path) as ds:
             da = ds[pred].load()
         das.append(da.mean(dim='time'))
@@ -74,7 +74,7 @@ def construct_weather(weather, baseline=True, metadata=None, base_years=None):
         if baseline:
             weather_data.append(construct_baseline_weather(pred, path, metadata, base_years))
         else:
-            with xr.open_dataset(path.format(**metadata)) as ds:
+            with xr.open_dataset(path.format(pred=pred, **metadata)) as ds:
                 weather_data.append(ds[pred].load())
         prednames.append(pred)
 
@@ -117,7 +117,7 @@ def construct_covars(add_constant=True, **covars):
     return xr.concat(covar_data, pd.Index(covarnames, name='covarnames'))
 
 
-def basline_to_netcdf(betas, base_years, metadata, write_path):
+def basline_to_netcdf(baseline, base_years, metadata, write_path):
     '''
     Helper function to update metadata and write baseline to disk
 

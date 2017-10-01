@@ -132,7 +132,7 @@ class BaseImpact(Impact):
                 self.weather_paths, self.metadata)
 
 
-        betas = self.compute_betas(gammas, gdp_covars, clim_covars)
+        betas = (gammas*covars)
 
         #Compute Raw Impact
         impact= self.impact_function(betas, self.weather_computed)
@@ -173,38 +173,6 @@ class BaseImpact(Impact):
         return impact_read
 
 
-    def _basline_to_netcdf(self, betas, metadata, write_path):
-        '''
-        Helper function to update metadata and write baseline to disk
 
-        betas: DataArray
-            :py:class:`~xarray.DataArray` of hierid by predname by outcome
-
-        metadata: dict
-            values to populate Dataset metadata attrs
-
-        write_path: str
-            place to save precomputed dataset
-
-        Returns
-        -------
-        None
-
-        '''
-
-        baseline = xr.Dataset()
-        baseline['baseline'] = betas
-
-        metadata['baseline_years'] = str(self.base_years)
-        metadata['oneline'] = 'Baseline impact value for mortality'
-        metadata['description'] = 'Baseline impact value for mortality. Values are annual expected damage resolved to GCP hierid level region.'
-
-        varattrs = {k:str(v) for k,v in metadata.items()}
-        baseline.attrs.update(varattrs)
-
-        if not os.path.isdir(os.path.dirname(write_path)):
-              os.makedirs(os.path.dirname(write_path))
-        
-        baseline.to_netcdf(write_path)
 
 
