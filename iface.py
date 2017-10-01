@@ -166,13 +166,13 @@ def impact_annual(
 
     #covar_setup
     #baseline
-    base_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario='{scenario}', model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)})
+    base_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario='{scenario}', model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)}, metadata)
     #no adaptation
-    no_adap_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)})
+    no_adap_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)}, metadata)
     #inconme only adaptation covars
-    inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(**metadata) })
+    inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(**metadata) }, metadata)
     #climate only no income adaptation
-    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR, ssp=ssp, econ_model=econ_model)})
+    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR, ssp=ssp, econ_model=econ_model)}, metadata)
     #full_adaptation_covars
     full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata)})
     
