@@ -117,7 +117,7 @@ def construct_covars(add_constant=True, **covars):
     return xr.concat(covar_data, pd.Index(covarnames, name='covarnames'))
 
 
-def basline_to_netcdf(baseline, base_years, metadata, write_path):
+def baseline_to_netcdf(baseline, base_years, metadata, write_path):
     '''
     Helper function to update metadata and write baseline to disk
 
