@@ -60,7 +60,7 @@ def construct_covars(covars, add_constant=True):
     for covar, path  in covars.items():
         with xr.open_dataset(path) as ds:
             print(covar)
-            print(ds[covar])
+            print(ds)
             covar_data.append(ds[covar].load())
             covarnames.append(covar)
 
