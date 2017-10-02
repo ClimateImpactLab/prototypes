@@ -147,7 +147,7 @@ def impact_annual(
     '''
     t_outer1 = time.time()
     import xarray as xr
-    from csvv import read_csvv
+    from csvv import get_gammas
     from impact import PolynomialImpact, construct_weather, construct_covars
 
 
@@ -159,7 +159,7 @@ def impact_annual(
     metadata['year'] = year
 
     #initialize gamma object
-    gammas = read_csvv(GAMMAS_FILE)
+    gammas = get_gammas(GAMMAS_FILE)
 
     #Setup Run args
 
