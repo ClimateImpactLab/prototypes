@@ -209,7 +209,7 @@ class Impact(object):
         t_star = self.compute_t_star(betas, bounds=bounds)
 
         #write to disk
-        if path not None:
+        if path != None:
             if not os.path.isdir(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
 
