@@ -28,13 +28,18 @@ __version__ = '0.1.2'
 
 
 
-ANNUAL_WEATHER_FILE = (
+ANNUAL_WEATHER_FILE_READ = (
     '/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/' +
-    '{pred}/{scenario}/{model}/{year}/1.5.nc4')
+    '{pred}/{read_scenario}/{model}/{year}/1.5.nc4')
 
 CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
-    '{scenario}/{model}/{year}/0.1.1.nc4')
+    '{write_scenario}/{model}/{year}/0.1.1.nc4')
 
+NO_ADAP_CLIM_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
+    '{write_scenario}/{model}/{base_year}/0.1.1.nc4')
+
+NO_ADAP_GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
+    '{write_scenario}/{model}/{base_year}/0.1.1.nc4')
 
 GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
 
@@ -46,7 +51,7 @@ T_STAR_PATH = ('/global/scratch/jsimcock/data/covars/t_star/{seed}/{scenario}/{e
 
 BASE_YEAR = 2015
 
-WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/{year}/{version}.nc')
+WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{write_scenario}/{econ_model}/{ssp}/{model}/{year}/{version}.nc')
 
 
 
@@ -98,7 +103,7 @@ MODELS = list(map(lambda x: dict(model=x), [
     'NorESM1-M'
     ]))
 
-PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
+PERIODS = [ dict(scenario='rcp45', year=y) for y in range(1981, 2100)] + [dict(scenario='rcp85', year=y) for y in range(1981, 2100)]
 
 SSP = [dict(ssp='SSP' + str(i)) for i in range(1,2)]
 
@@ -152,29 +157,41 @@ def impact_annual(
 
 
     metadata.update(ADDITIONAL_METADATA)
-    metadata['scenario'] = scenario
+    metadata['write_scenario'] = scenario
     metadata['econ_model'] = econ_model
     metadata['model'] = model
     metadata['ssp'] = ssp
     metadata['year'] = year
-
+    metadata['base_year'] = BASE_YEAR
+ 
     #initialize gamma object
     gammas = get_gammas(GAMMAS_FILE)
 
     #Setup Run args
 
+
+    #grossness
+    if year <= 2005:
+        metadata['read_scenario'] = 'historical'
+
+    else:
+        metadata['read_scenario'] = scenario
+
+
+
+
     #covar_setup
     #no adaptation
-    no_adap_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, **metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,**metadata)})
+    no_adap_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'gdppc': NO_ADAP_GDP_COVAR.format(**metadata)})
     #inconme only adaptation covars
-    inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, **metadata), 'gdppc': GDP_COVAR.format(**metadata) })
+    inc_adp_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata) })
     #climate only no income adaptation
-    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR, **metadata)})
+    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': NO_ADAP_CLIM_COVAR.format(**metadata)})
     #full_adaptation_covars
     full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata)})
     
     #get weather for all scenarios
-    weathers_paths = {k:str(ANNUAL_WEATHER_FILE) for k in gammas_median.prednames.values}
+    weathers_paths = {k:str(ANNUAL_WEATHER_FILE_READ) for k in gammas_median.prednames.values}
     annual_weather = construct_weather(weathers_paths, metadata)
 
     #initialize the impact
