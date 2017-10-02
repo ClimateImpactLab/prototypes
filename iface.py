@@ -42,14 +42,11 @@ GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ss
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
                 'global_interaction_Tmean-POLY-4-AgeSpec.csvv')
 
-T_STAR_PATH = ('/global/scratch/jsimcock/data/covars/t_star/{seed}/{scenario}/{econ_model}/{ssp}.nc') 
-
-BASELINE_YEARS = [2000, 2010]
+T_STAR_PATH = ('/global/scratch/jsimcock/data/covars/t_star/{seed}/{scenario}/{econ_model}/{ssp}/{adaptation}.nc') 
 
 BASE_YEAR = 2015
 
 WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/{year}/{version}.nc')
-BASE_WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/baseline/{version}.nc')
 
 
 
@@ -151,7 +148,7 @@ def impact_annual(
     t_outer1 = time.time()
     import xarray as xr
     from csvv import Gammas
-    from impact import PolynomialImpact, construct_weather, construct_covars, baseline_to_netcdf
+    from impact import PolynomialImpact, construct_weather, construct_covars
 
 
     metadata.update(ADDITIONAL_METADATA)
@@ -161,29 +158,24 @@ def impact_annual(
     metadata['ssp'] = ssp
     metadata['year'] = year
 
+    #initialize gamma object
+    gammas = Gammas(GAMMAS_FILE)
 
     #Setup Run args
 
     #covar_setup
-    #baseline
-    base_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario='{scenario}', model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)}, metadata)
     #no adaptation
-    no_adap_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,ssp=ssp, econ_model=econ_model)}, metadata)
+    no_adap_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, **metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR,**metadata)})
     #inconme only adaptation covars
-    inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, scenario=scenario, model=model), 'gdppc': GDP_COVAR.format(**metadata) }, metadata)
+    inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(year=BASE_YEAR, **metadata), 'gdppc': GDP_COVAR.format(**metadata) })
     #climate only no income adaptation
-    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR, ssp=ssp, econ_model=econ_model)}, metadata)
+    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(year=BASE_YEAR, **metadata)})
     #full_adaptation_covars
     full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata)})
     
-
-    #initialize gamma object
-    gammas = Gammas(GAMMAS_FILE)
-    gammas_median = gammas.median()
-
     #get weather for all scenarios
     weathers_paths = {k:str(ANNUAL_WEATHER_FILE) for k in gammas_median.prednames.values}
-    annual_weather = construct_weather(weathers_paths, metadata, baseline=False)
+    annual_weather = construct_weather(weathers_paths, metadata)
 
     #initialize the impact
     impact = PolynomialImpact()
@@ -192,36 +184,23 @@ def impact_annual(
     # Compute Median #
     ##################
 
+    #initialize median gamma values
+    gammas_median = gammas.median()
+
     median_ds = xr.Dataset()
     
     #set metadata
     metadata['seed'] = 'median'
 
-    #set write path for t_star
-    t_star = T_STAR_PATH.format(**metadata)
-
-    ###########################
-    # compute_baseline_median #
-    ###########################
-    t1 = time.time()
-
-    
-    base_weather = construct_weather(weathers_path, metadata, base_years)
-    
-    baseline_median = impact.compute(base_weather, gammas_median, base_covars, bounds =[10,25], t_star_path=t_star)
-    
-    baseline_median_path = BASE_WRITE_PATH.format(**metadata)
-    baseline_to_netcdf(baseline_median, base_years, metadata, baseline_median_path)
-
-    t2 = time.time()
-    logger.debug('Computing median baseline impact for year {}: {}'.format(year, t2-t1))
 
     #################
     # No Adaptation #
     #################
     t1 = time.time()
 
-    no_adaptation= impact.compute(annual_weather, gammas_median, no_adap_covars, baseline=baseline_median, bounds = [10,25], t_star_path=t_star)
+    betas_no_adap = (gammas_median*no_adap_covars).sum(dim='covarnames')
+    t_star_no_adap = impact.get_t_star(betas_no_adap, bounds, bounds = [10,25], t_star_path =T_STAR_PATH.format(adaptation='no_adaptation', **metadata))
+    no_adaptation= impact.compute(annual_weather, betas_no_adap, t_star=t_star_no_adap)
     median_ds['no_adaptation'] =  no_adaptation
 
     t2 = time.time()
@@ -232,9 +211,9 @@ def impact_annual(
     #####################
     t1 = time.time()
 
-
-    income_adaptation = impact.compute(annual_weather, gammas_median, inc_adp_covars, baseline=baseline_median, bounds = [10,25],  t_star_path=t_star)
-
+    betas_income_adap = (gammas_median*inc_adp_covars).sum(dim='covarnames')
+    t_star_income_adap = impact.get_t_star(betas_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='income_adaptation', **metadata))
+    income_adaptation = impact.compute(annual_weather, betas_income_adap, t_star=t_star_income_adap)
     median_ds['income_adaptation'] =  income_adaptation
 
     t2 = time.time()
@@ -245,8 +224,9 @@ def impact_annual(
     ########################
     t1 = time.time()
 
-
-    no_income_adaptation = impact.compute(annual_weather, gammas_median, no_inc_adp_covars, baseline=baseline_median, bounds = [10,25], t_star_path=t_star) 
+    betas_no_income_adap = (gammas_median*no_inc_adp_covars).sum(dim='covarnames')
+    t_star_no_income_adp = impact.get_t_star(betas_no_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='no_income_adaptation', **metadata))
+    no_income_adaptation = impact.compute(annual_weather, gammas_median, no_inc_adp_covars,t_star_path=t_star_no_income_adp) 
 
     median_ds['no_income_adaptation'] =   no_income_adaptation
 
@@ -260,8 +240,9 @@ def impact_annual(
     t1 = time.time()
 
 
-
-    full_adaptation = impact.compute(annual_weather, gammas_median, full_adp_covars, baseline=baseline_median, bounds = [10,25], t_star_path=t_star)
+    betas_full_adap = (gammas_median*full_adp_covars).sum(dim='covarnames')
+    t_star_full_adp = impact.get_t_star(betas_full_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='full_adaptation', **metadata))
+    full_adaptation = impact.compute(annual_weather, betas_full_adap, t_star=t_star_full_adp)
     
     median_ds['full_adaptation'] =  full_adaptation
 
@@ -303,25 +284,7 @@ def impact_annual(
 
             metadata['seed'] = seed
 
-            t_star = T_STAR_PATH.format(**metadata)
-
             ds_mc = xr.Dataset()
-
-            ####################
-            # compute_baseline #
-            ####################
-
-            baseline_seed_path = BASE_WRITE_PATH.format(**metadata)
-
-            t_base1 = time.time()
-
-            baseline_seed = impact.compute(base_weather, gammas_sample, base_covars, bounds =[10,25], t_star_path=t_star)
-    
-            baseline_to_netcdf(baseline_seed, base_years, metadata, baseline_seed_path)
-
-            t_base2 = time.time()
-            logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
-
 
             #########################
             # compute no adaptation #
@@ -329,12 +292,14 @@ def impact_annual(
 
             t_noadp1 = time.time()
 
-            no_adaptation= impact.compute(annual_weather, gammas_sample, no_adap_covars, baseline=baseline_seed, bounds = [10,25], t_star_path=t_star)
+            betas_no_adap = (gammas_sample*no_adap_covars).sum(dim='covarnames')
+            t_star_no_adap = impact.get_t_star(betas_no_adap, bounds, bounds = [10,25], t_star_path =T_STAR_PATH.format(adaptation='no_adaptation', **metadata))
+            no_adaptation= impact.compute(annual_weather, betas_no_adap, t_star=t_star_no_adap)
 
             ds_mc['no_adaptation']  = no_adaptation
 
             t_noadp2 = time.time()
-            logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
+            logger.debug('Computing MC no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
 
             ##################################
             # compute income only adaptation #
@@ -342,7 +307,10 @@ def impact_annual(
 
             t_incadp1 = time.time()
 
-            income_adaptation = impact.compute(annual_weather, gammas_sample, inc_adp_covars, baseline=baseline_seed, bounds = [10,25], t_star_path=t_star) 
+            betas_income_adap = (gammas_sample*inc_adp_covars).sum(dim='covarnames')
+            t_star_income_adap = impact.get_t_star(betas_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='income_adaptation', **metadata))
+            income_adaptation = impact.compute(annual_weather, betas_income_adap, t_star=t_star_income_adap)
+
             ds_mc['income_adaptation'] = income_adaptation
 
             t_incadp2 = time.time()
@@ -354,7 +322,10 @@ def impact_annual(
 
             t_noincome1 = time.time()
 
-            no_income_adaptation = impact.compute(annual_weather, gammas_sample, no_inc_adp_covars, baseline=baseline_seed, bounds = [10,25], t_star_path=t_star) 
+            betas_no_income_adap = (gammas_sample*no_inc_adp_covars).sum(dim='covarnames')
+            t_star_no_income_adap = impact.get_t_star(betas_no_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='no_income_adaptation', **metadata))
+            no_income_adaptation = impact.compute(annual_weather, betas_no_income_adap, t_star_no_income_adap) 
+
             ds_mc['no_income_adaptation'] = no_income_adaptation
 
             t_noincome2 = time.time()
@@ -366,7 +337,10 @@ def impact_annual(
 
             t_full1 = time.time()
 
-            full_adaptation = impact.compute(annual_weather, gammas_sample, full_adp_covars, baseline=baseline_seed,  bounds = [10,25], t_star_path=t_star) 
+            betas_full_adap = (gammas_median*full_adp_covars).sum(dim='covarnames')
+            t_star_full_adap = impact.get_t_star(betas_full_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='full_adaptation', **metadata))
+            full_adaptation = impact.compute(annual_weather, betas_full_adap, t_star=t_star_full_adap) 
+
             ds_mc['full_adaptation'] = full_adaptation
 
             t_full2 = time.time()
