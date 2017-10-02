@@ -7,7 +7,7 @@ from mins import minimize_polynomial
 import time
 
 
-def construct_weather(weather, metadata=None):
+def construct_weather(weather, metadata):
     '''
     Helper function to build out weather dataarray
 
@@ -29,9 +29,8 @@ def construct_weather(weather, metadata=None):
     prednames = []
     weather_data = []
     for pred, path in weather.items():
-        else:
-            with xr.open_dataset(path.format(pred=pred, **metadata)) as ds:
-                weather_data.append(ds[pred].load())
+        with xr.open_dataset(path.format(pred=pred, **metadata)) as ds:
+            weather_data.append(ds[pred].load())
         prednames.append(pred)
 
     return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
