@@ -192,7 +192,7 @@ def impact_annual(
     #inconme only adaptation covars
     inc_adp_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata) })
     #climate only no income adaptation
-    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': NO_ADAP_CLIM_COVAR.format(**metadata)})
+    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': NO_ADAP_GDP_COVAR.format(**metadata)})
     #full_adaptation_covars
     full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata)})
     
