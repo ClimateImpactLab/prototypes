@@ -39,9 +39,9 @@ NO_ADAP_CLIM_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid
     '{write_scenario}/{model}/{base_year}/0.1.1.nc4')
 
 NO_ADAP_GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/' +
-    '{ssp}/{econ_model}/{base_year}/0.1.0.nc')
+    '{ssp}/{econ_model}/{base_year}/0.1.2.nc')
 
-GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
+GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.2.nc')
 
 
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
@@ -182,13 +182,13 @@ def impact_annual(
 
     #covar_setup
     #no adaptation
-    no_adap_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'gdppc': NO_ADAP_GDP_COVAR.format(**metadata)})
+    no_adap_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'loggdppc': NO_ADAP_GDP_COVAR.format(**metadata)})
     #inconme only adaptation covars
-    inc_adp_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata) })
+    inc_adp_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata) })
     #climate only no income adaptation
-    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': NO_ADAP_CLIM_COVAR.format(**metadata)})
+    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': NO_ADAP_CLIM_COVAR.format(**metadata)})
     #full_adaptation_covars
-    full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'gdppc': GDP_COVAR.format(**metadata)})
+    full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata)})
     
     #get weather for all scenarios
     weathers_paths = {k:str(ANNUAL_WEATHER_FILE_READ) for k in gammas_median.prednames.values}
