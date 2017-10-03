@@ -163,9 +163,8 @@ def impact_annual(
     metadata['ssp'] = ssp
     metadata['year'] = year
     metadata['base_year'] = BASE_YEAR
- 
-    #initialize gamma object
-    gammas = get_gammas(GAMMAS_FILE)
+
+
 
     #Setup Run args
 
@@ -196,6 +195,10 @@ def impact_annual(
     #full_adaptation_covars
     full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata)})
     
+    #initialize gamma object
+    gammas = get_gammas(GAMMAS_FILE)
+    gammas_median = gammas.median()
+
     #get weather for all scenarios
     weathers_paths = {k:str(ANNUAL_WEATHER_FILE_READ) for k in gammas_median.prednames.values}
     annual_weather = construct_weather(weathers_paths, metadata)
@@ -206,9 +209,6 @@ def impact_annual(
     ##################
     # Compute Median #
     ##################
-
-    #initialize median gamma values
-    gammas_median = gammas.median()
 
     median_ds = xr.Dataset()
     
