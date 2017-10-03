@@ -222,7 +222,7 @@ def impact_annual(
     t1 = time.time()
 
     betas_no_adap = (gammas_median*no_adap_covars).sum(dim='covarnames')
-    t_star_no_adap = impact.get_t_star(betas_no_adap, bounds, bounds = [10,25], t_star_path =T_STAR_PATH.format(adaptation='no_adaptation', **metadata))
+    t_star_no_adap = impact.get_t_star(betas_no_adap, bounds = [10,25], t_star_path =T_STAR_PATH.format(adaptation='no_adaptation', **metadata))
     no_adaptation= impact.compute(annual_weather, betas_no_adap, t_star=t_star_no_adap)
     median_ds['no_adaptation'] =  no_adaptation
 
