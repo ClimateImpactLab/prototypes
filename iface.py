@@ -33,7 +33,7 @@ ANNUAL_WEATHER_FILE_READ = (
     '{pred}/{read_scenario}/{model}/{year}/1.5.nc4')
 
 CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
-    '{write_scenario}/{model}/{year}/0.1.1.nc4')
+    '{write_scenario}/{model}/{covar_year}/0.1.1.nc4')
 
 NO_ADAP_CLIM_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
     '{write_scenario}/{model}/{base_year}/0.1.1.nc4')
@@ -41,7 +41,7 @@ NO_ADAP_CLIM_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid
 NO_ADAP_GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/' +
     '{ssp}/{econ_model}/{base_year}/0.1.3.nc')
 
-GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.3.nc')
+GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{covar_year}/0.1.3.nc')
 
 
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
@@ -176,6 +176,12 @@ def impact_annual(
 
     else:
         metadata['read_scenario'] = scenario
+
+    if year <=2015:
+        metadata['covar_year'] = 2015
+
+    else: 
+        metadata['covar_year'] = year
 
 
 
