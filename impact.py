@@ -172,7 +172,7 @@ class Impact(object):
         #Sum to annual
         impact = impact.sum(dim='time')
 
-        impact_annual = self.postprocess_annual(impact_annual) 
+        impact_annual = self.postprocess_annual(impact) 
 
         return impact_annual
 
