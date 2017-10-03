@@ -195,7 +195,7 @@ class Impact(object):
         '''
         
         try:
-            with xr.open_dataset(path) as t_star:
+            with xr.open_dataset(t_star_path) as t_star:
                 return t_star.load()
 
         except OSError:
@@ -203,7 +203,7 @@ class Impact(object):
 
         except (IOError, ValueError):
             try:
-                os.remove(path)
+                os.remove(t_star_path)
             except:
                 pass
 
@@ -212,10 +212,10 @@ class Impact(object):
 
         #write to disk
         if path != None:
-            if not os.path.isdir(os.path.dirname(path)):
-                os.makedirs(os.path.dirname(path))
+            if not os.path.isdir(os.path.dirname(t_star_path)):
+                os.makedirs(os.path.dirname(t_star_path))
 
-            t_star.to_netcdf(path)
+            t_star.to_netcdf(t_star_path)
 
         return t_star
 
