@@ -41,7 +41,7 @@ NO_ADAP_CLIM_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid
 NO_ADAP_GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/' +
     '{ssp}/{econ_model}/{base_year}/0.1.2.nc')
 
-GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.2.nc')
+GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.3.nc')
 
 
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
