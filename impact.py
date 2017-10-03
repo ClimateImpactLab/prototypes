@@ -176,7 +176,7 @@ class Impact(object):
 
         return impact_annual
 
-    def get_t_star(self,betas, bounds, path=None):
+    def get_t_star(self,betas, bounds, t_star_path=None):
         '''
         Read precomputed t_star
 
