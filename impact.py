@@ -3,9 +3,74 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 from toolz import memoize
-from prototypes.mins import minimize_polynomial
+from mins import minimize_polynomial
 import time
 
+
+def construct_weather(weather, metadata):
+    '''
+    Helper function to build out weather dataarray
+
+    Parameters
+    ----------
+
+    weather: dict
+        dictionary of prednames and file paths for each predname
+
+    Returns
+    -------
+    combined: DataArray
+            Combined :py:class:`~xarray.DataArray` of weather
+            variables, with variables concatenated along the
+            new `prednames` dimension
+
+
+    '''
+    prednames = []
+    weather_data = []
+    for pred, path in weather.items():
+        with xr.open_dataset(path.format(pred=pred, **metadata)) as ds:
+            weather_data.append(ds[pred].load())
+        prednames.append(pred)
+
+    return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
+
+def construct_covars(covars, add_constant=True):
+    '''
+    Helper function to construct the covariates dataarray
+
+    Parameters
+    -----------
+    add_constant : bool
+        flag indicating whether a constant term should be added. The constant term will have the
+        same shape as the other covariate DataArrays
+    
+    covars: keyword arguments of DataArrays
+      covariate :py:class:`~xarray.DataArray`s
+
+    Returns
+    -------
+    combined: DataArray
+        Combined :py:class:`~xarray.DataArray` of covariate
+        variables, with variables concatenated along the
+        new `covarnames` dimension
+    '''
+    covarnames = []
+    covar_data = []
+    for covar, path  in covars.items():
+        with xr.open_dataset(path) as ds:
+            covar_data.append(ds[covar].load())
+            covarnames.append(covar)
+
+    if add_constant:
+        ones = xr.DataArray(np.ones(shape=covar_data[0].shape),
+            coords=covar_data[0].coords,
+            dims=covar_data[0].dims)
+        covarnames.append('1')
+        covar_data.append(ones)
+        
+    return xr.concat(covar_data, pd.Index(covarnames, name='covarnames'))
+        
 
 class Impact(object):
     '''
@@ -42,69 +107,10 @@ class Impact(object):
     
         return (betas*weather).sum(dim='prednames')
     
-    def _combine_dataarrays(self, name, **arrays):
-        
-        array_names = arrays.keys()
-        array_values = [arrays[k] for k in array_names]
-
-        return xr.concat(
-            array_values,
-            pd.Index(array_names, name=name))
-    
-    def combine_weather(self, **weather):
-        '''
-        Helper function to construct the covariates dataarray
-
-        Parameters
-        -----------
-        weather: keyword arguments of DataArrays
-          weather :py:class:`~xarray.DataArray`s
-
-        Returns
-        -------
-        combined: DataArray
-            Combined :py:class:`~xarray.DataArray` of weather
-            variables, with variables concatenated along the
-            new `prednames` dimension
-        '''
-        
-        return self._combine_dataarrays(name='prednames', **weather)
-
-    def combine_covars(self, add_constant=True, **covars):
-        '''
-        Helper function to construct the covariates dataarray
-
-        Parameters
-        -----------
-        add_constant : bool
-            flag indicating whether a constant term should be added. The constant term will have the
-            same shape as the other covariate DataArrays
-        
-        covars: keyword arguments of DataArrays
-          covariate :py:class:`~xarray.DataArray`s
-
-        Returns
-        -------
-        combined: DataArray
-            Combined :py:class:`~xarray.DataArray` of covariate
-            variables, with variables concatenated along the
-            new `covarnames` dimension
-        '''
-
-        if add_constant:
-            ones = xr.DataArray(np.ones(shape=covars.values()[0].shape),
-                coords=covars.values()[0].coords,
-                dims=covars.values()[0].dims)
-            covars['1'] = ones
-            
-        return self._combine_dataarrays(name='covarnames', **covars)
 
     def compute(self,
             weather,
-            gammas, 
-            covars,
-            baseline=0,
-            bounds=None,
+            betas,
             clip_flat_curve=True,
             t_star=None):
         '''
@@ -148,9 +154,6 @@ class Impact(object):
 
         '''
 
-        #Generate Betas
-        betas = (gammas*covars).sum(dim='covarnames')
-
         #Compute Raw Impact
         impact = self.impact_function(betas, weather)
 
@@ -167,25 +170,30 @@ class Impact(object):
         #Sum to annual
         impact = impact.sum(dim='time')
 
-        impact_annual = impact - baseline
-
-        impact_annual = self.postprocess_annual(impact_annual) 
+        impact_annual = self.postprocess_annual(impact) 
 
         return impact_annual
 
-    def get_t_star(self, path):
+    def get_t_star(self,betas, bounds, t_star_path=None):
         '''
         Read precomputed t_star
 
         Parameters
         ----------
+
+        betas: DataArray
+            :py:class:`~xarray.DataArray` of betas as prednames by hierid
+
+        bounds: list
+            values between which to evaluate function
+
         path: str
           place to load t-star from 
 
         '''
         
         try:
-            with xr.open_dataset(t_star_path) as t_star:
+            with xr.open_dataarray(t_star_path) as t_star:
                 return t_star.load()
 
         except OSError:
@@ -201,10 +209,11 @@ class Impact(object):
         t_star = self.compute_t_star(betas, bounds=bounds)
 
         #write to disk
-        if not os.path.isdir(os.path.dirname(t_star_path)):
-            os.makedirs(os.path.dirname(t_star_path))
-
-        t_star.to_netcdf(t_star_path)
+        if t_star_path != None:
+            if not os.path.isdir(os.path.dirname(t_star_path)):
+                os.makedirs(os.path.dirname(t_star_path))
+            
+            t_star.to_netcdf(t_star_path)
 
         return t_star
 

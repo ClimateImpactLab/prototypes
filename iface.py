@@ -24,35 +24,34 @@ logger.setLevel('DEBUG')
 
 __author__ = 'Justin Simcock'
 __contact__ = 'jsimcock@rhg.com'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 
-ANNUAL_WEATHER_FILE = (
+ANNUAL_WEATHER_FILE_READ = (
     '/global/scratch/mdelgado/projection/gcp/climate/hierid/popwt/daily/' +
-    '{pred}/{scenario}/{model}/{year}/1.5.nc4')
+    '{pred}/{read_scenario}/{model}/{year}/1.5.nc4')
 
 CLIMATE_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
-    '{scenario}/{model}/{year}/0.1.1.nc4')
+    '{write_scenario}/{model}/{covar_year}/0.1.1.nc4')
 
+NO_ADAP_CLIM_COVAR = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
+    '{write_scenario}/{model}/{base_year}/0.1.1.nc4')
 
-GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{year}/0.1.0.nc')
+NO_ADAP_GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/' +
+    '{ssp}/{econ_model}/{base_year}/0.1.3.nc')
 
+GDP_COVAR = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/{covar_year}/0.1.3.nc')
 
-GDP_2015 = ('/global/scratch/jsimcock/data_files/covars/ssp_kernel_13_gdppc/{ssp}/{econ_model}/2015/0.1.0.nc')
-
-CLIMATE_2015 = ('/global/scratch/jsimcock/data_files/covars/climate/hierid/popwt/tas_kernel_30/' +
-    'rcp85/{model}/2015/0.1.1.nc4')
 
 GAMMAS_FILE = ('/global/scratch/jsimcock/data_files/covars/' + 
                 'global_interaction_Tmean-POLY-4-AgeSpec.csvv')
 
-T_STAR_PATH = ('/global/scratch/jsimcock/data/covars/t_star/{seed}/{scenario}/{econ_model}/{ssp}.nc') 
+T_STAR_PATH = ('/global/scratch/jsimcock/data/covars/t_star/{seed}/{scenario}/{econ_model}/{ssp}/{adaptation}.nc') 
 
-BASE_YEARS = [2000, 2010]
+BASE_YEAR = 2015
 
-WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/{year}/{version}.nc')
-BASE_WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{scenario}/{econ_model}/{ssp}/{model}/baseline/{version}.nc')
+WRITE_PATH = ('/global/scratch/jsimcock/gcp/impacts/{variable}/{seed}/{write_scenario}/{econ_model}/{ssp}/{model}/{year}/{version}.nc')
 
 
 
@@ -71,40 +70,40 @@ ADDITIONAL_METADATA = dict(
     version=__version__,
     repo='https://github.com/ClimateImpactLab/mortality',
     file=str(__file__),
-    execute='python mortality.py run',
+    execute='python {} run'.format(str(__file__)),
     project='gcp', 
     team='impacts-mortality',
-    frequency='daily',
+    weather_frequency='daily',
     variable='mortality-daily',
     created= str(datetime.datetime.now())
     )
 
 
 MODELS = list(map(lambda x: dict(model=x), [
-    # 'ACCESS1-0',
-    # 'bcc-csm1-1',
+    'ACCESS1-0',
+    'bcc-csm1-1',
     'BNU-ESM',
-    # 'CanESM2',
-    # 'CCSM4',
-    # 'CESM1-BGC',
-    # 'CNRM-CM5',
-    # 'CSIRO-Mk3-6-0',
-    # 'GFDL-CM3',
-    # 'GFDL-ESM2G',
-    # 'GFDL-ESM2M',
-    # 'IPSL-CM5A-LR',
-    # 'IPSL-CM5A-MR',
-    # 'MIROC-ESM-CHEM',
-    # 'MIROC-ESM',
-    # 'MIROC5',
-    # 'MPI-ESM-LR',
-    # 'MPI-ESM-MR',
-    # 'MRI-CGCM3',
-    # 'inmcm4',
-    # 'NorESM1-M'
+    'CanESM2',
+    'CCSM4',
+    'CESM1-BGC',
+    'CNRM-CM5',
+    'CSIRO-Mk3-6-0',
+    'GFDL-CM3',
+    'GFDL-ESM2G',
+    'GFDL-ESM2M',
+    'IPSL-CM5A-LR',
+    'IPSL-CM5A-MR',
+    'MIROC-ESM-CHEM',
+    'MIROC-ESM',
+    'MIROC5',
+    'MPI-ESM-LR',
+    'MPI-ESM-MR',
+    'MRI-CGCM3',
+    'inmcm4',
+    'NorESM1-M'
     ]))
 
-PERIODS = [ dict(scenario='historical', year=y) for y in range(1981, 2006)] + [dict(scenario='rcp85', year=y) for y in range(2006, 2100)]
+PERIODS = [ dict(scenario='rcp45', year=y) for y in range(1981, 2100)] + [dict(scenario='rcp85', year=y) for y in range(1981, 2100)]
 
 SSP = [dict(ssp='SSP' + str(i)) for i in range(1,2)]
 
@@ -153,85 +152,78 @@ def impact_annual(
     '''
     t_outer1 = time.time()
     import xarray as xr
-    from csvv import Gammas
-    from mortality import Mortality_Polynomial as MP_impact
-    from base import BaseImpact
+    from csvv import get_gammas
+    from impact import PolynomialImpact, construct_weather, construct_covars
 
 
     metadata.update(ADDITIONAL_METADATA)
-    metadata['year'] = year
-    metadata['scenario'] = scenario
+    metadata['write_scenario'] = scenario
     metadata['econ_model'] = econ_model
     metadata['model'] = model
     metadata['ssp'] = ssp
+    metadata['year'] = year
+    metadata['base_year'] = BASE_YEAR
 
 
-    gdp_covar_current_path = GDP_COVAR.format(**metadata)
-    gdp_covar_2015_path = GDP_2015.format(**metadata)
 
-    climate_covar_current_path = CLIMATE_COVAR.format(**metadata)
-    climate_covar_2015_path = CLIMATE_2015.format(**metadata)
+    #Setup Run args
 
 
-    #Load data for baseline and clipping computations
-    with xr.open_dataarray(climate_covar_2015_path) as clim_covar_2015:
-        clim_covar_2015.load()
+    #grossness
+    if year <= 2005:
+        metadata['read_scenario'] = 'historical'
 
+    else:
+        metadata['read_scenario'] = scenario
 
-    with xr.open_dataarray(gdp_covar_2015_path) as gdp_covar_2015:
-        gdp_covar_2015.load()
-
-
-    if year < 2015:
-        gdp_covar = gdp_covar_2015
-        clim_covar = clim_covar_2015
+    if year <=2015:
+        metadata['covar_year'] = 2015
 
     else: 
-        with xr.open_dataarray(gdp_covar_current_path,autoclose=True) as gdp_covar:
-            gdp_covar.load()
-        logger.debug('reading covariate data from {}'.format(gdp_covar_current_path))
+        metadata['covar_year'] = year
 
-        with xr.open_dataarray(climate_covar_current_path, autoclose=True) as clim_covar:
-            clim_covar.load()
-        logger.debug('reading covariate data from {}'.format(climate_covar_current_path))
 
+
+
+    #covar_setup
+    #no adaptation
+    no_adap_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'loggdppc': NO_ADAP_GDP_COVAR.format(**metadata)})
+    #inconme only adaptation covars
+    inc_adp_covars = construct_covars({'tas': NO_ADAP_CLIM_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata) })
+    #climate only no income adaptation
+    no_inc_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': NO_ADAP_GDP_COVAR.format(**metadata)})
+    #full_adaptation_covars
+    full_adp_covars = construct_covars({'tas': CLIMATE_COVAR.format(**metadata), 'loggdppc': GDP_COVAR.format(**metadata)})
+    
+    #initialize gamma object
+    gammas = get_gammas(GAMMAS_FILE)
+    gammas_median = gammas.median()
+
+    #get weather for all scenarios
+    weathers_paths = {k:str(ANNUAL_WEATHER_FILE_READ) for k in gammas_median.prednames.values}
+    annual_weather = construct_weather(weathers_paths, metadata)
+
+    #initialize the impact
+    impact = PolynomialImpact()
 
     ##################
     # Compute Median #
     ##################
 
     median_ds = xr.Dataset()
-    gammas = Gammas(GAMMAS_FILE)
-    gammas_median = gammas.median()
-
-
-    #initialize the impact
-    impact = MP_impact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata)
-
+    
     #set metadata
     metadata['seed'] = 'median'
 
-    #set write path for t_star
-    t_star = T_STAR_PATH.format(**metadata)
-
-    ###########################
-    # compute_baseline_median #
-    ###########################
-    t1 = time.time()
-
-    baseline_median_path = BASE_WRITE_PATH.format(**metadata)
-    base = BaseImpact(ANNUAL_WEATHER_FILE, gammas_median.prednames.values, metadata, BASE_YEARS,  baseline_median_path)
-    baseline_median = base.compute(gammas_median, gdp_covar_2015, clim_covar_2015)
-
-    t2 = time.time()
-    logger.debug('Computing median baseline impact for year {}: {}'.format(year, t2-t1))
 
     #################
     # No Adaptation #
     #################
     t1 = time.time()
 
-    no_adaptation= impact.compute(gammas_median, gdp_covar_2015, clim_covar_2015, baseline_median, bounds = [10,25], t_star_path=t_star)
+    betas_no_adap = (gammas_median*no_adap_covars).sum(dim='covarnames')
+    t_star_no_adap = impact.get_t_star(betas_no_adap, bounds = [10,25], t_star_path =T_STAR_PATH.format(adaptation='no_adaptation', **metadata))
+    no_adaptation= impact.compute(annual_weather, betas_no_adap, t_star=t_star_no_adap)
     median_ds['no_adaptation'] =  no_adaptation
 
     t2 = time.time()
@@ -242,7 +234,9 @@ def impact_annual(
     #####################
     t1 = time.time()
 
-    income_adaptation = impact.compute(gammas_median, gdp_covar, clim_covar_2015, baseline_median, bounds = [10,25],  t_star_path=t_star)
+    betas_income_adap = (gammas_median*inc_adp_covars).sum(dim='covarnames')
+    t_star_income_adap = impact.get_t_star(betas_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='income_adaptation', **metadata))
+    income_adaptation = impact.compute(annual_weather, betas_income_adap, t_star=t_star_income_adap)
     median_ds['income_adaptation'] =  income_adaptation
 
     t2 = time.time()
@@ -253,7 +247,10 @@ def impact_annual(
     ########################
     t1 = time.time()
 
-    no_income_adaptation = impact.compute(gammas_median, gdp_covar_2015, clim_covar, baseline_median, bounds = [10,25], t_star_path=t_star) 
+    betas_no_income_adap = (gammas_median*no_inc_adp_covars).sum(dim='covarnames')
+    t_star_no_income_adp = impact.get_t_star(betas_no_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='no_income_adaptation', **metadata))
+    no_income_adaptation = impact.compute(annual_weather, gammas_median, no_inc_adp_covars,t_star_path=t_star_no_income_adp) 
+
     median_ds['no_income_adaptation'] =   no_income_adaptation
 
     t2 = time.time()
@@ -265,7 +262,11 @@ def impact_annual(
     ###################
     t1 = time.time()
 
-    full_adaptation = impact.compute(gammas_median, gdp_covar, clim_covar, baseline_median, bounds = [10,25], t_star_path=t_star)
+
+    betas_full_adap = (gammas_median*full_adp_covars).sum(dim='covarnames')
+    t_star_full_adp = impact.get_t_star(betas_full_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='full_adaptation', **metadata))
+    full_adaptation = impact.compute(annual_weather, betas_full_adap, t_star=t_star_full_adp)
+    
     median_ds['full_adaptation'] =  full_adaptation
 
     t2 = time.time()
@@ -306,22 +307,7 @@ def impact_annual(
 
             metadata['seed'] = seed
 
-            t_star = T_STAR_PATH.format(**metadata)
-
             ds_mc = xr.Dataset()
-
-            ####################
-            # compute_baseline #
-            ####################
-
-            base_seed_path = BASE_WRITE_PATH.format(**metadata)
-
-            t_base1 = time.time()
-            baseline_seed = base.compute(gammas_sample, gdp_covar_2015, clim_covar_2015, base_seed_path)
-
-            t_base2 = time.time()
-            logger.debug('Computing baseline for {} {} {} {}: {}'.format(scenario, econ_model, model, ssp, t_base2 - t_base1))
-
 
             #########################
             # compute no adaptation #
@@ -329,19 +315,25 @@ def impact_annual(
 
             t_noadp1 = time.time()
 
-            no_adaptation = impact.compute(gammas_sample, clim_covar_2015, gdp_covar_2015, baseline_seed, bounds = [10,25], t_star_path=t_star) 
+            betas_no_adap = (gammas_sample*no_adap_covars).sum(dim='covarnames')
+            t_star_no_adap = impact.get_t_star(betas_no_adap, bounds, bounds = [10,25], t_star_path =T_STAR_PATH.format(adaptation='no_adaptation', **metadata))
+            no_adaptation= impact.compute(annual_weather, betas_no_adap, t_star=t_star_no_adap)
+
             ds_mc['no_adaptation']  = no_adaptation
 
             t_noadp2 = time.time()
-            logger.debug('Computing no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
+            logger.debug('Computing MC no adaptiaion for {}: {}'.format(year, t_noadp2 - t_noadp1))
 
-            #############################
-            # compute income adaptation #
-            #############################
+            ##################################
+            # compute income only adaptation #
+            ##################################
 
             t_incadp1 = time.time()
 
-            income_adaptation = impact.compute(gammas_sample, clim_covar_2015, gdp_covar, baseline_seed, bounds = [10,25], t_star_path=t_star) 
+            betas_income_adap = (gammas_sample*inc_adp_covars).sum(dim='covarnames')
+            t_star_income_adap = impact.get_t_star(betas_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='income_adaptation', **metadata))
+            income_adaptation = impact.compute(annual_weather, betas_income_adap, t_star=t_star_income_adap)
+
             ds_mc['income_adaptation'] = income_adaptation
 
             t_incadp2 = time.time()
@@ -353,7 +345,10 @@ def impact_annual(
 
             t_noincome1 = time.time()
 
-            no_income_adaptation = impact.compute(gammas_sample, clim_covar, gdp_covar_2015, baseline_seed, bounds = [10,25], t_star_path=t_star) 
+            betas_no_income_adap = (gammas_sample*no_inc_adp_covars).sum(dim='covarnames')
+            t_star_no_income_adap = impact.get_t_star(betas_no_income_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='no_income_adaptation', **metadata))
+            no_income_adaptation = impact.compute(annual_weather, betas_no_income_adap, t_star_no_income_adap) 
+
             ds_mc['no_income_adaptation'] = no_income_adaptation
 
             t_noincome2 = time.time()
@@ -365,8 +360,11 @@ def impact_annual(
 
             t_full1 = time.time()
 
-            full_adaptation = impact.compute(gammas_sample, clim_covar, gdp_covar, baseline_seed,  bounds = [10,25], t_star_path=t_star) 
-            ds_mc['mortality_full_adaptation'] = full_adaptation
+            betas_full_adap = (gammas_median*full_adp_covars).sum(dim='covarnames')
+            t_star_full_adap = impact.get_t_star(betas_full_adap, bounds=[10,25], t_star_path=T_STAR_PATH.format(adaptation='full_adaptation', **metadata))
+            full_adaptation = impact.compute(annual_weather, betas_full_adap, t_star=t_star_full_adap) 
+
+            ds_mc['full_adaptation'] = full_adaptation
 
             t_full2 = time.time()
             logger.debug('Computing full adaptiaion for {}: {}'.format(year, t_full2 - t_full1))

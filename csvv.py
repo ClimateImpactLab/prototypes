@@ -3,70 +3,86 @@ import csv
 import xarray as xr
 import pandas as pd
 import numpy as np
-from toolz import memoize
 from scipy.stats import multivariate_normal as mn
 
 
-class Gammas():
+def get_gammas(csvv_path):
+    '''
+    Returns the gammas and covariance matrix 
+    
+    Parameters
+    ----------
+    path: str
+        path to csvv file
+
+    Returns
+    -------
+    dict with keys of gamma, gammavcv, prednames, covarnames outcomes, and residvcv
+
+  	Extracts necessary information to specify an impact function
+    '''
+
+    data = {}
+
+    with open(csvv_path, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if row[0] == 'gamma':
+                data['gamma'] = np.array([float(i) for i in reader.next()])
+            if row[0] == 'gammavcv':
+                data['gammavcv'] = np.array([float(i) for i in reader.next()])
+            if row[0] == 'residvcv':
+                data['residvcv'] = np.array([float(i) for i in reader.next()])
+            if row[0] == 'prednames':
+                data['prednames'] = [i.strip() for i in reader.next()]
+            if row[0] == 'covarnames':
+                data['covarnames'] = [i.strip() for i in reader.next()]
+            if row[0] == 'outcome': 
+            	data['outcome'] =[cv.strip() for cv in reader.next()]
+
+    index = pd.MultiIndex.from_tuples(zip(data['outcome'], data['prednames'], data['covarnames']), 
+	    									names=['outcome', 'prednames', 'covarnames'])
+
+    g = Gammas(data['gamma'], data['gammavcv'], index)
+
+    return g 
+
+
+
+class Gammas(object):
 	'''
 	Base class for reading csvv files. 
 	1. Constructs data structure representing covar/predname coefficients
 	2. Draws samples for monte carlo
-	3. Enables specification for impact function
 	'''
 
-	def __init__(self, csvv_path):
+	def __init__(self, gammas, gammavcv, index):
 		'''	
 		Constructor for gammas object
 
 		Parameters
 		----------
-		csvv_path: str
-			path to gammas file
+		gammas: array 
+			:py:class:`~numpy.array`
+			point estimates of median values for multivariate distribution
+		
+		gammavcv: array
+			:py:class:`~numpy.array`
+			covariance matrix for point estimates of median values for multivariate distribution
+
+		index: MultiIndex
+			:py:class:`~pandas.MultiIndex` of prednames, covarnames and outcomes
+
 
 		Returns
 		-------
-		Gammas Object
+		DataArray	
+			:py:class `~xarray.DataArray`  
 
 		'''
-		self.csvv_path = csvv_path
-		self.data = self._read_csvv(self.csvv_path)
-
-	def _read_csvv(self, csvv_path):
-	    '''
-	    Returns the gammas and covariance matrix 
-	    
-	    Parameters
-	    ----------
-	    path: str
-	        path to csvv file
-
-	    Returns
-	    -------
-	    dict with keys of gamma, gammavcv, prednames, covarnames outcomes, and residvcv
-
-	  	Extracts necessary information to specify an impact function
-	    '''
-
-	    data = {}
-
-	    with open(csvv_path, 'r') as file:
-	        reader = csv.reader(file)
-	        for row in reader:
-	            if row[0] == 'gamma':
-	                data['gamma'] = np.array([float(i) for i in reader.next()])
-	            if row[0] == 'gammavcv':
-	                data['gammavcv'] = np.array([float(i) for i in reader.next()])
-	            if row[0] == 'residvcv':
-	                data['residvcv'] = np.array([float(i) for i in reader.next()])
-	            if row[0] == 'prednames':
-	                data['prednames'] = [i.strip() for i in reader.next()]
-	            if row[0] == 'covarnames':
-	                data['covarnames'] = [i.strip() for i in reader.next()]
-	            if row[0] == 'outcome': 
-	            	data['outcome'] =[cv.strip() for cv in reader.next()]
-
-	    return data
+		self.gammas = gammas
+		self.gammavcv = gammavcv
+		self.index = index
 
 	def median(self):
 		'''
@@ -79,9 +95,8 @@ class Gammas():
 		Returns
 		-------
 
-			:py:class `~xarray.Dataset` of gamma coefficients organized by covar and pred
+			:py:class `~xarray.DataArray` of gamma coefficients organized by covar and pred
 		'''
-
 
 		return self._prep_gammas()
 
@@ -97,53 +112,34 @@ class Gammas():
 			number to intialize randomization
 
 
-		Returns: 
+		Returns: array
+			:py:class:`~numpy.array` of gamma coefficients
 
-			:py:class `~xarray.Dataset` of gamma coefficients organized by covar and pred
 		'''
-
 
 		return self._prep_gammas(seed=seed)
 
 	def _prep_gammas(self, seed=None):
 	    '''
-		Constructs the data structure to organize the functional spec of impact computation. 
-		If seed is provided a random sample is drawn from the multivariate distribution. 
-
-
+	    Produces the gammas data structure
+	
 	    Parameters
-	    ----------
-	    path: str
-	        path to file 
-
-	    power: int
-	      for polynomial specifications
-
+	    ----------	  
 	    seed: int
 	        seed for random draw
 
 	    Returns
 	    -------
-	    Xarray Dataset
+			:py:class `~xarray.DataArray` of gamma coefficients organized by covar and pred
+	    
 	    '''
-
-	    ##########################
-	    # Read in data from csvv #
-	    ##########################
 
 	    if seed:
 	        np.random.seed(seed)
-	        g = mn.rvs(self.data['gamma'], self.data['gammavcv'])
+	        g = mn.rvs(self.gammas, self.gammavcv)
 
 	    else: 
-	        g = self.data['gamma']
+	        g = self.gammas
 
 
-	    ind = pd.MultiIndex.from_tuples(zip(self.data['outcome'], self.data['prednames'], self.data['covarnames']), 
-	    									names=['outcome', 'prednames', 'covarnames'])
-
-	    gammas = pd.Series(g, index=ind)
-
-	    gammas = xr.DataArray.from_series(gammas)
-
-	    return gammas
+	    return pd.Series(g, index=self.index).to_xarray()
