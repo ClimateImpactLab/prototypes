@@ -193,7 +193,7 @@ class Impact(object):
         '''
         
         try:
-            with xr.open_dataset(t_star_path) as t_star:
+            with xr.open_dataarray(t_star_path) as t_star:
                 return t_star.load()
 
         except OSError:
@@ -212,7 +212,7 @@ class Impact(object):
         if t_star_path != None:
             if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.makedirs(os.path.dirname(t_star_path))
-
+            
             t_star.to_netcdf(t_star_path)
 
         return t_star
