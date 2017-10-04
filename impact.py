@@ -163,7 +163,7 @@ class Impact(object):
             impact_flatcurve = self.impact_function(betas, t_star)
 
             #Compare values and evaluate a max
-            impact = xr.ufuncs.minimum(impact, impact_flatcurve)
+            impact = xr.ufuncs.maximum(impact, impact_flatcurve)
 
         impact = self.postprocess_daily(impact)
 
@@ -258,3 +258,4 @@ class PolynomialImpact(Impact):
         '''
 
         return minimize_polynomial(*args, **kwargs)
+       
