@@ -8,12 +8,26 @@ from matplotlib.collections import PatchCollection
 
 import toolz
 
+import socket
+
+def get_global_shapepath():
+    host = socket.gethostname()
+    
+    if host.split('.')[-1] == 'brc':
+        return '/global/scratch/mdelgado/shapefiles/world-combo-new-nytimes/new_shapefile'
+    elif host == 'sacagawea':
+        return '/shares/gcp/climate/_spatial_data/world-combo-new-nytimes/new_shapefile'
+    else:
+        raise KeyError('hostname {} not recognized'.format(host))
 
 @toolz.memoize
 def prep_polygons(
-        shapepath='/shares/gcp/climate/_spatial_data/world-combo-new-nytimes/new_shapefile',
+        shapepath=None,
         projection='cyl',
         **kwargs):
+    
+    if shapepath is None:
+        shapepath = get_global_shapepath()
 
     m = Basemap(projection=projection, llcrnrlat=-90, urcrnrlat=90,\
             llcrnrlon=-180, urcrnrlon=180, resolution=None, **kwargs)
