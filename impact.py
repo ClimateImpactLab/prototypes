@@ -7,7 +7,7 @@ from mins import minimize_polynomial
 import time
 
 
-def construct_weather(weather, metadata):
+def construct_weather(**weather):
     '''
     Helper function to build out weather dataarray
 
@@ -15,7 +15,8 @@ def construct_weather(weather, metadata):
     ----------
 
     weather: dict
-        dictionary of prednames and file paths for each predname
+        dictionary of prednames and weather (either ``str`` file paths
+        or :py:class:`xarray.DataArray` objects) for each predname
 
     Returns
     -------
@@ -29,13 +30,18 @@ def construct_weather(weather, metadata):
     prednames = []
     weather_data = []
     for pred, path in weather.items():
-        with xr.open_dataset(path.format(pred=pred, **metadata)) as ds:
-            weather_data.append(ds[pred].load())
+        if hasattr(path, 'dims'):
+            weather_data.append(path)
+
+        else:
+            with xr.open_dataset(path) as ds:
+                weather_data.append(ds[pred].load())
+
         prednames.append(pred)
 
     return xr.concat(weather_data, pd.Index(prednames, name='prednames'))
 
-def construct_covars(covars, add_constant=True):
+def construct_covars(add_constant=True, **covars):
     '''
     Helper function to construct the covariates dataarray
 
@@ -45,8 +51,9 @@ def construct_covars(covars, add_constant=True):
         flag indicating whether a constant term should be added. The constant term will have the
         same shape as the other covariate DataArrays
     
-    covars: keyword arguments of DataArrays
-      covariate :py:class:`~xarray.DataArray`s
+    covars: dict
+        dictionary of covariate name, covariate (``str`` path or :py:class:`xarray.DataArray`)
+        pairs
 
     Returns
     -------
@@ -58,9 +65,14 @@ def construct_covars(covars, add_constant=True):
     covarnames = []
     covar_data = []
     for covar, path  in covars.items():
-        with xr.open_dataset(path) as ds:
-            covar_data.append(ds[covar].load())
-            covarnames.append(covar)
+        if hasattr(path, 'dims'):
+            covar_data.append(path)
+
+        else:
+            with xr.open_dataset(path) as ds:
+                covar_data.append(ds[covar].load())
+
+        covarnames.append(covar)
 
     if add_constant:
         ones = xr.DataArray(np.ones(shape=covar_data[0].shape),
@@ -209,7 +221,7 @@ class Impact(object):
         t_star = self.compute_t_star(betas, bounds=bounds)
 
         #write to disk
-        if t_star_path != None:
+        if t_star_path is not None:
             if not os.path.isdir(os.path.dirname(t_star_path)):
                 os.makedirs(os.path.dirname(t_star_path))
             
